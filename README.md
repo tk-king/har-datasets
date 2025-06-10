@@ -40,6 +40,8 @@ For benchmarking, all HAR datasets should be prepared in the same manner, e.g. w
 
 ### Class Weights Computation
 
+### Subject Cross Validation
+
 # PyTorch Support
 
 We provide [torch](https://pytorch.org/) datasets for easy integration into existing code bases.
