@@ -1,0 +1,45 @@
+root_path: /path/to/data
+freq_save_path: /path/to/freq
+used_cols:
+  1: accX
+  2: accY
+  3: accZ
+  4: linX
+  5: linY
+  6: linZ
+  7: gyrX
+  8: gyrY
+  9: gyrZ
+  10: magX
+  11: magY
+  12: magZ
+  13: activity_id
+label_map:
+  11111: ["walk", true]
+  11112: ["stand", true]
+  11113: ["jog", true]
+  11114: ["sit", true]
+  11115: ["bike", true]
+  11116: ["upstairs", true]
+  11117: ["downstairs", true]
+  11118: ["type", true]
+  11119: ["write", true]
+  11120: ["coffee", true]
+  11121: ["talk", true]
+  11122: ["smoke", true]
+  11123: ["eat", true]
+keys:
+  all: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  train: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  val: []
+  test: [10]
+  LOCV:
+    - [1, 2]
+    - [3, 4]
+    - [5, 6]
+    - [7, 8]
+    - [9, 10]
+locv: {}
+exp_mode: LOCV
+split_tag: sub
+file_encoding: {}

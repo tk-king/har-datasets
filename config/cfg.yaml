@@ -1,0 +1,15 @@
+defaults:
+  - dataset: uci_har
+  - _self_
+
+common:
+  difference: true
+  datanorm_type: standardization
+  spectrogram: False
+  model_type: freq
+  train_vali_quote: 0.95
+  sliding_window:
+    windowsize: 128
+    sampling_freq: 50
+    displacement: 128
+  wavename: morl
