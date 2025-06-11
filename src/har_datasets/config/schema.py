@@ -16,10 +16,8 @@ class ModelType(Enum):
 
 
 class ExpMode(Enum):
-    SOCV = "SOCV"
-    FOCV = "FOCV"
-    LOCV = "LOCV"
     Given = "Given"
+    LSOCV = "LOCV"
 
 
 class Keys(BaseModel):
@@ -60,7 +58,7 @@ class SlidingWindow(BaseModel):
 
 class Common(BaseModel):
     difference: bool
-    datanorm_type: NormType
+    datanorm_type: NormType | None
     spectrogram: bool
     model_type: ModelType
     train_vali_quote: float

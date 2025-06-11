@@ -4,16 +4,17 @@ import numpy as np
 import pandas as pd
 
 
-def parse_uci_har(root_path: str) -> pd.DataFrame:
+def parse_uci_har(dir: str) -> pd.DataFrame:
     # directories of raw data
-    train_path = os.path.join(root_path, "train/Inertial Signals/")
-    test_path = os.path.join(root_path, "test/Inertial Signals/")
+    train_path = os.path.join(dir, "train/Inertial Signals/")
+    test_path = os.path.join(dir, "test/Inertial Signals/")
 
     # file paths
-    train_subj_path = os.path.join(root_path, "train/subject_train.txt")
-    test_subj_path = os.path.join(root_path, "test/subject_test.txt")
-    train_labels_path = os.path.join(root_path, "train/y_train.txt")
-    test_labels_path = os.path.join(root_path, "test/y_test.txt")
+    train_subj_path = os.path.join(dir, "train/subject_train.txt")
+    test_subj_path = os.path.join(dir, "test/subject_test.txt")
+    train_labels_path = os.path.join(dir, "train/y_train.txt")
+    test_labels_path = os.path.join(dir, "test/y_test.txt")
+    labels_map_path = os.path.join(dir, "activity_labels.txt")
 
     # get all files in train and test dirs
     train_files = os.listdir(train_path)
@@ -42,16 +43,8 @@ def parse_uci_har(root_path: str) -> pd.DataFrame:
     # (seg_size * (num_segs_train + num_segs_test), num_activities + 3)
 
     # add col with activity names
-    df["activity_name"] = df["activity_id"].map(
-        {
-            1: "WALKING",
-            2: "WALKING_UPSTAIRS",
-            3: "WALKING_DOWNSTAIRS",
-            4: "SITTING",
-            5: "STANDING",
-            6: "LAYING",
-        }
-    )
+    ldf = pd.read_csv(labels_map_path, sep="\\s+", header=None, names=["id", "label"])
+    df["activity_name"] = df["activity_id"].map(dict(zip(ldf.id, ldf.label)))
 
     # convert activity_id to categorical starting from 0
     df["activity_id"] = pd.factorize(df["activity_id"])[0]

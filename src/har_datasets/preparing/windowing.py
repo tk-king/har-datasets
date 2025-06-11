@@ -14,8 +14,9 @@ def generate_windows(
     block_col: str = BLOCK_COL,
     exclude_cols: List[str] = EXLUDE_COLS,
 ) -> Tuple[pd.DataFrame, List[pd.DataFrame]]:
-    window_dict: Dict[str, List[int]] = defaultdict(list)
+    keep_cols = [col for col in df.columns if col not in exclude_cols]
 
+    window_dict: Dict[str, List[int]] = defaultdict(list)
     windows = []
 
     for block_id in tqdm(df[block_col].unique()):
@@ -29,8 +30,7 @@ def generate_windows(
         activity_id = block_df["activity_id"].unique()[0]
 
         for i in range(0, block_df.shape[0] - window_size + 1, displacement):
-            window_df = block_df.iloc[i : i + window_size]
-            window_df = window_df.drop(columns=exclude_cols)
+            window_df = block_df.iloc[i : i + window_size][keep_cols]
             windows.append(window_df)
 
             window_dict["subj_id"].append(subj_id)

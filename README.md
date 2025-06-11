@@ -5,13 +5,25 @@ This library provides support for popular HAR (human activity recognition) datas
 - metadata descriptions in [DCAT-AP](https://www.dcat-ap.de/) and [Croissant](https://github.com/mlcommons/croissant)
 - downloading from original source
 - parsing into a centralized format
-- preparation from config
+- preparation via config
 - pytorch datasets
 
 # Supported HAR Datasets
 
 - [UCI-HAR](https://archive.ics.uci.edu/dataset/240/human+activity+recognition+using+smartphones)
 - more coming soon
+
+# How To Use
+
+```python
+from har_datasets.dataset.get_har_dataset import get_har_dataset, HAR_DATASET_ID
+
+dataset = get_har_dataset(dataset_id=HAR_DATASET_ID.UCI_HAR)
+
+train_loader, test_loader, val_loader = dataset.get_dataloaders(
+    batch_sizes=(32, 1, 1), shuffles=(True, False, False)
+)
+```
 
 # Common Format
 
