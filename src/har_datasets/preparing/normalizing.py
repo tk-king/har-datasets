@@ -1,15 +1,41 @@
-from typing import List
+from typing import Callable, List
 import pandas as pd
 
 EXCLUDE_COLS = ["subject_id", "activity_id", "session_id", "activity_name"]
 
 
-def normalize_min_max(
-    df: pd.DataFrame, exclude_columns: List[str] = EXCLUDE_COLS
+def normalize_globally(
+    df: pd.DataFrame,
+    normalize: Callable[[pd.DataFrame, List[str]], pd.DataFrame],
+    exclude_columns: List[str] = EXCLUDE_COLS,
 ) -> pd.DataFrame:
+    return normalize(df, exclude_columns)
+
+
+def normalize_per_subject(
+    df: pd.DataFrame,
+    normalize: Callable[[pd.DataFrame, List[str]], pd.DataFrame],
+    exclude_columns: List[str] = EXCLUDE_COLS,
+) -> pd.DataFrame:
+    return df.groupby("subject_id", group_keys=False).transform(
+        lambda x: normalize(x, exclude_columns)
+    )
+
+
+def normalize_per_sample(
+    windows: List[pd.DataFrame],
+    normalize: Callable[[pd.DataFrame, List[str]], pd.DataFrame],
+    exclude_columns: List[str] = EXCLUDE_COLS,
+) -> List[pd.DataFrame]:
+    return [normalize(window, exclude_columns) for window in windows]
+
+
+def min_max(df: pd.DataFrame, exclude_columns: List[str]) -> pd.DataFrame:
+    cols = df.columns.difference(exclude_columns)
+
     # Compute min and max for each column
-    min_values = df[df.columns.difference(exclude_columns)].min()
-    max_values = df[df.columns.difference(exclude_columns)].max()
+    min_values = df[cols].min()
+    max_values = df[cols].max()
 
     # Apply min-max normalization
     df_normalized = (df - min_values) / (max_values - min_values)
@@ -17,12 +43,12 @@ def normalize_min_max(
     return df_normalized
 
 
-def standardize(
-    df: pd.DataFrame, exclude_columns: List[str] = EXCLUDE_COLS
-) -> pd.DataFrame:
+def standardize(df: pd.DataFrame, exclude_columns: List[str]) -> pd.DataFrame:
+    cols = df.columns.difference(exclude_columns)
+
     # Compute mean and standard deviation for each column
-    mean_values = df[df.columns.difference(exclude_columns)].mean()
-    std_values = df[df.columns.difference(exclude_columns)].std()
+    mean_values = df[cols].mean()
+    std_values = df[cols].std()
 
     # Apply standardization
     df_normalized = (df - mean_values) / std_values
@@ -30,16 +56,14 @@ def standardize(
     return df_normalized
 
 
-def robust_scale(
-    df: pd.DataFrame,
-    exclude_columns: List[str] = EXCLUDE_COLS,
-) -> pd.DataFrame:
+def robust_scale(df: pd.DataFrame, exclude_columns: List[str]) -> pd.DataFrame:
+    cols = df.columns.difference(exclude_columns)
+
     # Compute median and IQR (q3 - q1) for each column
-    median_values = df[df.columns.difference(exclude_columns)].median()
-    q1 = df[df.columns.difference(exclude_columns)].quantile(0.25)
-    q3 = df[df.columns.difference(exclude_columns)].quantile(0.75)
+    median_values = df[cols].median()
+    iqr = df[cols].quantile(0.75) - df[cols].quantile(0.25)
 
     # Apply robust scaling
-    df_normalized = (df - median_values) / (q3 - q1)
+    df_normalized = (df - median_values) / iqr
 
     return df_normalized
