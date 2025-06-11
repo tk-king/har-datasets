@@ -7,7 +7,7 @@ import pandas as pd
 from har_datasets.dataset.har_dataset import HARDataset
 from har_datasets.parsing.parsing import parse_uci_har
 from har_datasets.config.configs import get_config_uci_har
-from har_datasets.config.schema import Config
+from har_datasets.config.config import Config
 
 
 class HAR_DATASET_ID(Enum):

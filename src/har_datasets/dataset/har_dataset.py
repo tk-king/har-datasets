@@ -37,13 +37,13 @@ class HARDataset(Dataset[Tuple[Tensor, Tensor]]):
         df = select_activities(df=df, activity_ids=cfg.dataset.selections.activity_ids)
         df = select_channels(df=df, channels=cfg.dataset.selections.channels)
 
-        # apply resampling
-        if cfg.common.resampling_freq is not None:
-            df = resample(
-                df=df,
-                sampling_freq=cfg.dataset.sampling_freq,
-                resampling_freq=cfg.common.resampling_freq,
-            )
+        # # apply resampling
+        # if cfg.common.resampling_freq is not None:
+        #     df = resample(
+        #         df=df,
+        #         sampling_freq=cfg.dataset.sampling_freq,
+        #         resampling_freq=cfg.common.resampling_freq,
+        #     )
 
         # apply global or per subject normalization
         match cfg.common.normalization:
@@ -66,9 +66,9 @@ class HARDataset(Dataset[Tuple[Tensor, Tensor]]):
         # apply per sample normalization
         match cfg.common.normalization:
             case NormType.STD_PER_SAMPLE:
-                df = normalize_per_sample(self.windows, standardize)
+                self.windows = normalize_per_sample(self.windows, standardize)
             case NormType.MIN_MAX_PER_SAMPLE:
-                df = normalize_per_sample(self.windows, min_max)
+                self.windows = normalize_per_sample(self.windows, min_max)
 
         # specify split indices depending on split type
         match cfg.dataset.split.split_type:

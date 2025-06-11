@@ -1,4 +1,4 @@
-from har_datasets.config.schema import Config, Common, ModelType, SlidingWindow, Dataset
+from har_datasets.config.config import Config, Common, ModelType, SlidingWindow, Dataset
 
 COMMON = Common(
     difference=False,
