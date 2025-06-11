@@ -6,12 +6,7 @@ This library provides support for popular HAR (human activity recognition) datas
 - downloading from original source
 - parsing into a centralized format
 - preparation via config
-- pytorch datasets
-
-# Supported HAR Datasets
-
-- [UCI-HAR](https://archive.ics.uci.edu/dataset/240/human+activity+recognition+using+smartphones)
-- more coming soon
+- pytorch integration
 
 # How To Use
 
@@ -24,6 +19,28 @@ train_loader, test_loader, val_loader = dataset.get_dataloaders(
     batch_sizes=(32, 1, 1), shuffles=(True, False, False)
 )
 ```
+
+# Supported HAR Datasets
+
+- [x] [UCI-HAR](https://archive.ics.uci.edu/dataset/240/human+activity+recognition+using+smartphones)
+- [] [WISDM](https://archive.ics.uci.edu/dataset/507/wisdm+smartphone+and+smartwatch+activity+and+biometrics+dataset)
+- [] [RealWorld](https://www.uni-mannheim.de/dws/research/projects/activity-recognition/dataset/dataset-realworld/)
+- [] [MotionSense](https://github.com/mmalekzadeh/motion-sense)
+- [] [KU-HAR](https://data.mendeley.com/datasets/45f952y38r/5)
+- [] [ExtraSensory](http://extrasensory.ucsd.edu/)
+- [] [OPPORTUNITY](https://archive.ics.uci.edu/dataset/226/opportunity+activity+recognition)
+- [] [PAMAP2](https://archive.ics.uci.edu/dataset/231/pamap2+physical+activity+monitoring)
+- [] [Daphnet](https://archive.ics.uci.edu/dataset/245/daphnet+freezing+of+gait)
+- [] [MHEALTH](hhttps://archive.ics.uci.edu/dataset/319/mhealth+dataset)
+- [] [UTD-MHAD](https://personal.utdallas.edu/~kehtar/UTD-MHAD.html)
+- [] [USC-SIPI (USC-HAD)](https://sipi.usc.edu/had/)
+- [] [HuGaDB](https://github.com/romanchereshnev/HuGaDB)
+- [] [iSPL IMU-Stretch](https://github.com/thunguyenth/HAR_IMU_Stretch)
+- [] [w-HAR](https://github.com/thunguyenth/HAR_IMU_Stretch)
+- [] [SWELL](https://www.kaggle.com/datasets/qiriro/swell-heart-rate-variability-hrv)
+
+
+- more coming soon
 
 # Common Format
 
