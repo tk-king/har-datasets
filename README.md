@@ -39,17 +39,16 @@ train_loader, test_loader, val_loader = dataset.get_dataloaders(
 - [] [w-HAR](https://github.com/thunguyenth/HAR_IMU_Stretch)
 - [] [SWELL](https://www.kaggle.com/datasets/qiriro/swell-heart-rate-variability-hrv)
 
-
-- more coming soon
-
 # Common Format
 
 Since all HAR datasets do not share a common format, specific parsers are provided for each datasets to bring it into a common format which simplifies preparation. As common format a single csv is specified, which contains sensor channels as different columns. Additionally it contains the columns
 
-- activity_id
-- subj_id
-- activity_block_id
-- activity_name
+| Column         | Type  |
+|----------------|-------|
+| subject_id     | int   |
+| session_id     | int   |
+| activity_id    | int   |
+| activity_name  | str   |
 
 # Preparation Config
 

@@ -1,24 +1,20 @@
 from typing import List
 import pandas as pd
 
-BLOCK_COL = "activity_block_id"
-EXCLUDE_COLUMNS = ["subj_id", "activity_id", "activity_block_id", "activity_name"]
+EXCLUDE_COLS = ["subject_id", "activity_id", "session_id", "activity_name"]
 
 
 def differentiate(
-    df: pd.DataFrame,
-    sampling_rate: float = 50.0,  # Hz, use 1.0 if you want plain difference
-    exclude_columns: List[str] = EXCLUDE_COLUMNS,
-    block_col: str = BLOCK_COL,
+    df: pd.DataFrame, sampling_rate: float, exclude_columns: List[str] = EXCLUDE_COLS
 ) -> pd.DataFrame:
     # Get sensor columns
     sensor_cols = df.columns.difference(exclude_columns)
 
-    # Compute time step
+    # Compute time step, use sampling rate as 1.0 if you want plain difference
     dt = 1.0 / sampling_rate
 
     # Compute derivative
-    diff_data = df.groupby(block_col)[sensor_cols].diff() / dt
+    diff_data = df.groupby("session_id")[sensor_cols].diff() / dt
     diff_data.bfill(inplace=True)
 
     # Rename columns

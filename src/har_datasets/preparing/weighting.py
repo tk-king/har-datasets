@@ -1,15 +1,10 @@
-from typing import List
 import pandas as pd
 from collections import Counter
 
-CLASS_LABEL_COL = "activity_id"
 
-
-def compute_class_weights(
-    windows: List[pd.DataFrame], label_col: str = CLASS_LABEL_COL
-) -> dict:
+def compute_class_weights(windows_index: pd.DataFrame) -> dict:
     # Get label for each window
-    window_labels = [window[label_col].mode()[0] for window in windows]
+    window_labels = windows_index["activity_id"].tolist()
 
     # Count occurrences
     label_counts = Counter(window_labels)

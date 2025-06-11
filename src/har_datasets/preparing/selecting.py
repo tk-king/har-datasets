@@ -2,11 +2,11 @@ from typing import List
 import pandas as pd
 
 
-def select_subjects(df: pd.DataFrame, subj_ids: List[int]) -> pd.DataFrame:
-    # if subj_ids is empty, return df
-    if len(subj_ids) == 0:
+def select_subjects(df: pd.DataFrame, subject_ids: List[int]) -> pd.DataFrame:
+    # if subject_ids is empty, return df
+    if len(subject_ids) == 0:
         return df
-    return df[df["subj_id"].isin(subj_ids)]
+    return df[df["subject_id"].isin(subject_ids)]
 
 
 def select_activities(df: pd.DataFrame, activity_ids: List[int]) -> pd.DataFrame:

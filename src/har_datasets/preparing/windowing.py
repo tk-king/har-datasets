@@ -3,37 +3,34 @@ from typing import Dict, List, Tuple
 import pandas as pd
 from tqdm import tqdm
 
-BLOCK_COL = "activity_block_id"
-EXLUDE_COLS = ["subj_id", "activity_id", "activity_block_id", "activity_name"]
+EXLUDE_COLS = ["subject_id", "activity_id", "activity_block_id", "activity_name"]
 
 
 def generate_windows(
     df: pd.DataFrame,
     window_size: int,
     displacement: int,
-    block_col: str = BLOCK_COL,
     exclude_cols: List[str] = EXLUDE_COLS,
 ) -> Tuple[pd.DataFrame, List[pd.DataFrame]]:
     keep_cols = [col for col in df.columns if col not in exclude_cols]
 
     window_dict: Dict[str, List[int]] = defaultdict(list)
-    windows = []
+    windows: List[pd.DataFrame] = []
 
-    for block_id in tqdm(df[block_col].unique()):
-        block_df = df[df[block_col] == block_id]
+    for session_id in tqdm(df["session_id"].unique()):
+        session_df = df[df["session_id"] == session_id]
 
-        # assert all subj_ids and activity_ids are same in block_df
-        assert block_df["subj_id"].nunique() == 1
-        assert block_df["activity_id"].nunique() == 1
+        # get unique subject_id and activity_id of sessoion
+        assert session_df["subject_id"].nunique() == 1
+        assert session_df["activity_id"].nunique() == 1
+        subject_id = session_df["subject_id"].unique()[0]
+        activity_id = session_df["activity_id"].unique()[0]
 
-        subj_id = block_df["subj_id"].unique()[0]
-        activity_id = block_df["activity_id"].unique()[0]
-
-        for i in range(0, block_df.shape[0] - window_size + 1, displacement):
-            window_df = block_df.iloc[i : i + window_size][keep_cols]
+        for i in range(0, session_df.shape[0] - window_size + 1, displacement):
+            window_df = session_df.iloc[i : i + window_size][keep_cols]
             windows.append(window_df)
 
-            window_dict["subj_id"].append(subj_id)
+            window_dict["subject_id"].append(subject_id)
             window_dict["activity_id"].append(activity_id)
             window_dict["window_id"].append(len(windows) - 1)
 

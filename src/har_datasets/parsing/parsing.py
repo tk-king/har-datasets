@@ -51,11 +51,11 @@ def parse_uci_har(dir: str) -> pd.DataFrame:
 
     # identify where activity or subject changes
     changes = (df["activity_id"] != df["activity_id"].shift(1)) | (
-        df["subj_id"] != df["subj_id"].shift(1)
+        df["subject_id"] != df["subject_id"].shift(1)
     )
 
-    # assign a unique activity_block to each continuous segment
-    df["activity_block_id"] = changes.cumsum()
+    # assign a unique session to each continuous segment
+    df["session_id"] = changes.cumsum()
 
     return df
 
@@ -105,19 +105,19 @@ def get_df_from_files_uci_har(
     assert df.shape[0] / eff_seg_size == subjects_df.shape[0] == labels_df.shape[0]
     NUM_SEGS = labels_df.shape[0]
 
-    subj_ids = []
+    subject_ids = []
     activity_ids = []
 
     for i in range(NUM_SEGS):
         # get subject and label
-        subj_id = subjects_df.loc[i, "subjects"]
+        subject_id = subjects_df.loc[i, "subjects"]
         activity_id = labels_df.loc[i, "labels"]
 
         # repeat for seg_size
-        subj_ids.extend(eff_seg_size * [subj_id])
+        subject_ids.extend(eff_seg_size * [subject_id])
         activity_ids.extend(eff_seg_size * [activity_id])
 
-    df["subj_id"] = subj_ids
+    df["subject_id"] = subject_ids
     df["activity_id"] = activity_ids
     # (seg_size * num_segs, num_activities + 2)
 

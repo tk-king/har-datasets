@@ -1,11 +1,11 @@
 from typing import List
 import pandas as pd
 
-EXCLUDE_COLUMNS = ["subj_id", "activity_id", "activity_block_id", "activity_name"]
+EXCLUDE_COLS = ["subject_id", "activity_id", "session_id", "activity_name"]
 
 
 def normalize_min_max(
-    df: pd.DataFrame, exclude_columns: List[str] = EXCLUDE_COLUMNS
+    df: pd.DataFrame, exclude_columns: List[str] = EXCLUDE_COLS
 ) -> pd.DataFrame:
     # Compute min and max for each column
     min_values = df[df.columns.difference(exclude_columns)].min()
@@ -18,7 +18,7 @@ def normalize_min_max(
 
 
 def standardize(
-    df: pd.DataFrame, exclude_columns: List[str] = EXCLUDE_COLUMNS
+    df: pd.DataFrame, exclude_columns: List[str] = EXCLUDE_COLS
 ) -> pd.DataFrame:
     # Compute mean and standard deviation for each column
     mean_values = df[df.columns.difference(exclude_columns)].mean()
@@ -32,7 +32,7 @@ def standardize(
 
 def robust_scale(
     df: pd.DataFrame,
-    exclude_columns: List[str] = EXCLUDE_COLUMNS,
+    exclude_columns: List[str] = EXCLUDE_COLS,
 ) -> pd.DataFrame:
     # Compute median and IQR (q3 - q1) for each column
     median_values = df[df.columns.difference(exclude_columns)].median()
