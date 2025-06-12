@@ -11,7 +11,8 @@ This library provides support for popular HAR (human activity recognition) datas
 # How To Use
 
 ```python
-from har_datasets.dataset.get_har_dataset import get_har_dataset, HAR_DATASET_ID
+from har_datasets.supported.getters import get_har_dataset, HAR_DATASET_ID
+
 
 dataset = get_har_dataset(dataset_id=HAR_DATASET_ID.UCI_HAR)
 train_loader, test_loader, val_loader = dataset.get_dataloaders()
