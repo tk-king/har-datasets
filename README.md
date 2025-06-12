@@ -47,6 +47,7 @@ Since all HAR datasets do not share a common format, specific parsers are provid
 | session_id     | int   |
 | activity_id    | int   |
 | activity_name  | str   |
+| timestamp      | str   |
 
 # Preparation Config
 

@@ -21,9 +21,9 @@ HAR_DATASETS_DICT: Dict[HAR_DATASET_ID, Callable[[str], pd.DataFrame]] = {
 }
 
 
-def get_har_dataset(
+def get_cfg(
     dataset_id: HAR_DATASET_ID, config_dir: str = "../../../config"
-) -> HARDataset:
+) -> HARConfig:
     # load dataset-specific config from dir
     with initialize(version_base=None, config_path=config_dir):
         cfg = compose(config_name="cfg", overrides=[f"dataset={dataset_id.value}"])
@@ -32,7 +32,8 @@ def get_har_dataset(
 
     assert isinstance(cfg, HARConfig)
 
-    # create dataset
-    dataset = HARDataset(cfg=cfg, parse=HAR_DATASETS_DICT[dataset_id])
+    return cfg
 
-    return dataset
+
+def get_har_dataset(dataset_id: HAR_DATASET_ID, cfg) -> HARDataset:
+    return HARDataset(cfg=cfg, parse=HAR_DATASETS_DICT[dataset_id])

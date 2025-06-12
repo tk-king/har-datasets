@@ -3,7 +3,7 @@ defaults:
   - _self_
 
 common:
-  datasets_dir: /Users/maxburzer/har-datasets/datasets
+  datasets_dir: ../datasets
   resampling_freq: null
   normalization: null
   features_type: channels_only
