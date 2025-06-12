@@ -76,5 +76,5 @@ class Common(BaseModel):
 
 
 class HARConfig(BaseModel):
-    common: Common
-    dataset: Dataset
+    common: Common  # common config applyed to all datasets
+    dataset: Dataset  # dataset specific config

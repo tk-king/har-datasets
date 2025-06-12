@@ -5,18 +5,18 @@ from torch import Tensor
 import torch
 from torch.utils.data import Dataset, Subset, DataLoader
 
-from har_datasets.loading.loading import load_df
-from har_datasets.preparing.normalizing import (
+from har_datasets.pipeline.loading import load_df
+from har_datasets.pipeline.normalizing import (
     min_max,
     normalize_globally,
     normalize_per_sample,
     normalize_per_subject,
     standardize,
 )
-from har_datasets.preparing.resampling import resample
-from har_datasets.preparing.selecting import select_activities, select_channels
-from har_datasets.preparing.weighting import compute_class_weights
-from har_datasets.preparing.windowing import generate_windows
+from har_datasets.pipeline.resampling import resample
+from har_datasets.pipeline.selecting import select_activities, select_channels
+from har_datasets.pipeline.weighting import compute_class_weights
+from har_datasets.pipeline.windowing import generate_windows
 from har_datasets.config.config import HARConfig, SplitType, NormType
 
 
