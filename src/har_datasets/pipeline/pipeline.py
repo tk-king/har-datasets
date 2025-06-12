@@ -23,7 +23,7 @@ def pipeline(
     df = load_df(
         url=cfg.dataset.info.url,
         datasets_dir=cfg.common.datasets_dir,
-        csv_file=cfg.dataset.info.csv_file,
+        csv_file=cfg.dataset.info.id.value + ".csv",
         parse=parse,
         required_cols=cfg.common.exlude_cols,
     )

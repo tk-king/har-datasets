@@ -3,6 +3,11 @@ from typing import List
 from pydantic import BaseModel
 
 
+class DatasetId(Enum):
+    UCI_HAR = "uci_har"
+    WISDM = "wisdm"
+
+
 class NormType(Enum):
     STD_GLOBALLY = "std_globally"
     MIN_MAX_GLOBALLY = "min_max_globally"
@@ -53,8 +58,8 @@ class Selections(BaseModel):
 
 
 class Info(BaseModel):
+    id: DatasetId  # id of the dataset
     url: str  # url to download dataset
-    csv_file: str  # name of the csv file in central format
     sampling_freq: int  # sampling frequency of the dataset
 
 

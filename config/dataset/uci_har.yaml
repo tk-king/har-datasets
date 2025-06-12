@@ -1,6 +1,6 @@
 info:
+  id: uci_har
   url: https://archive.ics.uci.edu/static/public/240/human+activity+recognition+using+smartphones.zip
-  csv_file: uci_har.csv
   sampling_freq: 50
 
 selections:
