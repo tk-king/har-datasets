@@ -2,11 +2,11 @@ from typing import List
 import pandas as pd
 
 
-def select_activities(df: pd.DataFrame, activity_ids: List[int]) -> pd.DataFrame:
+def select_activities(df: pd.DataFrame, activity_names: List[str]) -> pd.DataFrame:
     # if activity_ids is empty, return df
-    if len(activity_ids) == 0:
+    if len(activity_names) == 0:
         return df
-    return df[df["activity_id"].isin(activity_ids)]
+    return df[df["activity_name"].isin(activity_names)]
 
 
 def select_channels(df: pd.DataFrame, channels: List[str]) -> pd.DataFrame:

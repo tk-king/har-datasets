@@ -48,14 +48,18 @@ class Training(BaseModel):
 
 
 class Selections(BaseModel):
-    activity_ids: List[int]  # list of activity ids to include
+    activity_names: List[str]  # list of activity names to include
     channels: List[str]  # list of channels to include
 
 
-class Dataset(BaseModel):
+class Info(BaseModel):
     url: str  # url to download dataset
     csv_file: str  # name of the csv file in central format
     sampling_freq: int  # sampling frequency of the dataset
+
+
+class Dataset(BaseModel):
+    info: Info  # info about the dataset
     selections: Selections  # which activities and channels to include
     split: Split  # how to split into train / test / val
     training: Training  # training config

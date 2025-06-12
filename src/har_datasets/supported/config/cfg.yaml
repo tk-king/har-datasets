@@ -3,13 +3,11 @@ defaults:
   - _self_
 
 common:
-  difference: true
-  datanorm_type: standardization
-  spectrogram: False
-  model_type: freq
-  train_vali_quote: 0.95
+  datasets_dir: /Users/maxburzer/har-datasets/datasets
+  resampling_freq: null
+  normalization: null
+  features_type: channels_only
+  include_derivative: false
   sliding_window:
-    windowsize: 128
-    sampling_freq: 50
-    displacement: 128
-  wavename: morl
+    window_time: 2.56
+    overlap: 0
