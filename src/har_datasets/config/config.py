@@ -77,6 +77,13 @@ class Common(BaseModel):
     features_type: FeaturesType  # type of features to use
     include_derivative: bool  # whether to include derivative features
     sliding_window: SlidingWindow  # common sliding window config
+    exlude_cols: List[str] = [
+        "subject_id",
+        "activity_id",
+        "session_id",
+        "activity_name",
+        "timestamp",
+    ]
 
 
 class HARConfig(BaseModel):

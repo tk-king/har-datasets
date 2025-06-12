@@ -5,6 +5,8 @@ import pandas as pd
 
 
 def parse_uci_har(dir: str) -> pd.DataFrame:
+    dir = os.path.join(dir, "UCI HAR Dataset/UCI HAR Dataset/")
+
     # directories of raw data
     train_path = os.path.join(dir, "train/Inertial Signals/")
     test_path = os.path.join(dir, "test/Inertial Signals/")
@@ -59,7 +61,9 @@ def parse_uci_har(dir: str) -> pd.DataFrame:
 
     # add timestamp column per session
     SAMPLING_INTERVAL = 1 / 50  # 50 Hz → 0.02 seconds
-    df["timestamp"] = df.groupby("session_id").cumcount() * SAMPLING_INTERVAL
+    df["timestamp"] = (
+        df.groupby("session_id", group_keys=False).cumcount() * SAMPLING_INTERVAL
+    )
 
     return df
 

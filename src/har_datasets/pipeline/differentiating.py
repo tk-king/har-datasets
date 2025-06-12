@@ -1,11 +1,9 @@
 from typing import List
 import pandas as pd
 
-EXCLUDE_COLS = ["subject_id", "activity_id", "session_id", "activity_name"]
-
 
 def differentiate(
-    df: pd.DataFrame, sampling_rate: float, exclude_columns: List[str] = EXCLUDE_COLS
+    df: pd.DataFrame, sampling_rate: float, exclude_columns: List[str]
 ) -> pd.DataFrame:
     # Get sensor columns
     sensor_cols = df.columns.difference(exclude_columns)

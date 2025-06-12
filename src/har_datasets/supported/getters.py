@@ -22,23 +22,17 @@ HAR_DATASETS_DICT: Dict[HAR_DATASET_ID, Callable[[str], pd.DataFrame]] = {
 
 
 def get_har_dataset(
-    dataset_id: HAR_DATASET_ID, cfg: HARConfig | None = None
+    dataset_id: HAR_DATASET_ID, config_dir: str = "../../../config"
 ) -> HARDataset:
-    # get dataset-specific parser and config to create dataset
-    parse = HAR_DATASETS_DICT[dataset_id]
-    config = cfg if cfg is not None else get_har_config(dataset_id=dataset_id)
-    dataset = HARDataset(cfg=config, parse=parse)
-
-    return dataset
-
-
-def get_har_config(
-    dataset_id: HAR_DATASET_ID, config_dir: str = "../config"
-) -> HARConfig:
     # load dataset-specific config from dir
     with initialize(version_base=None, config_path=config_dir):
-        cfg = compose(config_name="cfg", overrides=[f"dataset={dataset_id}"])
+        cfg = compose(config_name="cfg", overrides=[f"dataset={dataset_id.value}"])
         cfg = OmegaConf.to_container(cfg, resolve=True)  # type: ignore
         cfg = HARConfig(**cfg)  # type: ignore
 
-    return cfg  # type: ignore
+    assert isinstance(cfg, HARConfig)
+
+    # create dataset
+    dataset = HARDataset(cfg=cfg, parse=HAR_DATASETS_DICT[dataset_id])
+
+    return dataset

@@ -1,11 +1,9 @@
 import os
-from typing import Callable, Set
+from typing import Callable, List
 import pandas as pd
 from pandas import read_csv
 import requests
 import zipfile
-
-REQUIRED_COLS = {"subject_id", "activity_id", "session_id", "activity_name"}
 
 
 def load_df(
@@ -13,7 +11,7 @@ def load_df(
     datasets_dir: str,
     csv_file: str,
     parse: Callable[[str], pd.DataFrame],
-    required_cols: Set[str] = REQUIRED_COLS,
+    required_cols: List[str],
 ) -> pd.DataFrame:
     # download dataset
     dir = download(url, datasets_dir)
@@ -25,10 +23,11 @@ def load_df(
     if os.path.exists(csv_path):
         df = read_csv(csv_path)
     else:
-        df = parse(datasets_dir)
+        df = parse(dir)
         df.to_csv(csv_path, index=True)
 
-    assert required_cols.issubset(df.columns)
+    # check that all required columns are present
+    assert set(required_cols).issubset(df.columns)
 
     return df
 
@@ -61,7 +60,7 @@ def download(url: str, datasets_dir: str) -> str:
             if file.endswith(".zip"):
                 os.remove(os.path.join(root, file))
 
-    return file_path
+    return zip_dir
 
 
 def unzip(zip_path: str, save_dir: str):

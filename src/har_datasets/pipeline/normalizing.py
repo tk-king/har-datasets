@@ -1,13 +1,11 @@
 from typing import Callable, List
 import pandas as pd
 
-EXCLUDE_COLS = ["subject_id", "activity_id", "session_id", "activity_name"]
-
 
 def normalize_globally(
     df: pd.DataFrame,
     normalize: Callable[[pd.DataFrame, List[str]], pd.DataFrame],
-    exclude_columns: List[str] = EXCLUDE_COLS,
+    exclude_columns: List[str],
 ) -> pd.DataFrame:
     return normalize(df, exclude_columns)
 
@@ -15,7 +13,7 @@ def normalize_globally(
 def normalize_per_subject(
     df: pd.DataFrame,
     normalize: Callable[[pd.DataFrame, List[str]], pd.DataFrame],
-    exclude_columns: List[str] = EXCLUDE_COLS,
+    exclude_columns: List[str],
 ) -> pd.DataFrame:
     return df.groupby("subject_id", group_keys=False).transform(
         lambda x: normalize(x, exclude_columns)
@@ -25,7 +23,7 @@ def normalize_per_subject(
 def normalize_per_sample(
     windows: List[pd.DataFrame],
     normalize: Callable[[pd.DataFrame, List[str]], pd.DataFrame],
-    exclude_columns: List[str] = EXCLUDE_COLS,
+    exclude_columns: List[str],
 ) -> List[pd.DataFrame]:
     return [normalize(window, exclude_columns) for window in windows]
 

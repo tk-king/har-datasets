@@ -2,14 +2,12 @@ from typing import List
 
 import pandas as pd
 
-EXCLUDE_COLS = ["subject_id", "activity_id", "session_id", "activity_name"]
-
 
 def resample(
     df: pd.DataFrame,
     sampling_freq: float,
     resampling_freq: float,
-    exclude_columns: List[str] = EXCLUDE_COLS,
+    exclude_columns: List[str],
 ) -> pd.DataFrame:
     resampled_sessions = []
 

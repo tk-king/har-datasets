@@ -3,14 +3,12 @@ from typing import Dict, List, Tuple
 import pandas as pd
 from tqdm import tqdm
 
-EXLUDE_COLS = ["subject_id", "activity_id", "activity_block_id", "activity_name"]
-
 
 def generate_windows(
     df: pd.DataFrame,
     window_time: float,
     overlap: float,
-    exclude_cols: List[str] = EXLUDE_COLS,
+    exclude_cols: List[str],
 ) -> Tuple[pd.DataFrame, List[pd.DataFrame]]:
     keep_cols = [col for col in df.columns if col not in exclude_cols]
 
@@ -18,6 +16,9 @@ def generate_windows(
     windows: List[pd.DataFrame] = []
 
     stride_time = window_time * (1 - overlap)
+
+    EPS = 1e-9  # tiny safety margin
+    ROUND = 3  # keep 1 ms resolution
 
     for session_id in tqdm(df["session_id"].unique()):
         session_df = df[df["session_id"] == session_id].copy()
@@ -33,13 +34,16 @@ def generate_windows(
         end_time = session_df["timestamp"].max()
         current_start_time = start_time
 
+        ts = session_df["timestamp"].round(ROUND)
+
         # generate windows from session
         while current_start_time + window_time <= end_time:
             current_end_time = current_start_time + window_time
 
             # get mask corresponding to window
-            mask = (session_df["timestamp"] >= current_start_time) & (
-                session_df["timestamp"] < current_end_time
+
+            mask = (ts >= round(current_start_time, ROUND)) & (
+                ts < round(current_end_time, ROUND) - EPS
             )
 
             # get window based on mask

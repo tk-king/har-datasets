@@ -17,17 +17,26 @@ from har_datasets.pipeline.windowing import generate_windows
 def pipeline(
     cfg: HARConfig, parse: Callable[[str], pd.DataFrame]
 ) -> Tuple[pd.DataFrame, pd.DataFrame, List[pd.DataFrame]]:
+    print("1. loading dataframe...")
+
     # load dataframe
     df = load_df(
         url=cfg.dataset.info.url,
         datasets_dir=cfg.common.datasets_dir,
         csv_file=cfg.dataset.info.csv_file,
         parse=parse,
+        required_cols=cfg.common.exlude_cols,
     )
+
+    print("2. applying selections...")
 
     # apply selections
     df = select_activities(df=df, activity_names=cfg.dataset.selections.activity_names)
-    df = select_channels(df=df, channels=cfg.dataset.selections.channels)
+    df = select_channels(
+        df=df,
+        channels=cfg.dataset.selections.channels,
+        exclude_cols=cfg.common.exlude_cols,
+    )
 
     # # apply resampling
     # if cfg.common.resampling_freq is not None:
@@ -37,30 +46,37 @@ def pipeline(
     #         resampling_freq=cfg.common.resampling_freq,
     #     )
 
+    print("3. applying normalizations...")
+
     # apply global or per subject normalization
     match cfg.common.normalization:
         case NormType.STD_GLOBALLY:
-            df = normalize_globally(df, standardize)
+            df = normalize_globally(df, standardize, cfg.common.exlude_cols)
         case NormType.MIN_MAX_GLOBALLY:
-            df = normalize_globally(df, min_max)
+            df = normalize_globally(df, min_max, cfg.common.exlude_cols)
         case NormType.STD_PER_SUBJ:
-            df = normalize_per_subject(df, standardize)
+            df = normalize_per_subject(df, standardize, cfg.common.exlude_cols)
         case NormType.MIN_MAX_PER_SUBJ:
-            df = normalize_per_subject(df, min_max)
+            df = normalize_per_subject(df, min_max, cfg.common.exlude_cols)
+
+    print("4. generating windows...")
 
     # generate windows and window index
     window_index, windows = generate_windows(
         df=df,
         window_time=cfg.common.sliding_window.window_time,
         overlap=cfg.common.sliding_window.overlap,
+        exclude_cols=cfg.common.exlude_cols,
     )
+
+    print("5. applying per sample normalizations...")
 
     # apply per sample normalization
     match cfg.common.normalization:
         case NormType.STD_PER_SAMPLE:
-            windows = normalize_per_sample(windows, standardize)
+            windows = normalize_per_sample(windows, standardize, cfg.common.exlude_cols)
         case NormType.MIN_MAX_PER_SAMPLE:
-            windows = normalize_per_sample(windows, min_max)
+            windows = normalize_per_sample(windows, min_max, cfg.common.exlude_cols)
 
     return df, window_index, windows
 
@@ -68,6 +84,8 @@ def pipeline(
 def split(
     cfg: HARConfig, window_index: pd.DataFrame
 ) -> Tuple[List[int], List[int], List[int]]:
+    print("6. splitting into train, test and val...")
+
     # specify split indices depending on split type
     match cfg.dataset.split.split_type:
         case SplitType.GIVEN:
@@ -101,5 +119,7 @@ def split(
             ].index.to_list()
 
             val_indices = []
+
+    print("7. done")
 
     return train_indices, test_indices, val_indices
