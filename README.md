@@ -75,5 +75,11 @@ We provide [torch](https://pytorch.org/) datasets for easy integration into exis
 
 # TODOS
 
-- window and displacement based on time ? -> different window sizes for different sampling freqs
+- window and displacement based on time ? -> different window sizes for different sampling freqs, answer: time, e.g. 2.56 sec
 - resampling to same samplimg freq needed?
+- paper specifc time windows
+- alle channel same
+- configurable preprocessing piepline
+- spectrogramm allows multiple transforms
+- class resampling
+- optional in mem or not

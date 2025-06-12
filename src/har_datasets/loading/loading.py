@@ -1,9 +1,11 @@
 import os
-from typing import Callable
+from typing import Callable, Set
 import pandas as pd
 from pandas import read_csv
 import requests
 import zipfile
+
+REQUIRED_COLS = {"subject_id", "activity_id", "session_id", "activity_name"}
 
 
 def load_df(
@@ -11,6 +13,7 @@ def load_df(
     datasets_dir: str,
     csv_file: str,
     parse: Callable[[str], pd.DataFrame],
+    required_cols: Set[str] = REQUIRED_COLS,
 ) -> pd.DataFrame:
     # download dataset
     dir = download(url, datasets_dir)
@@ -18,14 +21,14 @@ def load_df(
     # path to csv
     csv_path = os.path.join(dir, csv_file)
 
-    # if file exists, load it
+    # if file exists, load it, else parse from dataset and save
     if os.path.exists(csv_path):
         df = read_csv(csv_path)
-
-    # else parse from dataset and save
     else:
         df = parse(datasets_dir)
         df.to_csv(csv_path, index=True)
+
+    assert required_cols.issubset(df.columns)
 
     return df
 

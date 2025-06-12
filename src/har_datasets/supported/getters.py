@@ -5,9 +5,9 @@ from typing import Callable
 import pandas as pd
 
 from har_datasets.dataset.har_dataset import HARDataset
-from har_datasets.parsing.parsing import parse_uci_har
-from har_datasets.config.configs import get_config_uci_har
-from har_datasets.config.config import Config
+from har_datasets.supported.parsing import parse_uci_har
+from har_datasets.supported.configs import get_config_uci_har
+from har_datasets.config.config import HARConfig
 
 
 class HAR_DATASET_ID(Enum):
@@ -19,7 +19,7 @@ class HAR_DATASET_ID(Enum):
 class HARDatasetInfo:
     id: HAR_DATASET_ID
     parse: Callable[[str], pd.DataFrame]
-    cfg: Config
+    cfg: HARConfig
 
 
 HAR_DATASETS_DICT = {
@@ -32,8 +32,12 @@ HAR_DATASETS_DICT = {
 
 
 def get_har_dataset(
-    dataset_id: HAR_DATASET_ID, cfg: Config | None = None
+    dataset_id: HAR_DATASET_ID, cfg: HARConfig | None = None
 ) -> HARDataset:
+    # get dataset info
     info = HAR_DATASETS_DICT[dataset_id]
+
+    # if cfg is None, use default config for specific dataset
     dataset = HARDataset(cfg=cfg if cfg is not None else info.cfg, parse=info.parse)
+
     return dataset

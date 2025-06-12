@@ -8,73 +8,73 @@ class NormType(Enum):
     MIN_MAX_GLOBALLY = "min_max_globally"
     STD_PER_SAMPLE = "std_per_sample"
     MIN_MAX_PER_SAMPLE = "min_max_per_sample"
-    STD_PER_SUBJECT = "std_per_subject"
-    MIN_MAX_PER_SUBJECT = "min_max_per_subject"
+    STD_PER_SUBJ = "std_per_subj"
+    MIN_MAX_PER_SUBJ = "min_max_per_subj"
 
 
 class FeaturesType(Enum):
     CHANNELS_ONLY = "channels_only"
-    FREQUENCIES_ONLY = "frequencies_only"
+    FREQS_ONLY = "freqs_only"
     BOTH = "both"
 
 
 class SplitType(Enum):
     GIVEN = "given"
-    SCV = "SCV"
+    SUBJ_CROSS_VAL = "subj_cross_val"
 
 
 class GivenSplit(BaseModel):
-    train_subject_ids: List[int]
-    test_subject_ids: List[int]
-    val_subject_ids: List[int]
+    train_subj_ids: List[int]  # list of subject ids in train set
+    test_subj_ids: List[int]  # list of subject ids in test set
+    val_subj_ids: List[int]  # list of subject ids in val set
 
 
-class SCVSplit(BaseModel):
-    test_group_index: int
-    test_groups: List[List[int]]
+class SubjCrossValSplit(BaseModel):
+    subj_id_group_index: int  # current group selected for testing
+    subj_id_groups: List[List[int]]  # groups containing multiple subject ids
 
 
 class Split(BaseModel):
-    split_type: SplitType
-    given_split: GivenSplit
-    scv_split: SCVSplit
+    split_type: SplitType  # type of split, either given or subj cross val
+    given_split: GivenSplit | None  # how to split subjects into train / test / val
+    subj_cross_val_split: SubjCrossValSplit | None  # split based on groups
 
 
 class Training(BaseModel):
-    batch_size: int
-    shuffle: bool
+    batch_size: int  # batch size of train loader
+    shuffle: bool  # whether to shuffle train loader
     learning_rate: float
     num_epochs: int
 
 
 class Selections(BaseModel):
-    activity_ids: List[int]
-    channels: List[str]
+    activity_ids: List[int]  # list of activity ids to include
+    channels: List[str]  # list of channels to include
 
 
 class Dataset(BaseModel):
-    url: str
-    dir: str
-    csv_file: str
-    sampling_freq: int
-    selections: Selections
-    split: Split
-    training: Training
+    url: str  # url to download dataset
+    csv_file: str  # name of the csv file in central format
+    sampling_freq: int  # sampling frequency of the dataset
+    selections: Selections  # which activities and channels to include
+    split: Split  # how to split into train / test / val
+    training: Training  # training config
 
 
 class SlidingWindow(BaseModel):
-    window_size: int
-    displacement: int
+    window_time: float  # in seconds
+    overlap: float  # in [0, 1]
 
 
 class Common(BaseModel):
-    resampling_freq: int | None
-    normalization: NormType | None
-    features_type: FeaturesType
-    include_derivative: bool
-    sliding_window: SlidingWindow
+    datasets_dir: str  # directory to save all datasets
+    resampling_freq: int | None  # common sampling frequency to which to convert
+    normalization: NormType | None  # type of normalization to apply to all
+    features_type: FeaturesType  # type of features to use
+    include_derivative: bool  # whether to include derivative features
+    sliding_window: SlidingWindow  # common sliding window config
 
 
-class Config(BaseModel):
+class HARConfig(BaseModel):
     common: Common
     dataset: Dataset

@@ -5,7 +5,7 @@ from torch import Tensor
 import torch
 from torch.utils.data import Dataset, Subset, DataLoader
 
-from har_datasets.parsing.loading import load_df
+from har_datasets.loading.loading import load_df
 from har_datasets.preparing.normalizing import (
     min_max,
     normalize_globally,
@@ -15,12 +15,13 @@ from har_datasets.preparing.normalizing import (
 )
 from har_datasets.preparing.resampling import resample
 from har_datasets.preparing.selecting import select_activities, select_channels
+from har_datasets.preparing.weighting import compute_class_weights
 from har_datasets.preparing.windowing import generate_windows
-from har_datasets.config.config import Config, SplitType, NormType
+from har_datasets.config.config import HARConfig, SplitType, NormType
 
 
 class HARDataset(Dataset[Tuple[Tensor, Tensor]]):
-    def __init__(self, cfg: Config, parse: Callable[[str], pd.DataFrame]):
+    def __init__(self, cfg: HARConfig, parse: Callable[[str], pd.DataFrame]):
         super().__init__()
 
         self.cfg = cfg
@@ -28,7 +29,7 @@ class HARDataset(Dataset[Tuple[Tensor, Tensor]]):
         # load dataframe
         df = load_df(
             url=cfg.dataset.url,
-            datasets_dir=cfg.dataset.dir,
+            datasets_dir=cfg.common.datasets_dir,
             csv_file=cfg.dataset.csv_file,
             parse=parse,
         )
@@ -51,16 +52,16 @@ class HARDataset(Dataset[Tuple[Tensor, Tensor]]):
                 df = normalize_globally(df, standardize)
             case NormType.MIN_MAX_GLOBALLY:
                 df = normalize_globally(df, min_max)
-            case NormType.STD_PER_SUBJECT:
+            case NormType.STD_PER_SUBJ:
                 df = normalize_per_subject(df, standardize)
-            case NormType.MIN_MAX_PER_SUBJECT:
+            case NormType.MIN_MAX_PER_SUBJ:
                 df = normalize_per_subject(df, min_max)
 
         # generate windows and window index
         self.window_index, self.windows = generate_windows(
             df=df,
-            window_size=cfg.common.sliding_window.window_size,
-            displacement=cfg.common.sliding_window.displacement,
+            window_time=cfg.common.sliding_window.window_time,
+            overlap=cfg.common.sliding_window.overlap,
         )
 
         # apply per sample normalization
@@ -73,35 +74,33 @@ class HARDataset(Dataset[Tuple[Tensor, Tensor]]):
         # specify split indices depending on split type
         match cfg.dataset.split.split_type:
             case SplitType.GIVEN:
+                split_g = cfg.dataset.split.given_split
+                assert split_g is not None
+
                 self.train_indices = self.window_index[
-                    self.window_index["subject_id"].isin(
-                        cfg.dataset.split.given_split.train_subject_ids
-                    )
+                    self.window_index["subject_id"].isin(split_g.train_subj_ids)
                 ].index.to_list()
 
                 self.test_indices = self.window_index[
-                    self.window_index["subject_id"].isin(
-                        cfg.dataset.split.given_split.test_subject_ids
-                    )
+                    self.window_index["subject_id"].isin(split_g.test_subj_ids)
                 ].index.to_list()
 
                 self.val_indices = self.window_index[
-                    self.window_index["subject_id"].isin(
-                        cfg.dataset.split.given_split.val_subject_ids
-                    )
+                    self.window_index["subject_id"].isin(split_g.val_subj_ids)
                 ].index.to_list()
 
-            case SplitType.SCV:
-                test_subject_ids = cfg.dataset.split.scv_split.test_groups[
-                    cfg.dataset.split.scv_split.test_group_index
-                ]
+            case SplitType.SUBJ_CROSS_VAL:
+                split_scv = cfg.dataset.split.subj_cross_val_split
+                assert split_scv is not None
+
+                test_subj_ids = split_scv.subj_id_groups[split_scv.subj_id_group_index]
 
                 self.train_indices = self.window_index[
-                    ~self.window_index["subject_id"].isin(test_subject_ids)
+                    ~self.window_index["subject_id"].isin(test_subj_ids)
                 ].index.to_list()
 
                 self.test_indices = self.window_index[
-                    self.window_index["subject_id"].isin(test_subject_ids)
+                    self.window_index["subject_id"].isin(test_subj_ids)
                 ].index.to_list()
 
                 self.val_indices = []
@@ -122,6 +121,9 @@ class HARDataset(Dataset[Tuple[Tensor, Tensor]]):
         val_loader = DataLoader(val_set, 1, False)
 
         return train_loader, test_loader, val_loader
+
+    def get_class_weights(self) -> dict:
+        return compute_class_weights(self.window_index)
 
     def __len__(self) -> int:
         return len(self.windows)

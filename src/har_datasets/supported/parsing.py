@@ -57,6 +57,10 @@ def parse_uci_har(dir: str) -> pd.DataFrame:
     # assign a unique session to each continuous segment
     df["session_id"] = changes.cumsum()
 
+    # add timestamp column per session
+    SAMPLING_INTERVAL = 1 / 50  # 50 Hz → 0.02 seconds
+    df["timestamp"] = df.groupby("session_id").cumcount() * SAMPLING_INTERVAL
+
     return df
 
 
