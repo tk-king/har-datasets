@@ -26,11 +26,11 @@ train_loader, test_loader, val_loader = dataset.get_dataloaders()
 - [] [WISDM](https://archive.ics.uci.edu/dataset/507/wisdm+smartphone+and+smartwatch+activity+and+biometrics+dataset)
 - [] [RealWorld](https://www.uni-mannheim.de/dws/research/projects/activity-recognition/dataset/dataset-realworld/)
 - [] [MotionSense](https://github.com/mmalekzadeh/motion-sense)
-- [] [KU-HAR](https://data.mendeley.com/datasets/45f952y38r/5)
-- [] [ExtraSensory](http://extrasensory.ucsd.edu/)
 - [] [OPPORTUNITY](https://archive.ics.uci.edu/dataset/226/opportunity+activity+recognition)
 - [] [PAMAP2](https://archive.ics.uci.edu/dataset/231/pamap2+physical+activity+monitoring)
 - [] [Daphnet](https://archive.ics.uci.edu/dataset/245/daphnet+freezing+of+gait)
+- [] [KU-HAR](https://data.mendeley.com/datasets/45f952y38r/5)
+- [] [ExtraSensory](http://extrasensory.ucsd.edu/)
 - [] [MHEALTH](hhttps://archive.ics.uci.edu/dataset/319/mhealth+dataset)
 - [] [UTD-MHAD](https://personal.utdallas.edu/~kehtar/UTD-MHAD.html)
 - [] [USC-SIPI (USC-HAD)](https://sipi.usc.edu/had/)
@@ -49,29 +49,21 @@ Since all HAR datasets do not share a common format, specific parsers are provid
 | session_id     | int   |
 | activity_id    | int   |
 | activity_name  | str   |
-| timestamp      | str   |
+| timestamp      | int   |
 
 # Preparation Config
 
-For benchmarking, all HAR datasets should be prepared in the same manner, e.g. window size and displacement. For this purpose, a centralized config is needed. Additionally dataset-specific configs are required, e.g. to select only a subset of sensor channels. For this purpose, a hierarchical config system using [hydra](https://hydra.cc/docs/intro/) and specified with yaml is utilized. The config is then validated with [pydantic](https://docs.pydantic.dev/latest/) against a specified [schema](./src/har_datasets/schema/schema.py) for debugging purposes.
+For benchmarking, all HAR datasets should be prepared in the same manner, e.g. sampling frequency. For this purpose, a centralized config is needed. Additionally dataset-specific configs are required, e.g. to select only a subset of sensor channels. For this purpose, a hierarchical config system using [hydra](https://hydra.cc/docs/intro/) and specified with yaml is utilized. The config is then validated with [pydantic](https://docs.pydantic.dev/latest/) against a specified [schema](./src/har_datasets/config/config.py) for debugging purposes.
 
 # Preparation Features
 
-### Normalization
-
-### Windowing
-
-### Resampling
-
-### Spectrogram Generation
-
-### Differentiation
-
-### Class Weights Computation
-
-### Subject Cross Validation
-
-### Wavelet Transforms
+- [] Resampling
+- [x] Normalization
+- [x] Differentiation
+- [x] Windowing
+- [] Spectrogram Generation (FFT, Wavelet Transforms)
+- [x] Class Weights Computation
+- [x] Subject Cross Validation
 
 # PyTorch Support
 
@@ -79,11 +71,9 @@ We provide [torch](https://pytorch.org/) datasets for easy integration into exis
 
 # TODOS
 
-- window and displacement based on time ? -> different window sizes for different sampling freqs, answer: time, e.g. 2.56 sec
-- resampling to same samplimg freq needed?
 - paper specifc time windows
 - alle channel same
 - configurable preprocessing piepline
 - spectrogramm allows multiple transforms
 - class resampling
-- optional in mem or not
+- optional in mem or not, window chaching

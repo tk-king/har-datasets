@@ -5,27 +5,27 @@ info:
 
 selections:
   activity_names: 
-    - "WALKING"
-    - "WALKING_UPSTAIRS"
-    - "WALKING_DOWNSTAIRS"
-    - "SITTING"
-    - "STANDING"
-    - "LAYING"
+    - WALKING
+    - WALKING_UPSTAIRS
+    - WALKING_DOWNSTAIRS
+    - SITTING
+    - STANDING
+    - LAYING
 
   channels: 
-    - "total_acc_x"
-    - "total_acc_y"
-    - "total_acc_z"
-    - "body_acc_x"
-    - "body_acc_y"
-    - "body_acc_z"
-    - "body_gyro_x"
-    - "body_gyro_y"
-    - "body_gyro_z"
+    - total_acc_x
+    - total_acc_y
+    - total_acc_z
+    - body_acc_x
+    - body_acc_y
+    - body_acc_z
+    - body_gyro_x
+    - body_gyro_y
+    - body_gyro_z
     
 
 split:
-  split_type: "given"
+  split_type: given
   given_split:
     train_subj_ids: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
     test_subj_ids: [21,22,23,24,25]

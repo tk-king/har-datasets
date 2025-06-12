@@ -1,0 +1,55 @@
+info:
+  id: wisdm_phone
+  url: https://archive.ics.uci.edu/static/public/507/wisdm+smartphone+and+smartwatch+activity+and+biometrics+dataset.zip
+  sampling_freq: 20
+
+selections:
+  activity_names: 
+    - walking
+    - jogging
+    - stairs
+    - sitting
+    - standing
+    - typing
+    - teeth
+    - soup
+    - chips
+    - pasta
+    - drinking
+    - sandwich
+    - kicking
+    - catch
+    - dribbling
+    - writing
+    - clapping
+    - folding
+
+  channels: 
+    - acc_x
+    - acc_y
+    - acc_z
+    - gyro_x
+    - gyro_y
+    - gyro_z
+    
+
+split:
+  split_type: given
+  given_split:
+    train_subj_ids: [1600, 1601, 1602, 1603, 1604, 1605, 1606, 1607, 1608, 1609, 1610, 1611, 1612, 1613, 1614, 1615, 1616, 1617, 1618, 1619, 1620, 1621, 1622, 1623, 1624, 1625, 1626, 1627, 1628, 1629, 1630, 1631, 1632, 1633, 1634, 1635, 1636, 1637, 1638]
+    test_subj_ids: [1639, 1640, 1641, 1642, 1643, 1644]
+    val_subj_ids: [1645, 1646, 1647, 1648, 1649, 1650]
+  subj_cross_val_split:
+    subj_id_group_index: 0
+    subj_id_groups:
+      - [1600, 1601, 1602, 1603, 1604, 1605, 1606, 1607, 1608, 1609]
+      - [1610, 1611, 1612, 1613, 1614, 1615, 1616, 1617, 1618, 1619]
+      - [1620, 1621, 1622, 1623, 1624, 1625, 1626, 1627, 1628, 1629]
+      - [1630, 1631, 1632, 1633, 1634, 1635, 1636, 1637, 1638, 1639]
+      - [1640, 1641, 1642, 1643, 1644, 1645, 1646, 1647, 1648, 1649]
+
+training:
+  batch_size: 32
+  shuffle: true
+  learning_rate: 0.0001
+  num_epochs: 100

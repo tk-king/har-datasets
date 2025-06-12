@@ -1,18 +1,8 @@
-from typing import Dict
-from typing import Callable
-
-import pandas as pd
 from omegaconf import OmegaConf
 from hydra import initialize, compose
 
 from har_datasets.dataset.har_dataset import HARDataset
-from har_datasets.supported.parsers import parse_uci_har
-from har_datasets.config.config import DatasetId, HARConfig
-
-
-HAR_DATASETS_DICT: Dict[DatasetId, Callable[[str], pd.DataFrame]] = {
-    DatasetId.UCI_HAR: parse_uci_har,
-}
+from har_datasets.config.config import HAR_DATASETS_DICT, DatasetId, HARConfig
 
 
 def get_har_cfg(

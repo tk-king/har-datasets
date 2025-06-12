@@ -1,11 +1,16 @@
 from enum import Enum
-from typing import List
+from typing import Callable, Dict, List
+import pandas as pd
 from pydantic import BaseModel
+
+from har_datasets.supported.parse_wisdm import parse_wisdm_phone, parse_wisdm_watch
+from har_datasets.supported.parse_uci_har import parse_uci_har
 
 
 class DatasetId(Enum):
     UCI_HAR = "uci_har"
-    WISDM = "wisdm"
+    WISDM_PHONE = "wisdm_phone"
+    WISDM_WATCH = "wisdm_phone"
 
 
 class NormType(Enum):
@@ -94,3 +99,9 @@ class Common(BaseModel):
 class HARConfig(BaseModel):
     common: Common  # common config applyed to all datasets
     dataset: Dataset  # dataset specific config
+
+
+HAR_DATASETS_DICT: Dict[DatasetId, Callable[[str], pd.DataFrame]] = {
+    DatasetId.UCI_HAR: parse_uci_har,
+    DatasetId.WISDM_PHONE: parse_wisdm_phone,
+}
