@@ -11,11 +11,11 @@ This library provides support for popular HAR (human activity recognition) datas
 # How To Use
 
 ```python
-from har_datasets.config.config import DatasetId
-from har_datasets.supported.getters import get_cfg, get_har_dataset
+from har_datasets.dataset.har_dataset import HARDataset
+from har_datasets.parsers.supported import DatasetId, get_har_dataset_cfg_and_parser
 
-cfg = get_har_cfg(dataset_id=DatasetId.UCI_HAR)
-dataset = get_har_dataset(cfg=cfg)
+cfg, parse = get_har_dataset_cfg_and_parser(DatasetId.UCI_HAR)
+dataset = HARDataset(cfg=cfg, parse=parse)
 
 train_loader, test_loader, val_loader = dataset.get_dataloaders()
 ```

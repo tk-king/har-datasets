@@ -15,11 +15,9 @@ def generate_windows(
     window_dict: Dict[str, List[int]] = defaultdict(list)
     windows: List[pd.DataFrame] = []
 
-    stride_time = window_time * (1 - overlap)
-
-    # windows sometimes dont have same size due to float representation
-    EPS = 1e-9  # tiny safety margin
-    ROUND = 3  # keep 1 ms resolution
+    # specify window and stride as timedeltas
+    window_timedelta = pd.Timedelta(seconds=window_time)
+    stride_timedelta = pd.Timedelta(seconds=window_time * (1 - overlap))
 
     for session_id in tqdm(df["session_id"].unique()):
         session_df = df[df["session_id"] == session_id].copy()
@@ -35,15 +33,13 @@ def generate_windows(
         end_time = session_df["timestamp"].max()
         current_start_time = start_time
 
-        ts = session_df["timestamp"].round(ROUND)
-
         # generate windows from session
-        while current_start_time + window_time <= end_time:
-            current_end_time = current_start_time + window_time
+        while current_start_time + window_timedelta <= end_time:
+            current_end_time = current_start_time + window_timedelta
 
             # get mask corresponding to window
-            mask = (ts >= round(current_start_time, ROUND)) & (
-                ts < round(current_end_time, ROUND) - EPS
+            mask = (session_df["timestamp"] >= current_start_time) & (
+                session_df["timestamp"] < current_end_time
             )
 
             # get window based on mask
@@ -55,10 +51,71 @@ def generate_windows(
             window_dict["activity_id"].append(activity_id)
             window_dict["window_id"].append(len(windows) - 1)
 
-            current_start_time += stride_time
+            current_start_time += stride_timedelta
+
+    # trim to shortest window for batching
+    min_len = min([len(window) for window in windows])
+    windows = [window[:min_len] for window in windows]
 
     window_index = pd.DataFrame(window_dict)
     return window_index, windows
+
+
+# def generate_windows(
+#     df: pd.DataFrame,
+#     window_time: float,
+#     overlap: float,
+#     exclude_cols: List[str],
+# ) -> Tuple[pd.DataFrame, List[pd.DataFrame]]:
+#     keep_cols = [col for col in df.columns if col not in exclude_cols]
+
+#     window_dict: Dict[str, List[int]] = defaultdict(list)
+#     windows: List[pd.DataFrame] = []
+
+#     stride_time = window_time * (1 - overlap)
+
+#     # windows sometimes dont have same size due to float representation
+#     EPS = 1e-9  # tiny safety margin
+#     ROUND = 3  # keep 1 ms resolution
+
+#     for session_id in tqdm(df["session_id"].unique()):
+#         session_df = df[df["session_id"] == session_id].copy()
+
+#         # get unique subject_id and activity_id of session
+#         assert session_df["subject_id"].nunique() == 1
+#         assert session_df["activity_id"].nunique() == 1
+#         subject_id = session_df["subject_id"].iloc[0]
+#         activity_id = session_df["activity_id"].iloc[0]
+
+#         # specifiy times
+#         start_time = session_df["timestamp"].min()
+#         end_time = session_df["timestamp"].max()
+#         current_start_time = start_time
+
+#         ts = session_df["timestamp"].round(ROUND)
+
+#         # generate windows from session
+#         while current_start_time + window_time <= end_time:
+#             current_end_time = current_start_time + window_time
+
+#             # get mask corresponding to window
+#             mask = (ts >= round(current_start_time, ROUND)) & (
+#                 ts < round(current_end_time, ROUND) - EPS
+#             )
+
+#             # get window based on mask
+#             window_df = session_df[mask][keep_cols]
+#             windows.append(window_df)
+
+#             # add window info to window index
+#             window_dict["subject_id"].append(subject_id)
+#             window_dict["activity_id"].append(activity_id)
+#             window_dict["window_id"].append(len(windows) - 1)
+
+#             current_start_time += stride_time
+
+#     window_index = pd.DataFrame(window_dict)
+#     return window_index, windows
 
 
 # def generate_windows(

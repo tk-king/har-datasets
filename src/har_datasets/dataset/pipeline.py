@@ -11,6 +11,7 @@ from har_datasets.pipeline.normalizing import (
     normalize_per_subject,
     standardize,
 )
+from har_datasets.pipeline.resampling import resample
 from har_datasets.pipeline.selecting import select_activities, select_channels
 from har_datasets.pipeline.windowing import generate_windows
 
@@ -34,6 +35,15 @@ def pipeline(
     # check format
     check_format(df=df, required_cols=cfg.common.non_channel_cols)
 
+    print("3. resample for equidistant sampling...")
+
+    # apply resampling
+    df = resample(
+        df=df,
+        resampling_freq=cfg.dataset.info.sampling_freq,
+        exclude_columns=cfg.common.non_channel_cols,
+    )
+
     print("3. applying selections...")
 
     # apply selections
@@ -44,13 +54,15 @@ def pipeline(
         exclude_cols=cfg.common.non_channel_cols,
     )
 
-    # # apply resampling
-    # if cfg.common.resampling_freq is not None:
-    #     df = resample(
-    #         df=df,
-    #         sampling_freq=cfg.dataset.sampling_freq,
-    #         resampling_freq=cfg.common.resampling_freq,
-    #     )
+    print("4. applying resampling...")
+
+    # apply resampling
+    if cfg.common.resampling_freq is not None:
+        df = resample(
+            df=df,
+            resampling_freq=cfg.common.resampling_freq,
+            exclude_columns=cfg.common.non_channel_cols,
+        )
 
     print("4. applying normalizations...")
 
