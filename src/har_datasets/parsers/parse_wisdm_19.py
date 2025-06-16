@@ -2,20 +2,17 @@ import os
 import pandas as pd
 
 
-def parse_wisdm_phone(dir: str) -> pd.DataFrame:
+def parse_wisdm_19_phone(dir: str) -> pd.DataFrame:
     dir = os.path.join(dir, "wisdm-dataset/wisdm-dataset")
 
+    # required paths
     accel_dir = os.path.join(dir, "raw/phone/", "accel/")
     gyro_dir = os.path.join(dir, "raw/phone/", "gyro/")
     labels_map_path = os.path.join(dir, "activity_key.txt")
 
     # only keep txt files
-    accel_files = os.listdir(accel_dir)
-    gyro_files = os.listdir(gyro_dir)
-    accel_files = [f for f in accel_files if f.endswith(".txt")]
-    gyro_files = [f for f in gyro_files if f.endswith(".txt")]
-    accel_files = sorted(accel_files)
-    gyro_files = sorted(gyro_files)
+    accel_files = sorted([f for f in os.listdir(accel_dir) if f.endswith(".txt")])
+    gyro_files = sorted([f for f in os.listdir(gyro_dir) if f.endswith(".txt")])
 
     dfs = []
 
@@ -46,25 +43,34 @@ def parse_wisdm_phone(dir: str) -> pd.DataFrame:
             ],
         )
 
-        accel_df.sort_values(by=["timestamp"], inplace=True)
-        gyro_df.sort_values(by=["timestamp"], inplace=True)
-
-        # Merge using nearest timestamp within matching subject and activity
-        merged = pd.merge_asof(
+        # Outer merge on timestamp + IDs
+        merged = pd.merge(
             accel_df,
             gyro_df,
-            on="timestamp",
-            by=["subject_id", "activity_id"],
-            direction="nearest",  # closest timestamp
-            tolerance=1000000,  # adjust based on max acceptable time difference in nanoseconds
+            on=["timestamp", "subject_id", "activity_id"],
+            how="outer",
+            sort=True,
         )
 
-        merged.dropna(inplace=True)
+        print(merged.head(30))
 
-        dfs.append(merged)
+        # Convert to datetime (adjust unit as needed)
+        merged["timestamp"] = pd.to_datetime(merged["timestamp"], unit="ns")
+        merged.set_index("timestamp", inplace=True)
 
-    df = pd.concat(dfs, ignore_index=True)
-    df.reset_index(drop=True, inplace=True)
+        # Resample to 20 Hz (50 ms interval)
+        resampled = merged.resample("50ms").mean()
+
+        # Interpolate missing sensor values
+        resampled = resampled.interpolate(method="linear")
+
+        # Subject and activity IDs are categorical, forward fill them
+        resampled["subject_id"] = merged["subject_id"].resample("50ms").ffill()
+        resampled["activity_id"] = merged["activity_id"].resample("50ms").ffill()
+
+        dfs.append(resampled)
+
+    df = pd.concat(dfs).reset_index(drop=True)
 
     # add col with activity names
     label_dict = {}
@@ -87,8 +93,11 @@ def parse_wisdm_phone(dir: str) -> pd.DataFrame:
     # assign a unique session to each continuous segment
     df["session_id"] = changes.cumsum()
 
+    # convert nanoseconds to seconds
+    df["timestamp"] = df["timestamp"] / 1e9
+
     return df
 
 
-def parse_wisdm_watch(dir: str) -> pd.DataFrame:
+def parse_wisdm_19_watch(dir: str) -> pd.DataFrame:
     raise NotImplementedError

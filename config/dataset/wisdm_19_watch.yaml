@@ -1,5 +1,5 @@
 info:
-  id: wisdm_phone
+  id: wisdm_19_phone
   url: https://archive.ics.uci.edu/static/public/507/wisdm+smartphone+and+smartwatch+activity+and+biometrics+dataset.zip
   sampling_freq: 20
 

@@ -17,6 +17,7 @@ def generate_windows(
 
     stride_time = window_time * (1 - overlap)
 
+    # windows sometimes dont have same size due to float representation
     EPS = 1e-9  # tiny safety margin
     ROUND = 3  # keep 1 ms resolution
 
@@ -41,7 +42,6 @@ def generate_windows(
             current_end_time = current_start_time + window_time
 
             # get mask corresponding to window
-
             mask = (ts >= round(current_start_time, ROUND)) & (
                 ts < round(current_end_time, ROUND) - EPS
             )

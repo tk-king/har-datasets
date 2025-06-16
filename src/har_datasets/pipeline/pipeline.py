@@ -15,7 +15,7 @@ from har_datasets.pipeline.windowing import generate_windows
 
 
 def pipeline(
-    cfg: HARConfig, parse: Callable[[str], pd.DataFrame]
+    cfg: HARConfig, parse: Callable[[str], pd.DataFrame], override_csv: bool = False
 ) -> Tuple[pd.DataFrame, pd.DataFrame, List[pd.DataFrame]]:
     print("1. loading dataframe...")
 
@@ -23,9 +23,10 @@ def pipeline(
     df = load_df(
         url=cfg.dataset.info.url,
         datasets_dir=cfg.common.datasets_dir,
-        csv_file=cfg.dataset.info.id.value + ".csv",
+        csv_file=cfg.dataset.info.id + ".csv",
         parse=parse,
-        required_cols=cfg.common.exlude_cols,
+        required_cols=cfg.common.non_channel_cols,
+        override_csv=override_csv,
     )
 
     print("2. applying selections...")
@@ -35,7 +36,7 @@ def pipeline(
     df = select_channels(
         df=df,
         channels=cfg.dataset.selections.channels,
-        exclude_cols=cfg.common.exlude_cols,
+        exclude_cols=cfg.common.non_channel_cols,
     )
 
     # # apply resampling
@@ -51,13 +52,13 @@ def pipeline(
     # apply global or per subject normalization
     match cfg.common.normalization:
         case NormType.STD_GLOBALLY:
-            df = normalize_globally(df, standardize, cfg.common.exlude_cols)
+            df = normalize_globally(df, standardize, cfg.common.non_channel_cols)
         case NormType.MIN_MAX_GLOBALLY:
-            df = normalize_globally(df, min_max, cfg.common.exlude_cols)
+            df = normalize_globally(df, min_max, cfg.common.non_channel_cols)
         case NormType.STD_PER_SUBJ:
-            df = normalize_per_subject(df, standardize, cfg.common.exlude_cols)
+            df = normalize_per_subject(df, standardize, cfg.common.non_channel_cols)
         case NormType.MIN_MAX_PER_SUBJ:
-            df = normalize_per_subject(df, min_max, cfg.common.exlude_cols)
+            df = normalize_per_subject(df, min_max, cfg.common.non_channel_cols)
 
     print("4. generating windows...")
 
@@ -66,7 +67,7 @@ def pipeline(
         df=df,
         window_time=cfg.common.sliding_window.window_time,
         overlap=cfg.common.sliding_window.overlap,
-        exclude_cols=cfg.common.exlude_cols,
+        exclude_cols=cfg.common.non_channel_cols,
     )
 
     print("5. applying per sample normalizations...")
@@ -74,9 +75,13 @@ def pipeline(
     # apply per sample normalization
     match cfg.common.normalization:
         case NormType.STD_PER_SAMPLE:
-            windows = normalize_per_sample(windows, standardize, cfg.common.exlude_cols)
+            windows = normalize_per_sample(
+                windows, standardize, cfg.common.non_channel_cols
+            )
         case NormType.MIN_MAX_PER_SAMPLE:
-            windows = normalize_per_sample(windows, min_max, cfg.common.exlude_cols)
+            windows = normalize_per_sample(
+                windows, min_max, cfg.common.non_channel_cols
+            )
 
     return df, window_index, windows
 

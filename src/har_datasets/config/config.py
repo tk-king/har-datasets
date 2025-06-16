@@ -1,16 +1,6 @@
 from enum import Enum
-from typing import Callable, Dict, List
-import pandas as pd
+from typing import List
 from pydantic import BaseModel
-
-from har_datasets.supported.parse_wisdm import parse_wisdm_phone, parse_wisdm_watch
-from har_datasets.supported.parse_uci_har import parse_uci_har
-
-
-class DatasetId(Enum):
-    UCI_HAR = "uci_har"
-    WISDM_PHONE = "wisdm_phone"
-    WISDM_WATCH = "wisdm_phone"
 
 
 class NormType(Enum):
@@ -63,7 +53,7 @@ class Selections(BaseModel):
 
 
 class Info(BaseModel):
-    id: DatasetId  # id of the dataset
+    id: str  # id of the dataset
     url: str  # url to download dataset
     sampling_freq: int  # sampling frequency of the dataset
 
@@ -87,7 +77,7 @@ class Common(BaseModel):
     features_type: FeaturesType  # type of features to use
     include_derivative: bool  # whether to include derivative features
     sliding_window: SlidingWindow  # common sliding window config
-    exlude_cols: List[str] = [
+    non_channel_cols: List[str] = [
         "subject_id",
         "activity_id",
         "session_id",
@@ -99,9 +89,3 @@ class Common(BaseModel):
 class HARConfig(BaseModel):
     common: Common  # common config applyed to all datasets
     dataset: Dataset  # dataset specific config
-
-
-HAR_DATASETS_DICT: Dict[DatasetId, Callable[[str], pd.DataFrame]] = {
-    DatasetId.UCI_HAR: parse_uci_har,
-    DatasetId.WISDM_PHONE: parse_wisdm_phone,
-}

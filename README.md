@@ -23,7 +23,8 @@ train_loader, test_loader, val_loader = dataset.get_dataloaders()
 # Supported HAR Datasets
 
 - [x] [UCI-HAR](https://archive.ics.uci.edu/dataset/240/human+activity+recognition+using+smartphones)
-- [] [WISDM](https://archive.ics.uci.edu/dataset/507/wisdm+smartphone+and+smartwatch+activity+and+biometrics+dataset)
+- [] [WISDM-19](https://archive.ics.uci.edu/dataset/507/wisdm+smartphone+and+smartwatch+activity+and+biometrics+dataset)
+- [] [WISDM-12](https://www.cis.fordham.edu/wisdm/dataset.php)
 - [] [RealWorld](https://www.uni-mannheim.de/dws/research/projects/activity-recognition/dataset/dataset-realworld/)
 - [] [MotionSense](https://github.com/mmalekzadeh/motion-sense)
 - [] [OPPORTUNITY](https://archive.ics.uci.edu/dataset/226/opportunity+activity+recognition)

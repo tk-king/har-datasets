@@ -11,12 +11,19 @@ from har_datasets.config.config import HARConfig
 
 
 class HARDataset(Dataset[Tuple[Tensor, Tensor]]):
-    def __init__(self, cfg: HARConfig, parse: Callable[[str], pd.DataFrame]):
+    def __init__(
+        self,
+        cfg: HARConfig,
+        parse: Callable[[str], pd.DataFrame],
+        override_csv: bool = False,
+    ):
         super().__init__()
 
         self.cfg = cfg
 
-        _, self.window_index, self.windows = pipeline(cfg=cfg, parse=parse)
+        _, self.window_index, self.windows = pipeline(
+            cfg=cfg, parse=parse, override_csv=override_csv
+        )
 
         self.train_indices, self.test_indices, self.val_indices = split(
             cfg=cfg, window_index=self.window_index
