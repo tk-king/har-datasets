@@ -1,7 +1,8 @@
 from typing import Callable, List, Tuple
 
+import numpy as np
 import pandas as pd
-from har_datasets.config.config import HARConfig, NormType, SplitType
+from har_datasets.config.config import FeaturesType, HARConfig, NormType, SplitType
 from har_datasets.pipeline.checking import check_format
 from har_datasets.pipeline.loading import load_df
 from har_datasets.pipeline.normalizing import (
@@ -13,12 +14,15 @@ from har_datasets.pipeline.normalizing import (
 )
 from har_datasets.pipeline.resampling import resample
 from har_datasets.pipeline.selecting import select_activities, select_channels
+from har_datasets.pipeline.spectrogram import generate_spectrograms
 from har_datasets.pipeline.windowing import generate_windows
 
 
 def pipeline(
     cfg: HARConfig, parse: Callable[[str], pd.DataFrame], override_csv: bool = False
-) -> Tuple[pd.DataFrame, pd.DataFrame, List[pd.DataFrame]]:
+) -> Tuple[
+    pd.DataFrame, pd.DataFrame, List[pd.DataFrame] | None, List[np.ndarray] | None
+]:
     print("1. loading dataframe...")
 
     # load dataframe
@@ -100,7 +104,34 @@ def pipeline(
                 windows, min_max, cfg.common.non_channel_cols
             )
 
-    return df, window_index, windows
+    match cfg.common.features_type:
+        case FeaturesType.CHANNELS_ONLY:
+            return df, window_index, windows, None
+        case FeaturesType.SPECTROGRAM_ONLY:
+            print("7. generating spectograms for each window...")
+
+            spectrograms = generate_spectrograms(
+                windows=windows,
+                sampling_freq=cfg.dataset.info.sampling_freq,
+                window_size=cfg.common.spectrogram.window_size,
+                overlap=cfg.common.spectrogram.overlap,
+                mode=cfg.common.spectrogram.mode,
+            )
+
+            return df, window_index, None, spectrograms
+        case FeaturesType.BOTH:
+            print("7. generating spectograms for each window...")
+
+            spectrograms = generate_spectrograms(
+                windows=windows,
+                sampling_freq=cfg.dataset.info.sampling_freq,
+                window_size=cfg.common.spectrogram.window_size,
+                overlap=cfg.common.spectrogram.overlap,
+                mode=cfg.common.spectrogram.mode,
+            )
+            return df, window_index, windows, spectrograms
+
+    return df, window_index, windows, spectrograms
 
 
 def split(

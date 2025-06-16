@@ -14,7 +14,7 @@ class NormType(Enum):
 
 class FeaturesType(Enum):
     CHANNELS_ONLY = "channels_only"
-    FREQS_ONLY = "freqs_only"
+    SPECTROGRAM_ONLY = "spectrogram_only"
     BOTH = "both"
 
 
@@ -70,6 +70,12 @@ class SlidingWindow(BaseModel):
     overlap: float  # in [0, 1]
 
 
+class Spectrogram(BaseModel):
+    window_size: int | None = 32
+    overlap: int | None = None
+    mode: str = "magnitude"
+
+
 class Common(BaseModel):
     datasets_dir: str  # directory to save all datasets
     resampling_freq: int | None  # common sampling frequency to which to convert
@@ -77,6 +83,7 @@ class Common(BaseModel):
     features_type: FeaturesType  # type of features to use
     include_derivative: bool  # whether to include derivative features
     sliding_window: SlidingWindow  # common sliding window config
+    spectrogram: Spectrogram
     non_channel_cols: List[str] = [
         "subject_id",
         "activity_id",

@@ -10,7 +10,7 @@ from har_datasets.pipeline.weighting import compute_class_weights
 from har_datasets.config.config import HARConfig
 
 
-class HARDataset(Dataset[Tuple[Tensor, Tensor]]):
+class HARDataset(Dataset[Tuple[Tensor, Tensor | None, Tensor | None]]):
     def __init__(
         self,
         cfg: HARConfig,
@@ -21,7 +21,7 @@ class HARDataset(Dataset[Tuple[Tensor, Tensor]]):
 
         self.cfg = cfg
 
-        _, self.window_index, self.windows = pipeline(
+        _, self.window_index, self.windows, self.spectograms = pipeline(
             cfg=cfg, parse=parse, override_csv=override_csv
         )
 
@@ -42,9 +42,9 @@ class HARDataset(Dataset[Tuple[Tensor, Tensor]]):
         shuffle = train_shuffle or self.cfg.dataset.training.shuffle
 
         # create dataloaders from split
-        train_loader = DataLoader(train_set, batch_size, shuffle)
-        test_loader = DataLoader(test_set, 1, False)
-        val_loader = DataLoader(val_set, 1, False)
+        train_loader = DataLoader(train_set, batch_size, shuffle, collate_fn=collate_fn)
+        test_loader = DataLoader(test_set, 1, False, collate_fn=collate_fn)
+        val_loader = DataLoader(val_set, 1, False, collate_fn=collate_fn)
 
         return train_loader, test_loader, val_loader
 
@@ -52,22 +52,34 @@ class HARDataset(Dataset[Tuple[Tensor, Tensor]]):
         return compute_class_weights(self.window_index)
 
     def __len__(self) -> int:
-        return len(self.windows)
+        return len(self.window_index)
 
-    def __getitem__(self, index: int) -> Tuple[Tensor, Tensor]:
+    def __getitem__(self, index: int) -> Tuple[Tensor, Tensor | None, Tensor | None]:
         # get class label of window
         label = self.window_index.loc[index]["activity_id"]
         assert isinstance(label, np.integer)
 
-        # get window as sample
+        # get window_id
         window_id = self.window_index.loc[index]["window_id"]
         assert isinstance(window_id, np.integer)
-        window = self.windows[window_id]
 
-        # drop index since not a feature
-        window = window.reset_index(drop=True)
+        # get window and spectogram as samples
+        window = self.windows[window_id].values if self.windows is not None else None
+        spect = self.spectograms[window_id] if self.spectograms is not None else None
 
-        x = torch.tensor(window.values, dtype=torch.float32)
+        # convert to tensors
         y = torch.tensor([label], dtype=torch.long)
+        x1 = torch.tensor(window, dtype=torch.float32) if window is not None else None
+        x2 = torch.tensor(spect, dtype=torch.float32) if spect is not None else None
 
-        return x, y
+        return y, x1, x2
+
+
+def collate_fn(data: list[Tuple[Tensor, Tensor | None, Tensor | None]]) -> tuple:
+    y, x1, x2 = zip(*data)
+
+    tensor_y = torch.stack(y)
+    tensor_x1 = None if None in x1 else torch.stack(x1)
+    tensor_x2 = None if None in x2 else torch.stack(x2)
+
+    return tensor_y, tensor_x1, tensor_x2

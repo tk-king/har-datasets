@@ -1,3 +1,4 @@
+from collections import defaultdict
 import os
 import tarfile
 from typing import Callable, Tuple
@@ -24,7 +25,23 @@ def load_df(
 
     # if file exists, load it, else parse from dataset and save
     if os.path.exists(csv_path) and not override_csv:
-        df = read_csv(csv_path)
+        # set types for cols, default to float
+        types: dict = defaultdict(
+            lambda: float,
+            **{
+                "subject_id": "int32",
+                "activity_name": "str",
+                "activity_id": "int32",
+                "session_id": "int32",
+            },
+        )
+
+        # read csv while setting types and parsing timestamp
+        df = read_csv(
+            csv_path,
+            dtype=types,
+            parse_dates=["timestamp"],
+        )
     else:
         df = parse(dir)
         df.to_csv(csv_path, index=True)

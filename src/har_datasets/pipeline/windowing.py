@@ -42,8 +42,9 @@ def generate_windows(
                 session_df["timestamp"] < current_end_time
             )
 
-            # get window based on mask
+            # get window based on mask and keep_cols and reset index
             window_df = session_df[mask][keep_cols]
+            window_df.reset_index(drop=True)
             windows.append(window_df)
 
             # add window info to window index
