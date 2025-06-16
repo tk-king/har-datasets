@@ -1,6 +1,6 @@
 import os
 import tarfile
-from typing import Callable, List, Tuple
+from typing import Callable, Tuple
 import pandas as pd
 from pandas import read_csv
 import requests
@@ -11,7 +11,6 @@ def load_df(
     datasets_dir: str,
     csv_file: str,
     parse: Callable[[str], pd.DataFrame],
-    required_cols: List[str],
     override_csv: bool = False,
 ) -> pd.DataFrame:
     # download dataset
@@ -29,9 +28,6 @@ def load_df(
     else:
         df = parse(dir)
         df.to_csv(csv_path, index=True)
-
-    # check that all required columns are present
-    assert set(required_cols).issubset(df.columns)
 
     return df
 

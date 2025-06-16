@@ -65,6 +65,9 @@ def parse_wisdm_12(dir: str) -> pd.DataFrame:
         }
     )
 
+    # change timestamp to datetime in ns
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ns")
+
     # remove rows with missing values
     df = df[(df["accel_x"] != 0) & (df["accel_y"] != 0) & (df["accel_z"] != 0)]
 
@@ -79,10 +82,10 @@ def parse_wisdm_12(dir: str) -> pd.DataFrame:
     # assign a unique session to each continuous segment
     df["session_id"] = changes.cumsum()
 
-    # convert nanoseconds to seconds
-    df["timestamp"] = df["timestamp"] / 1e9
-
     # convert all to numeric but activity_name
     df = df.astype({"activity_id": "int32", "session_id": "int32"})
+
+    # reset index
+    df = df.reset_index(drop=True)
 
     return df

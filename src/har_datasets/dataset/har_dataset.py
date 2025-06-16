@@ -5,7 +5,7 @@ from torch import Tensor
 import torch
 from torch.utils.data import Dataset, Subset, DataLoader
 
-from har_datasets.pipeline.pipeline import pipeline, split
+from har_datasets.dataset.pipeline import pipeline, split
 from har_datasets.pipeline.weighting import compute_class_weights
 from har_datasets.config.config import HARConfig
 

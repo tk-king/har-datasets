@@ -50,7 +50,9 @@ Since all HAR datasets do not share a common format, specific parsers are provid
 | session_id     | int   |
 | activity_id    | int   |
 | activity_name  | str   |
-| timestamp      | int   |
+| timestamp      | datetime in ns |
+
+The index must be set to timestamp. All parsers must ensure to output this format. 
 
 # Preparation Config
 
@@ -78,3 +80,5 @@ We provide [torch](https://pytorch.org/) datasets for easy integration into exis
 - spectrogramm allows multiple transforms
 - class resampling
 - optional in mem or not, window chaching
+
+

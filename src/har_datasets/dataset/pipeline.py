@@ -2,6 +2,7 @@ from typing import Callable, List, Tuple
 
 import pandas as pd
 from har_datasets.config.config import HARConfig, NormType, SplitType
+from har_datasets.pipeline.checking import check_format
 from har_datasets.pipeline.loading import load_df
 from har_datasets.pipeline.normalizing import (
     min_max,
@@ -25,11 +26,15 @@ def pipeline(
         datasets_dir=cfg.common.datasets_dir,
         csv_file=cfg.dataset.info.id + ".csv",
         parse=parse,
-        required_cols=cfg.common.non_channel_cols,
         override_csv=override_csv,
     )
 
-    print("2. applying selections...")
+    print("2. checking format...")
+
+    # check format
+    check_format(df=df, required_cols=cfg.common.non_channel_cols)
+
+    print("3. applying selections...")
 
     # apply selections
     df = select_activities(df=df, activity_names=cfg.dataset.selections.activity_names)
@@ -47,7 +52,7 @@ def pipeline(
     #         resampling_freq=cfg.common.resampling_freq,
     #     )
 
-    print("3. applying normalizations...")
+    print("4. applying normalizations...")
 
     # apply global or per subject normalization
     match cfg.common.normalization:
@@ -60,7 +65,7 @@ def pipeline(
         case NormType.MIN_MAX_PER_SUBJ:
             df = normalize_per_subject(df, min_max, cfg.common.non_channel_cols)
 
-    print("4. generating windows...")
+    print("5. generating windows...")
 
     # generate windows and window index
     window_index, windows = generate_windows(
@@ -70,7 +75,7 @@ def pipeline(
         exclude_cols=cfg.common.non_channel_cols,
     )
 
-    print("5. applying per sample normalizations...")
+    print("6. applying per sample normalizations...")
 
     # apply per sample normalization
     match cfg.common.normalization:
@@ -89,7 +94,7 @@ def pipeline(
 def split(
     cfg: HARConfig, window_index: pd.DataFrame
 ) -> Tuple[List[int], List[int], List[int]]:
-    print("6. splitting into train, test and val...")
+    print("7. splitting into train, test and val...")
 
     # specify split indices depending on split type
     match cfg.dataset.split.split_type:
