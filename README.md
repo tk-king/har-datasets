@@ -13,7 +13,7 @@ HAR datasets not included can be used by writing a custom config and parser, whi
 # How to Install
 
 ```
-pip install "git+https://github.com/maxbrzr/har-datasets.git
+pip install "git+https://github.com/maxbrzr/har-datasets.git"
 ```
 
 This installs the library into the active environment.
