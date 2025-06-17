@@ -44,7 +44,7 @@ class HARDataset(Dataset[Tuple[Tensor, Tensor | None, Tensor | None]]):
         # create dataloaders from split
         train_loader = DataLoader(train_set, batch_size, shuffle, collate_fn=collate_fn)
         test_loader = DataLoader(test_set, 1, False, collate_fn=collate_fn)
-        val_loader = DataLoader(val_set, 1, False, collate_fn=collate_fn)
+        val_loader = DataLoader(val_set, len(val_set), False, collate_fn=collate_fn)
 
         return train_loader, test_loader, val_loader
 
