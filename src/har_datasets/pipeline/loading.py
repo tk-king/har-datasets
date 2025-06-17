@@ -2,6 +2,7 @@ from collections import defaultdict
 import os
 import tarfile
 from typing import Callable, Tuple
+import zipfile
 import pandas as pd
 from pandas import read_csv
 import requests
@@ -72,21 +73,29 @@ def download(url: str, datasets_dir: str) -> Tuple[str, str]:
 
 def extract(file_path: str, save_dir: str):
     # check if extract is necessary
-    if not os.path.exists(file_path) or not tarfile.is_tarfile(file_path):
+    if not os.path.exists(file_path):
         return save_dir
 
-    # extract
-    with tarfile.open(file_path) as tar:
-        print(f"Extracting {file_path} to {save_dir}")
-        tar.extractall(save_dir)
+    # extract zip or tar file
+    if tarfile.is_tarfile(file_path):
+        with tarfile.open(file_path) as tar:
+            print(f"Extracting {file_path} to {save_dir}")
+            tar.extractall(save_dir)
+    elif zipfile.is_zipfile(file_path):
+        with zipfile.ZipFile(file_path) as zip:
+            print(f"Extracting {file_path} to {save_dir}")
+            zip.extractall(save_dir)
+    else:
+        return save_dir
 
-    # recursively extract inner .tar files
+    # recursively extract inner zip or tar files
     for root, _, files in os.walk(save_dir):
         for file in files:
-            if tarfile.is_tarfile(os.path.join(root, file)):
-                inner_zip_path = os.path.join(root, file)
+            path = os.path.join(root, file)
+            if tarfile.is_tarfile(path) or zipfile.is_zipfile(path):
+                inner_file_path = os.path.join(root, file)
                 inner_extract_dir = os.path.join(root, file.rsplit(".", 1)[0])
-                extract(inner_zip_path, inner_extract_dir)
+                extract(inner_file_path, inner_extract_dir)
 
     # clean up
     os.remove(file_path)

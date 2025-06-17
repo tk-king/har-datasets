@@ -6,24 +6,36 @@ This library provides support for popular HAR (human activity recognition) datas
 - downloading from original source with caching
 - parsing into a centralized format with caching
 - preparation via config with caching
-- pytorch integration
+- pytorch integration.
+
+HAR datasets not included can be used by writing a custom config and parser, which can then be integrated easily.
+
+# How to Install
+
+```
+pip install "git+https://github.com/maxbrzr/har-datasets.git
+```
+
+This installs the library into the active environment.
 
 # How To Use
 
 ```python
 from har_datasets.dataset.har_dataset import HARDataset
-from har_datasets.parsers.supported import DatasetId, get_har_dataset_cfg_and_parser
+from har_datasets.supported.getter import DatasetId, get_har_dataset_cfg_and_parser
 
-cfg, parse = get_har_dataset_cfg_and_parser(DatasetId.UCI_HAR)
+cfg, parse = get_har_dataset_cfg_and_parser(dataset_id=DatasetId.UCI_HAR)
 dataset = HARDataset(cfg=cfg, parse=parse)
 
 train_loader, test_loader, val_loader = dataset.get_dataloaders()
 ```
 
+For unsupported har datasets, a custom parse function and config can be implented and used instead.
+
 # Supported HAR Datasets
 
 - [x] [UCI-HAR](https://archive.ics.uci.edu/dataset/240/human+activity+recognition+using+smartphones)
-- [X] [WISDM-12](https://www.cis.fordham.edu/wisdm/dataset.php)
+- [x] [WISDM-12](https://www.cis.fordham.edu/wisdm/dataset.php)
 - [] [RealWorld](https://www.uni-mannheim.de/dws/research/projects/activity-recognition/dataset/dataset-realworld/)
 - [] [MotionSense](https://github.com/mmalekzadeh/motion-sense)
 - [] [OPPORTUNITY](https://archive.ics.uci.edu/dataset/226/opportunity+activity+recognition)
@@ -31,7 +43,7 @@ train_loader, test_loader, val_loader = dataset.get_dataloaders()
 - [] [Daphnet](https://archive.ics.uci.edu/dataset/245/daphnet+freezing+of+gait)
 - [] [KU-HAR](https://data.mendeley.com/datasets/45f952y38r/5)
 - [] [ExtraSensory](http://extrasensory.ucsd.edu/)
-- [] [MHEALTH](hhttps://archive.ics.uci.edu/dataset/319/mhealth+dataset)
+- [] [MHEALTH](https://archive.ics.uci.edu/dataset/319/mhealth+dataset)
 - [] [UTD-MHAD](https://personal.utdallas.edu/~kehtar/UTD-MHAD.html)
 - [] [USC-SIPI (USC-HAD)](https://sipi.usc.edu/had/)
 - [] [HuGaDB](https://github.com/romanchereshnev/HuGaDB)
@@ -46,13 +58,13 @@ Since all HAR datasets do not share a common format, specific parsers are provid
 
 | Column         | Type  |
 |----------------|-------|
+| timestamp      | datetime in ns |
 | subject_id     | int   |
-| session_id     | int   |
 | activity_id    | int   |
 | activity_name  | str   |
-| timestamp      | datetime in ns |
+| session_id     | int   |
 
-The index must be set to timestamp. All parsers must ensure to output this format. 
+All parsers must ensure to output this format. 
 
 # Preparation Config
 
@@ -60,11 +72,11 @@ For benchmarking, all HAR datasets should be prepared in the same manner, e.g. s
 
 # Preparation Features
 
-- [] Resampling
+- [x] Resampling
 - [x] Normalization
 - [x] Differentiation
 - [x] Windowing
-- [] Spectrogram Generation (FFT, Wavelet Transforms)
+- [x] Spectrogram Generation
 - [x] Class Weights Computation
 - [x] Subject Cross Validation
 
