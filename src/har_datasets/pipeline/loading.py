@@ -53,6 +53,12 @@ def load_df(
 def download(url: str, datasets_dir: str) -> Tuple[str, str]:
     os.makedirs(datasets_dir, exist_ok=True)
 
+    # Create gitignore file if it doesn't exist
+    gitignore_path = os.path.join(datasets_dir, ".gitignore")
+    if not os.path.exists(gitignore_path):
+        with open(gitignore_path, "w") as f:
+            f.write("*")
+
     filename = url.split("/")[-1]
     file_path = os.path.join(datasets_dir, filename)
     dir = os.path.join(datasets_dir, filename.rsplit(".", 1)[0])
