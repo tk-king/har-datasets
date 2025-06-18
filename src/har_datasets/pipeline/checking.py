@@ -5,7 +5,7 @@ import pandas.api.types as ptypes
 
 def check_format(df: pd.DataFrame, required_cols: List[str]) -> None:
     # assert df is not empty
-    assert not df.empty
+    assert len(df.index) != 0
 
     # assert required columns are present
     assert set(required_cols).issubset(df.columns)

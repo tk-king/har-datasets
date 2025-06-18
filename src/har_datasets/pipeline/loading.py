@@ -6,6 +6,7 @@ import zipfile
 import pandas as pd
 from pandas import read_csv
 import requests
+# import dask.dataframe as dd
 
 
 def load_df(
@@ -14,15 +15,13 @@ def load_df(
     csv_file: str,
     parse: Callable[[str], pd.DataFrame],
     override_csv: bool = False,
-) -> pd.DataFrame:
-    # download dataset
-    file_path, dir = download(url, datasets_dir)
-
-    # unzip if necessary
-    dir = extract(file_path, dir)
+) -> Tuple[pd.DataFrame, str]:
+    # download dataset and unzip if necessary
+    file_path, dataset_dir = download(url, datasets_dir)
+    dataset_dir = extract(file_path, dataset_dir)
 
     # path to csv
-    csv_path = os.path.join(dir, csv_file)
+    csv_path = os.path.join(dataset_dir, csv_file)
 
     # if file exists, load it, else parse from dataset and save
     if os.path.exists(csv_path) and not override_csv:
@@ -44,10 +43,10 @@ def load_df(
             parse_dates=["timestamp"],
         )
     else:
-        df = parse(dir)
+        df = parse(dataset_dir)
         df.to_csv(csv_path, index=True)
 
-    return df
+    return df, dataset_dir
 
 
 def download(url: str, datasets_dir: str) -> Tuple[str, str]:
@@ -107,3 +106,50 @@ def extract(file_path: str, save_dir: str):
     os.remove(file_path)
 
     return save_dir
+
+
+# def load_df_dask(
+#     url: str,
+#     datasets_dir: str,
+#     csv_file: str,
+#     parse: Callable[[str], dd.DataFrame],
+#     override_csv: bool = False,
+# ) -> dd.DataFrame:
+#     # Download and extract dataset
+#     file_path, dir = download(url, datasets_dir)
+#     dir = extract(file_path, dir)
+
+#     # Path to Parquet directory
+#     parquet_dir = os.path.join(dir, "parquet/")
+
+#     # If Parquet exists and override is False, load it
+#     if os.path.exists(parquet_dir) and not override_csv:
+#         df = dd.read_parquet(
+#             parquet_dir, engine="pyarrow", dtype_backend="numpy_nullable"
+#         )
+
+#         # set types
+#         df["subject_id"] = df["subject_id"].astype("Int32")
+#         df["activity_id"] = df["activity_id"].astype("Int32")
+#         df["session_id"] = df["session_id"].astype("Int32")
+#         df["activity_name"] = df["activity_name"].astype("string")
+#         df["timestamp"] = dd.to_datetime(df["timestamp"], unit="ns")
+
+#     else:
+#         os.makedirs(parquet_dir, exist_ok=True)
+
+#         # Parse using provided function
+#         df = parse(dir)
+
+#         # convert to dd
+#         df = dd.from_pandas(df, npartitions=1)
+
+#         # Save to partitioned Parquet by subject_id
+#         df.to_parquet(
+#             parquet_dir,
+#             engine="pyarrow",
+#             write_index=False,
+#             partition_on=["subject_id"],
+#         )
+
+#     return df

@@ -3,6 +3,7 @@ from typing import Callable, List, Tuple
 import numpy as np
 import pandas as pd
 from har_datasets.config.config import FeaturesType, HARConfig, NormType, SplitType
+from har_datasets.config.hashing import create_cfg_hash
 from har_datasets.pipeline.checking import check_format
 from har_datasets.pipeline.loading import load_df
 from har_datasets.pipeline.normalizing import (
@@ -15,7 +16,7 @@ from har_datasets.pipeline.normalizing import (
 from har_datasets.pipeline.resampling import resample
 from har_datasets.pipeline.selecting import select_activities, select_channels
 from har_datasets.pipeline.spectrogram import generate_spectrograms
-from har_datasets.pipeline.windowing import generate_windows
+from har_datasets.pipeline.windowing import get_windowing
 
 
 def pipeline(
@@ -23,10 +24,12 @@ def pipeline(
 ) -> Tuple[
     pd.DataFrame, pd.DataFrame, List[pd.DataFrame] | None, List[np.ndarray] | None
 ]:
+    cfg_hash = create_cfg_hash(cfg)
+
     print("1. loading dataframe...")
 
     # load dataframe
-    df = load_df(
+    df, dataset_dir = load_df(
         url=cfg.dataset.info.url,
         datasets_dir=cfg.common.datasets_dir,
         csv_file=cfg.dataset.info.id + ".csv",
@@ -81,10 +84,12 @@ def pipeline(
         case NormType.MIN_MAX_PER_SUBJ:
             df = normalize_per_subject(df, min_max, cfg.common.non_channel_cols)
 
-    print("5. generating windows...")
+    print("5. get windows...")
 
-    # generate windows and window index
-    window_index, windows = generate_windows(
+    # get windows and window index
+    window_index, windows = get_windowing(
+        dataset_dir=dataset_dir,
+        cfg_hash=cfg_hash,
         df=df,
         window_time=cfg.common.sliding_window.window_time,
         overlap=cfg.common.sliding_window.overlap,
