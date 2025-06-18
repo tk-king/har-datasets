@@ -3,6 +3,8 @@ from har_datasets.config.config import HARConfig
 
 
 def create_cfg_hash(cfg: HARConfig) -> str:
+    print("Creating config hash...")
+
     # convert to json
     cfg_json = cfg.model_dump_json()
 

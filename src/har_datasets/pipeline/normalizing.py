@@ -7,6 +7,8 @@ def normalize_globally(
     normalize: Callable[[pd.DataFrame, List[str]], pd.DataFrame],
     exclude_columns: List[str],
 ) -> pd.DataFrame:
+    print("Normalizing data globally...")
+
     return normalize(df, exclude_columns)
 
 
@@ -15,6 +17,8 @@ def normalize_per_subject(
     normalize: Callable[[pd.DataFrame, List[str]], pd.DataFrame],
     exclude_columns: List[str],
 ) -> pd.DataFrame:
+    print("Normalizing data per subject...")
+
     return df.groupby("subject_id", group_keys=False).transform(
         lambda x: normalize(x, exclude_columns)
     )
@@ -25,10 +29,14 @@ def normalize_per_sample(
     normalize: Callable[[pd.DataFrame, List[str]], pd.DataFrame],
     exclude_columns: List[str],
 ) -> List[pd.DataFrame]:
+    print("Normalizing data per sample...")
+
     return [normalize(window, exclude_columns) for window in windows]
 
 
 def min_max(df: pd.DataFrame, exclude_columns: List[str]) -> pd.DataFrame:
+    print("Normalizing with min-max normalization...")
+
     cols = df.columns.difference(exclude_columns)
 
     # Compute min and max for each column
@@ -42,6 +50,8 @@ def min_max(df: pd.DataFrame, exclude_columns: List[str]) -> pd.DataFrame:
 
 
 def standardize(df: pd.DataFrame, exclude_columns: List[str]) -> pd.DataFrame:
+    print("Normalizing with standardization...")
+
     cols = df.columns.difference(exclude_columns)
 
     # Compute mean and standard deviation for each column
@@ -55,6 +65,8 @@ def standardize(df: pd.DataFrame, exclude_columns: List[str]) -> pd.DataFrame:
 
 
 def robust_scale(df: pd.DataFrame, exclude_columns: List[str]) -> pd.DataFrame:
+    print("Normalizing with robust scaling...")
+
     cols = df.columns.difference(exclude_columns)
 
     # Compute median and IQR (q3 - q1) for each column

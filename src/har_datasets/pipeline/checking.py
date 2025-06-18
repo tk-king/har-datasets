@@ -4,6 +4,8 @@ import pandas.api.types as ptypes
 
 
 def check_format(df: pd.DataFrame, required_cols: List[str]) -> None:
+    print("Checking data format...")
+
     # assert df is not empty
     assert len(df.index) != 0
 

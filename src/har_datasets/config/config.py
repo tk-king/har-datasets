@@ -12,12 +12,6 @@ class NormType(Enum):
     MIN_MAX_PER_SUBJ = "min_max_per_subj"
 
 
-class FeaturesType(Enum):
-    CHANNELS_ONLY = "channels_only"
-    SPECTROGRAM_ONLY = "spectrogram_only"
-    BOTH = "both"
-
-
 class SplitType(Enum):
     GIVEN = "given"
     SUBJ_CROSS_VAL = "subj_cross_val"
@@ -59,6 +53,8 @@ class Info(BaseModel):
 
 
 class Dataset(BaseModel):
+    cache_csv: bool = True
+    in_memory: bool = True
     info: Info  # info about the dataset
     selections: Selections  # which activities and channels to include
     split: Split  # how to split into train / test / val
@@ -66,11 +62,14 @@ class Dataset(BaseModel):
 
 
 class SlidingWindow(BaseModel):
+    cache_windows: bool = True
     window_time: float  # in seconds
     overlap: float  # in [0, 1]
 
 
 class Spectrogram(BaseModel):
+    use_spectrogram: bool = False
+    cache_spectrograms: bool = True
     window_size: int | None = 32
     overlap: int | None = None
     mode: str = "magnitude"
@@ -80,7 +79,6 @@ class Common(BaseModel):
     datasets_dir: str  # directory to save all datasets
     resampling_freq: int | None  # common sampling frequency to which to convert
     normalization: NormType | None  # type of normalization to apply to all
-    features_type: FeaturesType  # type of features to use
     include_derivative: bool  # whether to include derivative features
     sliding_window: SlidingWindow  # common sliding window config
     spectrogram: Spectrogram

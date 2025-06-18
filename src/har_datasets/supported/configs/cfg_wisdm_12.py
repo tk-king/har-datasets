@@ -1,7 +1,6 @@
 from har_datasets.config.config import (
     Common,
     Dataset,
-    FeaturesType,
     GivenSplit,
     HARConfig,
     Info,
@@ -19,7 +18,6 @@ cfg_wisdm_12 = HARConfig(
         datasets_dir="./datasets",
         resampling_freq=None,
         normalization=None,
-        features_type=FeaturesType.CHANNELS_ONLY,
         include_derivative=False,
         sliding_window=SlidingWindow(window_time=2.56, overlap=0),
         spectrogram=Spectrogram(window_size=20, overlap=None, mode="magnitude"),

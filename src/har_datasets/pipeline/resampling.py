@@ -6,6 +6,8 @@ import pandas as pd
 def resample(
     df: pd.DataFrame, resampling_freq: float, exclude_columns: List[str]
 ) -> pd.DataFrame:
+    print("Resampling data...")
+
     # convert resampling freq to time delta in ns
     time_delta_ns = int(1e9 / resampling_freq)
 

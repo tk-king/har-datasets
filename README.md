@@ -27,7 +27,7 @@ from har_datasets.supported.getter import DatasetId, get_har_dataset_cfg_and_par
 cfg, parse = get_har_dataset_cfg_and_parser(dataset_id=DatasetId.UCI_HAR)
 dataset = HARDataset(cfg=cfg, parse=parse)
 
-train_loader, test_loader, val_loader = dataset.get_dataloaders()
+train_loader, val_loader, test_loader = dataset.get_dataloaders()
 ```
 
 For unsupported har datasets, a custom parse function and config can be implented and used instead.

@@ -1,8 +1,12 @@
 from collections import defaultdict
 import os
 from typing import Dict, List, Tuple
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
+
+from har_datasets.config.config import NormType
+from har_datasets.pipeline.normalizing import min_max, normalize_per_sample, standardize
 
 
 def get_windowing(
@@ -12,21 +16,100 @@ def get_windowing(
     window_time: float,
     overlap: float,
     exclude_cols: List[str],
+    normalization: NormType | None,
 ) -> Tuple[pd.DataFrame, List[pd.DataFrame]]:
-    windowing_dir = os.path.join(dataset_dir, "windowing")
+    print("Getting windowing...")
+
+    windowing_dir = os.path.join(dataset_dir, "windowing/")
+    windows_dir = os.path.join(windowing_dir, "windows/")
 
     # check if windowing corresponds to cfg
     if os.path.exists(windowing_dir) and cfg_hash == load_cfg_hash(windowing_dir):
-        window_index, windows = load_windowing(windowing_dir)
+        window_index, windows = load_windowing(windowing_dir, windows_dir)
 
     # if not, generate and save windowing
     else:
         window_index, windows = generate_windowing(
             df, window_time, overlap, exclude_cols
         )
-        save_windowing(windowing_dir, window_index, windows, cfg_hash)
+
+        # apply per sample normalization
+        match normalization:
+            case NormType.STD_PER_SAMPLE:
+                windows = normalize_per_sample(windows, standardize, exclude_cols)
+            case NormType.MIN_MAX_PER_SAMPLE:
+                windows = normalize_per_sample(windows, min_max, exclude_cols)
+
+        save_windowing(cfg_hash, windowing_dir, windows_dir, window_index, windows)
 
     return window_index, windows
+
+
+def save_windowing(
+    cfg_hash: str,
+    windowing_dir: str,
+    windows_dir: str,
+    window_index: pd.DataFrame,
+    windows: List[pd.DataFrame],
+) -> None:
+    # create windowing directory if it does not exist
+    os.makedirs(windowing_dir, exist_ok=True)
+    os.makedirs(windows_dir, exist_ok=True)
+
+    # save config hash
+    with open(os.path.join(windowing_dir, "cfg_hash.txt"), "w") as f:
+        f.write(cfg_hash)
+
+    # save window index
+    window_index.to_csv(os.path.join(windowing_dir, "window_index.csv"), index=False)
+
+    # save windows
+    loop = tqdm(range(len(window_index)))
+    loop.set_description("Saving windows")
+
+    for i in loop:
+        # get window_id
+        window_id = window_index.loc[i]["window_id"]
+        assert isinstance(window_id, np.integer)
+
+        # get and save window
+        window = windows[window_id]
+        window.to_csv(os.path.join(windows_dir, f"window_{i}.csv"), index=False)
+
+
+def load_windowing(
+    windowing_dir: str, windows_dir: str
+) -> Tuple[pd.DataFrame, List[pd.DataFrame]]:
+    # load window index
+    window_index = pd.read_csv(os.path.join(windowing_dir, "window_index.csv"))
+
+    windows: List[pd.DataFrame] = []
+
+    # load windows
+    loop = tqdm(range(len(window_index)))
+    loop.set_description("Loading windows")
+
+    for i in loop:
+        # get window_id
+        window_id = window_index.loc[i]["window_id"]
+        assert isinstance(window_id, np.integer)
+
+        # load window and append
+        window = load_window(windows_dir, int(window_id))
+        windows.append(window)
+
+    return window_index, windows
+
+
+def load_window(windows_dir: str, window_id: int) -> pd.DataFrame:
+    return pd.read_csv(os.path.join(windows_dir, f"window_{window_id}.csv"))
+
+
+def load_cfg_hash(windowing_dir: str) -> str:
+    print("Loading config hash...")
+
+    with open(os.path.join(windowing_dir, "cfg_hash.txt"), "r") as f:
+        return f.read()
 
 
 def generate_windowing(
@@ -35,6 +118,8 @@ def generate_windowing(
     overlap: float,
     exclude_cols: List[str],
 ) -> Tuple[pd.DataFrame, List[pd.DataFrame]]:
+    print("Generating windows...")
+
     # specify only channel columns for windows
     keep_cols = [col for col in df.columns if col not in exclude_cols]
 
@@ -94,45 +179,3 @@ def generate_windowing(
     window_index = pd.DataFrame(window_dict)
 
     return window_index, windows
-
-
-def save_windowing(
-    windowing_dir: str,
-    window_index: pd.DataFrame,
-    windows: List[pd.DataFrame],
-    cfg_hash: str,
-) -> None:
-    os.makedirs(windowing_dir, exist_ok=True)
-
-    # save window index
-    window_index.to_csv(os.path.join(windowing_dir, "window_index.csv"), index=False)
-
-    # save windows
-    loop = tqdm(enumerate(windows), total=len(windows))
-    loop.set_description("Saving windows")
-    for i, window in loop:
-        window.to_csv(os.path.join(windowing_dir, f"window_{i}.csv"), index=False)
-
-    # save cfg hash
-    with open(os.path.join(windowing_dir, "cfg_hash.txt"), "w") as f:
-        f.write(cfg_hash)
-
-
-def load_windowing(windowing_dir: str) -> Tuple[pd.DataFrame, List[pd.DataFrame]]:
-    # load window index
-    window_index = pd.read_csv(os.path.join(windowing_dir, "window_index.csv"))
-
-    # load windows
-    windows = []
-    loop = tqdm(range(len(window_index)))
-    loop.set_description("Loading windows")
-    for i in loop:
-        window = pd.read_csv(os.path.join(windowing_dir, f"window_{i}.csv"))
-        windows.append(window)
-
-    return window_index, windows
-
-
-def load_cfg_hash(windowing_dir: str) -> str:
-    with open(os.path.join(windowing_dir, "cfg_hash.txt"), "r") as f:
-        return f.read()

@@ -16,6 +16,8 @@ def load_df(
     parse: Callable[[str], pd.DataFrame],
     override_csv: bool = False,
 ) -> Tuple[pd.DataFrame, str]:
+    print("Loading data...")
+
     # download dataset and unzip if necessary
     file_path, dataset_dir = download(url, datasets_dir)
     dataset_dir = extract(file_path, dataset_dir)

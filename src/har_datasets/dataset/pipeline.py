@@ -1,34 +1,31 @@
+import os
 from typing import Callable, List, Tuple
 
 import numpy as np
 import pandas as pd
-from har_datasets.config.config import FeaturesType, HARConfig, NormType, SplitType
+from har_datasets.config.config import HARConfig, NormType, SplitType
 from har_datasets.config.hashing import create_cfg_hash
 from har_datasets.pipeline.checking import check_format
 from har_datasets.pipeline.loading import load_df
 from har_datasets.pipeline.normalizing import (
     min_max,
     normalize_globally,
-    normalize_per_sample,
     normalize_per_subject,
     standardize,
 )
 from har_datasets.pipeline.resampling import resample
 from har_datasets.pipeline.selecting import select_activities, select_channels
-from har_datasets.pipeline.spectrogram import generate_spectrograms
-from har_datasets.pipeline.windowing import get_windowing
+from har_datasets.pipeline.spectrogram import get_spectrograms, load_spectrogram
+from har_datasets.pipeline.windowing import get_windowing, load_window
 
 
 def pipeline(
     cfg: HARConfig, parse: Callable[[str], pd.DataFrame], override_csv: bool = False
-) -> Tuple[
-    pd.DataFrame, pd.DataFrame, List[pd.DataFrame] | None, List[np.ndarray] | None
-]:
+) -> Tuple[str, pd.DataFrame, List[pd.DataFrame] | None, List[np.ndarray] | None]:
+    # create config hash
     cfg_hash = create_cfg_hash(cfg)
 
-    print("1. loading dataframe...")
-
-    # load dataframe
+    # load dataframe and dir of dataset
     df, dataset_dir = load_df(
         url=cfg.dataset.info.url,
         datasets_dir=cfg.common.datasets_dir,
@@ -37,23 +34,17 @@ def pipeline(
         override_csv=override_csv,
     )
 
-    print("2. checking format...")
-
-    # check format
+    # check format of dataframe
     check_format(df=df, required_cols=cfg.common.non_channel_cols)
 
-    print("3. resample for equidistant sampling...")
-
-    # apply resampling
+    # apply resampling to dataframe for equidistant measurements
     df = resample(
         df=df,
         resampling_freq=cfg.dataset.info.sampling_freq,
         exclude_columns=cfg.common.non_channel_cols,
     )
 
-    print("3. applying selections...")
-
-    # apply selections
+    # apply selections to dataframe
     df = select_activities(df=df, activity_names=cfg.dataset.selections.activity_names)
     df = select_channels(
         df=df,
@@ -61,9 +52,7 @@ def pipeline(
         exclude_cols=cfg.common.non_channel_cols,
     )
 
-    print("4. applying resampling...")
-
-    # apply resampling
+    # apply resampling to dataframe to convert to common sampling frequency
     if cfg.common.resampling_freq is not None:
         df = resample(
             df=df,
@@ -71,9 +60,7 @@ def pipeline(
             exclude_columns=cfg.common.non_channel_cols,
         )
 
-    print("4. applying normalizations...")
-
-    # apply global or per subject normalization
+    # apply global or per subject normalization to dataframe
     match cfg.common.normalization:
         case NormType.STD_GLOBALLY:
             df = normalize_globally(df, standardize, cfg.common.non_channel_cols)
@@ -84,9 +71,7 @@ def pipeline(
         case NormType.MIN_MAX_PER_SUBJ:
             df = normalize_per_subject(df, min_max, cfg.common.non_channel_cols)
 
-    print("5. get windows...")
-
-    # get windows and window index
+    # get window_index and windows
     window_index, windows = get_windowing(
         dataset_dir=dataset_dir,
         cfg_hash=cfg_hash,
@@ -94,56 +79,34 @@ def pipeline(
         window_time=cfg.common.sliding_window.window_time,
         overlap=cfg.common.sliding_window.overlap,
         exclude_cols=cfg.common.non_channel_cols,
+        normalization=cfg.common.normalization,
     )
 
-    print("6. applying per sample normalizations...")
+    # get spectrograms
+    spectrograms = (
+        get_spectrograms(
+            dataset_dir=dataset_dir,
+            cfg_hash=cfg_hash,
+            window_index=window_index,
+            windows=windows,
+            sampling_freq=cfg.dataset.info.sampling_freq,
+            window_size=cfg.common.spectrogram.window_size,
+            overlap=cfg.common.spectrogram.overlap,
+            mode=cfg.common.spectrogram.mode,
+        )
+        if cfg.common.spectrogram.use_spectrogram
+        else None
+    )
 
-    # apply per sample normalization
-    match cfg.common.normalization:
-        case NormType.STD_PER_SAMPLE:
-            windows = normalize_per_sample(
-                windows, standardize, cfg.common.non_channel_cols
-            )
-        case NormType.MIN_MAX_PER_SAMPLE:
-            windows = normalize_per_sample(
-                windows, min_max, cfg.common.non_channel_cols
-            )
-
-    match cfg.common.features_type:
-        case FeaturesType.CHANNELS_ONLY:
-            return df, window_index, windows, None
-        case FeaturesType.SPECTROGRAM_ONLY:
-            print("7. generating spectograms for each window...")
-
-            spectrograms = generate_spectrograms(
-                windows=windows,
-                sampling_freq=cfg.dataset.info.sampling_freq,
-                window_size=cfg.common.spectrogram.window_size,
-                overlap=cfg.common.spectrogram.overlap,
-                mode=cfg.common.spectrogram.mode,
-            )
-
-            return df, window_index, None, spectrograms
-        case FeaturesType.BOTH:
-            print("7. generating spectograms for each window...")
-
-            spectrograms = generate_spectrograms(
-                windows=windows,
-                sampling_freq=cfg.dataset.info.sampling_freq,
-                window_size=cfg.common.spectrogram.window_size,
-                overlap=cfg.common.spectrogram.overlap,
-                mode=cfg.common.spectrogram.mode,
-            )
-            return df, window_index, windows, spectrograms
-
-    return df, window_index, windows, spectrograms
+    if cfg.dataset.in_memory:
+        return dataset_dir, window_index, windows, spectrograms
+    else:
+        return dataset_dir, window_index, None, None
 
 
 def split(
     cfg: HARConfig, window_index: pd.DataFrame
 ) -> Tuple[List[int], List[int], List[int]]:
-    print("7. splitting into train, test and val...")
-
     # specify split indices depending on split type
     match cfg.dataset.split.split_type:
         case SplitType.GIVEN:
@@ -178,6 +141,47 @@ def split(
 
             val_indices = []
 
-    print("7. done")
-
     return train_indices, test_indices, val_indices
+
+
+def get_sample(
+    cfg: HARConfig,
+    index: int,
+    dataset_dir: str,
+    window_index: pd.DataFrame,
+    windows: List[pd.DataFrame] | None,
+    spectograms: List[np.ndarray] | None,
+) -> Tuple[np.integer, np.ndarray, np.ndarray | None]:
+    # get class label of window
+    label = window_index.loc[index]["activity_id"]
+    assert isinstance(label, np.integer)
+
+    # get window_id
+    window_id = window_index.loc[index]["window_id"]
+    assert isinstance(window_id, np.integer)
+
+    if cfg.dataset.in_memory:
+        assert windows is not None
+
+        # get window and spectogram
+        window = windows[window_id].values
+        spect = (
+            spectograms[window_id]
+            if cfg.common.spectrogram.use_spectrogram and spectograms is not None
+            else None
+        )
+    else:
+        # defined dirs
+        windowing_dir = os.path.join(dataset_dir, "windowing/")
+        windows_dir = os.path.join(windowing_dir, "windows/")
+        spectograms_dir = os.path.join(windowing_dir, "spectograms/")
+
+        # load window and spectogram
+        window = load_window(windows_dir, int(window_id)).values
+        spect = (
+            load_spectrogram(spectograms_dir, int(window_id))
+            if cfg.common.spectrogram.use_spectrogram
+            else None
+        )
+
+    return label, window, spect
