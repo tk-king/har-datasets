@@ -24,7 +24,6 @@ class GivenSplit(BaseModel):
 
 
 class SubjCrossValSplit(BaseModel):
-    subj_id_group_index: int  # current group selected for testing
     subj_id_groups: List[List[int]]  # groups containing multiple subject ids
 
 

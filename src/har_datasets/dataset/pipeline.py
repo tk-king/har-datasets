@@ -178,8 +178,10 @@ def pipeline(
         return dataset_dir, window_index, None, None
 
 
-def split(
-    cfg: HARConfig, window_index: pd.DataFrame
+def get_split(
+    cfg: HARConfig,
+    window_index: pd.DataFrame,
+    subj_cross_val_group_index: int | None = None,
 ) -> Tuple[List[int], List[int], List[int]]:
     # specify split indices depending on split type
     match cfg.dataset.split.split_type:
@@ -191,31 +193,34 @@ def split(
                 window_index["subject_id"].isin(split_g.train_subj_ids)
             ].index.to_list()
 
-            test_indices = window_index[
-                window_index["subject_id"].isin(split_g.test_subj_ids)
-            ].index.to_list()
-
             val_indices = window_index[
                 window_index["subject_id"].isin(split_g.val_subj_ids)
+            ].index.to_list()
+
+            test_indices = window_index[
+                window_index["subject_id"].isin(split_g.test_subj_ids)
             ].index.to_list()
 
         case SplitType.SUBJ_CROSS_VAL:
             split_scv = cfg.dataset.split.subj_cross_val_split
             assert split_scv is not None
 
-            test_subj_ids = split_scv.subj_id_groups[split_scv.subj_id_group_index]
+            assert subj_cross_val_group_index is not None
+            assert subj_cross_val_group_index < len(split_scv.subj_id_groups)
+
+            val_subj_ids = split_scv.subj_id_groups[subj_cross_val_group_index]
 
             train_indices = window_index[
-                ~window_index["subject_id"].isin(test_subj_ids)
+                ~window_index["subject_id"].isin(val_subj_ids)
             ].index.to_list()
 
-            test_indices = window_index[
-                window_index["subject_id"].isin(test_subj_ids)
+            val_indices = window_index[
+                window_index["subject_id"].isin(val_subj_ids)
             ].index.to_list()
 
-            val_indices = []
+            test_indices = []
 
-    return train_indices, test_indices, val_indices
+    return train_indices, val_indices, test_indices
 
 
 def get_sample(

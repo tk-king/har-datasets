@@ -4,7 +4,7 @@ from torch import Tensor
 import torch
 from torch.utils.data import Dataset, Subset, DataLoader
 
-from har_datasets.dataset.pipeline import get_sample, pipeline, split
+from har_datasets.dataset.pipeline import get_sample, pipeline, get_split
 from har_datasets.pipeline.weighting import compute_class_weights
 from har_datasets.config.config import HARConfig
 
@@ -24,14 +24,20 @@ class HARDataset(Dataset[Tuple[Tensor, Tensor | None, Tensor | None]]):
             cfg=cfg, parse=parse, override_csv=override_csv
         )
 
-        self.train_indices, self.test_indices, self.val_indices = split(
-            cfg=cfg, window_index=self.window_index
+    def get_dataloaders(
+        self,
+        subj_cross_val_group_index: int | None = None,
+        train_batch_size: int | None = None,
+        train_shuffle: bool | None = None,
+    ) -> Tuple[DataLoader, DataLoader, DataLoader]:
+        # get split indices from config
+        self.train_indices, self.val_indices, self.test_indices = get_split(
+            cfg=self.cfg,
+            window_index=self.window_index,
+            subj_cross_val_group_index=subj_cross_val_group_index,
         )
 
-    def get_dataloaders(
-        self, train_batch_size: int | None = None, train_shuffle: bool | None = None
-    ) -> Tuple[DataLoader, DataLoader, DataLoader]:
-        # specify split
+        # specify split subsets
         train_set = Subset(self, self.train_indices)
         test_set = Subset(self, self.test_indices)
         val_set = Subset(self, self.val_indices)
