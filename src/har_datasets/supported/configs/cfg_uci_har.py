@@ -25,8 +25,8 @@ cfg_uci_har = HARConfig(
     ),
     dataset=Dataset(
         info=Info(
-            id="uci_har",
-            url="https://archive.ics.uci.edu/static/public/240/human+activity+recognition+using+smartphones.zip",
+            dataset_id="uci_har",
+            dataset_url="https://archive.ics.uci.edu/static/public/240/human+activity+recognition+using+smartphones.zip",
             sampling_freq=50,
         ),
         selections=Selections(

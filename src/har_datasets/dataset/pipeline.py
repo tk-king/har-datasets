@@ -6,17 +6,24 @@ import pandas as pd
 from har_datasets.config.config import HARConfig, NormType, SplitType
 from har_datasets.config.hashing import create_cfg_hash
 from har_datasets.pipeline.checking import check_format
-from har_datasets.pipeline.loading import load_df
+from har_datasets.pipeline.loading import get_df
 from har_datasets.pipeline.normalizing import (
     min_max,
     normalize_globally,
+    normalize_per_sample,
     normalize_per_subject,
     standardize,
 )
 from har_datasets.pipeline.resampling import resample
 from har_datasets.pipeline.selecting import select_activities, select_channels
 from har_datasets.pipeline.spectrogram import get_spectrograms, load_spectrogram
-from har_datasets.pipeline.windowing import get_windowing, load_window
+from har_datasets.pipeline.windowing import (
+    generate_windowing,
+    load_cfg_hash,
+    load_window,
+    load_windowing,
+    save_windowing,
+)
 
 
 def pipeline(
@@ -25,11 +32,44 @@ def pipeline(
     # create config hash
     cfg_hash = create_cfg_hash(cfg)
 
-    # load dataframe and dir of dataset
-    df, dataset_dir = load_df(
-        url=cfg.dataset.info.url,
-        datasets_dir=cfg.common.datasets_dir,
-        csv_file=cfg.dataset.info.id + ".csv",
+    # define directories
+    datasets_dir = cfg.common.datasets_dir
+    dataset_dir = os.path.join(datasets_dir, cfg.dataset.info.dataset_id)
+    windowing_dir = os.path.join(dataset_dir, "windowing/")
+    windows_dir = os.path.join(windowing_dir, "windows/")
+
+    # check if windowing exists and corresponds to cfg
+    if os.path.exists(windowing_dir) and cfg_hash == load_cfg_hash(windowing_dir):
+        # load windowing
+        window_index, windows = load_windowing(windowing_dir, windows_dir)
+
+        # load or generate spectrograms
+        spectrograms = (
+            get_spectrograms(
+                dataset_dir=dataset_dir,
+                cfg_hash=cfg_hash,
+                window_index=window_index,
+                windows=windows,
+                sampling_freq=cfg.dataset.info.sampling_freq,
+                window_size=cfg.common.spectrogram.window_size,
+                overlap=cfg.common.spectrogram.overlap,
+                mode=cfg.common.spectrogram.mode,
+            )
+            if cfg.common.spectrogram.use_spectrogram
+            else None
+        )
+
+        # return in-memory windowing or windowing on disk
+        if cfg.dataset.in_memory:
+            return dataset_dir, window_index, windows, spectrograms
+        else:
+            return dataset_dir, window_index, None, None
+
+    # load or generate dataframe
+    df = get_df(
+        datasets_dir=datasets_dir,
+        dataset_id=cfg.dataset.info.dataset_id,
+        dataset_url=cfg.dataset.info.dataset_url,
         parse=parse,
         override_csv=override_csv,
     )
@@ -63,23 +103,56 @@ def pipeline(
     # apply global or per subject normalization to dataframe
     match cfg.common.normalization:
         case NormType.STD_GLOBALLY:
-            df = normalize_globally(df, standardize, cfg.common.non_channel_cols)
+            df = normalize_globally(
+                df=df,
+                normalize=standardize,
+                exclude_columns=cfg.common.non_channel_cols,
+            )
         case NormType.MIN_MAX_GLOBALLY:
-            df = normalize_globally(df, min_max, cfg.common.non_channel_cols)
+            df = normalize_globally(
+                df=df, normalize=min_max, exclude_columns=cfg.common.non_channel_cols
+            )
         case NormType.STD_PER_SUBJ:
-            df = normalize_per_subject(df, standardize, cfg.common.non_channel_cols)
+            df = normalize_per_subject(
+                df=df,
+                normalize=standardize,
+                exclude_columns=cfg.common.non_channel_cols,
+            )
         case NormType.MIN_MAX_PER_SUBJ:
-            df = normalize_per_subject(df, min_max, cfg.common.non_channel_cols)
+            df = normalize_per_subject(
+                df=df, normalize=min_max, exclude_columns=cfg.common.non_channel_cols
+            )
 
-    # get window_index and windows
-    window_index, windows = get_windowing(
-        dataset_dir=dataset_dir,
-        cfg_hash=cfg_hash,
+    # generate windowing
+    window_index, windows = generate_windowing(
         df=df,
         window_time=cfg.common.sliding_window.window_time,
         overlap=cfg.common.sliding_window.overlap,
         exclude_cols=cfg.common.non_channel_cols,
-        normalization=cfg.common.normalization,
+    )
+
+    # apply per sample normalization
+    match cfg.common.normalization:
+        case NormType.STD_PER_SAMPLE:
+            windows = normalize_per_sample(
+                windows=windows,
+                normalize=standardize,
+                exclude_columns=cfg.common.non_channel_cols,
+            )
+        case NormType.MIN_MAX_PER_SAMPLE:
+            windows = normalize_per_sample(
+                windows=windows,
+                normalize=min_max,
+                exclude_columns=cfg.common.non_channel_cols,
+            )
+
+    # save windowing
+    save_windowing(
+        cfg_hash=cfg_hash,
+        windowing_dir=windowing_dir,
+        windows_dir=windows_dir,
+        window_index=window_index,
+        windows=windows,
     )
 
     # get spectrograms
@@ -98,6 +171,7 @@ def pipeline(
         else None
     )
 
+    # return in-memory windowing or windowing on disk
     if cfg.dataset.in_memory:
         return dataset_dir, window_index, windows, spectrograms
     else:

@@ -5,45 +5,6 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from har_datasets.config.config import NormType
-from har_datasets.pipeline.normalizing import min_max, normalize_per_sample, standardize
-
-
-def get_windowing(
-    dataset_dir: str,
-    cfg_hash: str,
-    df: pd.DataFrame,
-    window_time: float,
-    overlap: float,
-    exclude_cols: List[str],
-    normalization: NormType | None,
-) -> Tuple[pd.DataFrame, List[pd.DataFrame]]:
-    print("Getting windowing...")
-
-    windowing_dir = os.path.join(dataset_dir, "windowing/")
-    windows_dir = os.path.join(windowing_dir, "windows/")
-
-    # check if windowing corresponds to cfg
-    if os.path.exists(windowing_dir) and cfg_hash == load_cfg_hash(windowing_dir):
-        window_index, windows = load_windowing(windowing_dir, windows_dir)
-
-    # if not, generate and save windowing
-    else:
-        window_index, windows = generate_windowing(
-            df, window_time, overlap, exclude_cols
-        )
-
-        # apply per sample normalization
-        match normalization:
-            case NormType.STD_PER_SAMPLE:
-                windows = normalize_per_sample(windows, standardize, exclude_cols)
-            case NormType.MIN_MAX_PER_SAMPLE:
-                windows = normalize_per_sample(windows, min_max, exclude_cols)
-
-        save_windowing(cfg_hash, windowing_dir, windows_dir, window_index, windows)
-
-    return window_index, windows
-
 
 def save_windowing(
     cfg_hash: str,
@@ -179,3 +140,39 @@ def generate_windowing(
     window_index = pd.DataFrame(window_dict)
 
     return window_index, windows
+
+
+# def get_windowing(
+#     dataset_dir: str,
+#     cfg_hash: str,
+#     df: pd.DataFrame,
+#     window_time: float,
+#     overlap: float,
+#     exclude_cols: List[str],
+#     normalization: NormType | None,
+# ) -> Tuple[pd.DataFrame, List[pd.DataFrame]]:
+#     print("Getting windowing...")
+
+#     windowing_dir = os.path.join(dataset_dir, "windowing/")
+#     windows_dir = os.path.join(windowing_dir, "windows/")
+
+#     # check if windowing corresponds to cfg
+#     if os.path.exists(windowing_dir) and cfg_hash == load_cfg_hash(windowing_dir):
+#         window_index, windows = load_windowing(windowing_dir, windows_dir)
+
+#     # if not, generate and save windowing
+#     else:
+#         window_index, windows = generate_windowing(
+#             df, window_time, overlap, exclude_cols
+#         )
+
+#         # apply per sample normalization
+#         match normalization:
+#             case NormType.STD_PER_SAMPLE:
+#                 windows = normalize_per_sample(windows, standardize, exclude_cols)
+#             case NormType.MIN_MAX_PER_SAMPLE:
+#                 windows = normalize_per_sample(windows, min_max, exclude_cols)
+
+#         save_windowing(cfg_hash, windowing_dir, windows_dir, window_index, windows)
+
+#     return window_index, windows

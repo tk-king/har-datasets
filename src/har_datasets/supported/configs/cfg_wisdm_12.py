@@ -24,8 +24,8 @@ cfg_wisdm_12 = HARConfig(
     ),
     dataset=Dataset(
         info=Info(
-            id="wisdm_12",
-            url="https://www.cis.fordham.edu/wisdm/includes/datasets/latest/WISDM_ar_latest.tar.gz",
+            dataset_id="wisdm_12",
+            dataset_url="https://www.cis.fordham.edu/wisdm/includes/datasets/latest/WISDM_ar_latest.tar.gz",
             sampling_freq=20,
         ),
         selections=Selections(

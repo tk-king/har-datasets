@@ -47,8 +47,8 @@ class Selections(BaseModel):
 
 
 class Info(BaseModel):
-    id: str  # id of the dataset
-    url: str  # url to download dataset
+    dataset_id: str  # id of the dataset
+    dataset_url: str  # url to download dataset
     sampling_freq: int  # sampling frequency of the dataset
 
 

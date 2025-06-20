@@ -1,7 +1,7 @@
 from collections import defaultdict
 import os
 import tarfile
-from typing import Callable, Tuple
+from typing import Callable
 import zipfile
 import pandas as pd
 from pandas import read_csv
@@ -9,49 +9,47 @@ import requests
 # import dask.dataframe as dd
 
 
-def load_df(
-    url: str,
+def get_df(
     datasets_dir: str,
-    csv_file: str,
+    dataset_id: str,
+    dataset_url: str,
     parse: Callable[[str], pd.DataFrame],
     override_csv: bool = False,
-) -> Tuple[pd.DataFrame, str]:
+) -> pd.DataFrame:
     print("Loading data...")
 
-    # download dataset and unzip if necessary
-    file_path, dataset_dir = download(url, datasets_dir)
-    dataset_dir = extract(file_path, dataset_dir)
+    dataset_dir = os.path.join(datasets_dir, dataset_id)
+    csv_path = os.path.join(dataset_dir, dataset_id + ".csv")
 
-    # path to csv
-    csv_path = os.path.join(dataset_dir, csv_file)
+    # download dataset and unzip if necessary
+    file_path = download_dataset(datasets_dir, dataset_dir, dataset_url)
+    extract_dataset(file_path, dataset_dir)
 
     # if file exists, load it, else parse from dataset and save
     if os.path.exists(csv_path) and not override_csv:
         # set types for cols, default to float
-        types: dict = defaultdict(
-            lambda: float,
-            **{
-                "subject_id": "int32",
-                "activity_name": "str",
-                "activity_id": "int32",
-                "session_id": "int32",
-            },
-        )
-
         # read csv while setting types and parsing timestamp
         df = read_csv(
             csv_path,
-            dtype=types,
+            dtype=defaultdict(
+                lambda: float,
+                **{
+                    "subject_id": "int32",
+                    "activity_name": "str",
+                    "activity_id": "int32",
+                    "session_id": "int32",
+                },
+            ),
             parse_dates=["timestamp"],
         )
     else:
         df = parse(dataset_dir)
         df.to_csv(csv_path, index=True)
 
-    return df, dataset_dir
+    return df
 
 
-def download(url: str, datasets_dir: str) -> Tuple[str, str]:
+def download_dataset(datasets_dir: str, dataset_dir: str, dataset_url: str) -> str:
     os.makedirs(datasets_dir, exist_ok=True)
 
     # Create gitignore file if it doesn't exist
@@ -60,54 +58,51 @@ def download(url: str, datasets_dir: str) -> Tuple[str, str]:
         with open(gitignore_path, "w") as f:
             f.write("*")
 
-    filename = url.split("/")[-1]
+    filename = dataset_url.split("/")[-1]
     file_path = os.path.join(datasets_dir, filename)
-    dir = os.path.join(datasets_dir, filename.rsplit(".", 1)[0])
 
     # If zip or dir already exists, do nothing
-    if os.path.exists(file_path) or os.path.exists(dir):
-        return file_path, dir
+    if os.path.exists(file_path) or os.path.exists(dataset_dir):
+        return file_path
 
     # else download file from url
     else:
-        print(f"Downloading {url} to {datasets_dir}")
-        response = requests.get(url)
+        print(f"Downloading {dataset_url} to {datasets_dir}")
+        response = requests.get(dataset_url)
         with open(file_path, "wb") as f:
             f.write(response.content)
 
-    return file_path, dir
+    return file_path
 
 
-def extract(file_path: str, save_dir: str):
+def extract_dataset(file_path: str, dataset_dir: str):
     # check if extract is necessary
     if not os.path.exists(file_path):
-        return save_dir
+        return
 
     # extract zip or tar file
     if tarfile.is_tarfile(file_path):
         with tarfile.open(file_path) as tar:
-            print(f"Extracting {file_path} to {save_dir}")
-            tar.extractall(save_dir)
+            print(f"Extracting {file_path} to {dataset_dir}")
+            tar.extractall(dataset_dir)
     elif zipfile.is_zipfile(file_path):
         with zipfile.ZipFile(file_path) as zip:
-            print(f"Extracting {file_path} to {save_dir}")
-            zip.extractall(save_dir)
+            print(f"Extracting {file_path} to {dataset_dir}")
+            zip.extractall(dataset_dir)
     else:
-        return save_dir
+        return
 
     # recursively extract inner zip or tar files
-    for root, _, files in os.walk(save_dir):
+    for root, _, files in os.walk(dataset_dir):
         for file in files:
             path = os.path.join(root, file)
             if tarfile.is_tarfile(path) or zipfile.is_zipfile(path):
                 inner_file_path = os.path.join(root, file)
                 inner_extract_dir = os.path.join(root, file.rsplit(".", 1)[0])
-                extract(inner_file_path, inner_extract_dir)
+                extract_dataset(inner_file_path, inner_extract_dir)
 
     # clean up
     os.remove(file_path)
-
-    return save_dir
 
 
 # def load_df_dask(
