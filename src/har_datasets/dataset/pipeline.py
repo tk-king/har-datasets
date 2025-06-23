@@ -3,24 +3,23 @@ from typing import Callable, List, Tuple
 
 import numpy as np
 import pandas as pd
-from har_datasets.config.config import HARConfig, NormType, SplitType
+from har_datasets.config.config import HARConfig, NormType
 from har_datasets.config.hashing import create_cfg_hash
-from har_datasets.pipeline.checking import check_format
-from har_datasets.pipeline.loading import get_df
-from har_datasets.pipeline.normalizing import (
+from har_datasets.features.checking import check_format
+from har_datasets.features.loading import get_df
+from har_datasets.features.normalizing import (
     min_max,
     normalize_globally,
     normalize_per_sample,
     normalize_per_subject,
     standardize,
 )
-from har_datasets.pipeline.resampling import resample
-from har_datasets.pipeline.selecting import select_activities, select_channels
-from har_datasets.pipeline.spectrogram import get_spectrograms, load_spectrogram
-from har_datasets.pipeline.windowing import (
+from har_datasets.features.resampling import resample
+from har_datasets.features.selecting import select_activities, select_channels
+from har_datasets.features.spectrogram import get_spectrograms
+from har_datasets.features.windowing import (
     generate_windowing,
     load_cfg_hash,
-    load_window,
     load_windowing,
     save_windowing,
 )
@@ -176,91 +175,3 @@ def pipeline(
         return dataset_dir, window_index, windows, spectrograms
     else:
         return dataset_dir, window_index, None, None
-
-
-def get_split(
-    cfg: HARConfig,
-    window_index: pd.DataFrame,
-    subj_cross_val_group_index: int | None = None,
-) -> Tuple[List[int], List[int], List[int]]:
-    # specify split indices depending on split type
-    match cfg.dataset.split.split_type:
-        case SplitType.GIVEN:
-            split_g = cfg.dataset.split.given_split
-            assert split_g is not None
-
-            train_indices = window_index[
-                window_index["subject_id"].isin(split_g.train_subj_ids)
-            ].index.to_list()
-
-            val_indices = window_index[
-                window_index["subject_id"].isin(split_g.val_subj_ids)
-            ].index.to_list()
-
-            test_indices = window_index[
-                window_index["subject_id"].isin(split_g.test_subj_ids)
-            ].index.to_list()
-
-        case SplitType.SUBJ_CROSS_VAL:
-            split_scv = cfg.dataset.split.subj_cross_val_split
-            assert split_scv is not None
-
-            assert subj_cross_val_group_index is not None
-            assert subj_cross_val_group_index < len(split_scv.subj_id_groups)
-
-            val_subj_ids = split_scv.subj_id_groups[subj_cross_val_group_index]
-
-            train_indices = window_index[
-                ~window_index["subject_id"].isin(val_subj_ids)
-            ].index.to_list()
-
-            val_indices = window_index[
-                window_index["subject_id"].isin(val_subj_ids)
-            ].index.to_list()
-
-            test_indices = []
-
-    return train_indices, val_indices, test_indices
-
-
-def get_sample(
-    cfg: HARConfig,
-    index: int,
-    dataset_dir: str,
-    window_index: pd.DataFrame,
-    windows: List[pd.DataFrame] | None,
-    spectograms: List[np.ndarray] | None,
-) -> Tuple[np.integer, np.ndarray, np.ndarray | None]:
-    # get class label of window
-    label = window_index.loc[index]["activity_id"]
-    assert isinstance(label, np.integer)
-
-    # get window_id
-    window_id = window_index.loc[index]["window_id"]
-    assert isinstance(window_id, np.integer)
-
-    if cfg.dataset.in_memory:
-        assert windows is not None
-
-        # get window and spectogram
-        window = windows[window_id].values
-        spect = (
-            spectograms[window_id]
-            if cfg.common.spectrogram.use_spectrogram and spectograms is not None
-            else None
-        )
-    else:
-        # defined dirs
-        windowing_dir = os.path.join(dataset_dir, "windowing/")
-        windows_dir = os.path.join(windowing_dir, "windows/")
-        spectograms_dir = os.path.join(windowing_dir, "spectograms/")
-
-        # load window and spectogram
-        window = load_window(windows_dir, int(window_id)).values
-        spect = (
-            load_spectrogram(spectograms_dir, int(window_id))
-            if cfg.common.spectrogram.use_spectrogram
-            else None
-        )
-
-    return label, window, spect

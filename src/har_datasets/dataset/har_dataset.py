@@ -4,8 +4,10 @@ from torch import Tensor
 import torch
 from torch.utils.data import Dataset, Subset, DataLoader
 
-from har_datasets.dataset.pipeline import get_sample, pipeline, get_split
-from har_datasets.pipeline.weighting import compute_class_weights
+from har_datasets.dataset.pipeline import pipeline
+from har_datasets.dataset.sample import get_sample
+from har_datasets.dataset.split import get_split
+from har_datasets.features.weighting import compute_class_weights
 from har_datasets.config.config import HARConfig
 
 
