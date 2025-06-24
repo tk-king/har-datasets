@@ -10,9 +10,9 @@ def get_split(
     subj_cross_val_group_index: int | None = None,
 ) -> Tuple[List[int], List[int], List[int]]:
     # specify split indices depending on split type
-    match cfg.dataset.split.split_type:
+    match cfg.dataset.training.split.split_type:
         case SplitType.GIVEN:
-            split_g = cfg.dataset.split.given_split
+            split_g = cfg.dataset.training.split.given_split
             assert split_g is not None
 
             train_indices = window_index[
@@ -28,7 +28,7 @@ def get_split(
             ].index.to_list()
 
         case SplitType.SUBJ_CROSS_VAL:
-            split_scv = cfg.dataset.split.subj_cross_val_split
+            split_scv = cfg.dataset.training.split.subj_cross_val_split
             assert split_scv is not None
 
             assert subj_cross_val_group_index is not None

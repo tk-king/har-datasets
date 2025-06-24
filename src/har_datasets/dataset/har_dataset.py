@@ -1,4 +1,6 @@
+import random
 from typing import Callable, Tuple
+import numpy as np
 import pandas as pd
 from torch import Tensor
 import torch
@@ -26,6 +28,15 @@ class HARDataset(Dataset[Tuple[Tensor, Tensor | None, Tensor | None]]):
             cfg=cfg, parse=parse, override_csv=override_csv
         )
 
+        self.seed = cfg.dataset.training.seed
+
+        torch.manual_seed(self.seed)
+        random.seed(self.seed)
+        np.random.seed(self.seed)
+
+        self.generator = torch.Generator()
+        self.generator.manual_seed(self.seed)
+
     def get_dataloaders(
         self,
         subj_cross_val_group_index: int | None = None,
@@ -49,9 +60,29 @@ class HARDataset(Dataset[Tuple[Tensor, Tensor | None, Tensor | None]]):
         shuffle = train_shuffle or self.cfg.dataset.training.shuffle
 
         # create dataloaders from split
-        train_loader = DataLoader(train_set, batch_size, shuffle, collate_fn=collate_fn)
-        val_loader = DataLoader(val_set, len(val_set), False, collate_fn=collate_fn)
-        test_loader = DataLoader(test_set, 1, False, collate_fn=collate_fn)
+        train_loader = DataLoader(
+            dataset=train_set,
+            batch_size=batch_size,
+            shuffle=shuffle,
+            collate_fn=collate_fn,
+            generator=self.generator,
+        )
+
+        val_loader = DataLoader(
+            dataset=val_set,
+            batch_size=len(val_set),
+            shuffle=False,
+            collate_fn=collate_fn,
+            generator=self.generator,
+        )
+
+        test_loader = DataLoader(
+            dataset=test_set,
+            batch_size=1,
+            shuffle=False,
+            collate_fn=collate_fn,
+            generator=self.generator,
+        )
 
         return train_loader, val_loader, test_loader
 

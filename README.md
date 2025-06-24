@@ -66,9 +66,38 @@ Since all HAR datasets do not share a common format, specific parsers are provid
 
 All parsers must ensure to output this format. 
 
-# Preparation Config
+# Config
 
-For benchmarking, all HAR datasets should be prepared in the same manner, e.g. sampling frequency. For this purpose, a centralized config is needed. Additionally dataset-specific configs are required, e.g. to select only a subset of sensor channels. For this purpose, a hierarchical config system using [hydra](https://hydra.cc/docs/intro/) and specified with yaml is utilized. The config is then validated with [pydantic](https://docs.pydantic.dev/latest/) against a specified [schema](./src/har_datasets/config/config.py) for debugging purposes.
+A hierarchical config system built on [pydantic](https://docs.pydantic.dev/latest/) is used for both common and dataset-specific configuration.
+
+### Common Config
+
+- dataset directory
+- resampling frequency 
+- include derivative
+- include spectrograms
+- spectrogram hyperparams
+
+### Dataset-Specific Config
+
+- info
+    - identifier (name)
+    - download url
+    - sampling frequency
+    - activity names
+    - sensor channel names
+    - subject ids
+- preprocessing
+    - activity and subject selections
+    - normalization type (same type for all channels but applied individually to sensor channels)
+    - sliding window hyperparams
+    - cache df, windows, spectrograms
+- training
+    - given split into train, val, test
+    - split groups for subject-based cross validation
+    - batch size, learning rate, number of epochs, seed
+    - in_memory or read each sample from disk
+
 
 # Preparation Features
 

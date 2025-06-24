@@ -3,7 +3,7 @@ from typing import Callable, List, Tuple
 
 import numpy as np
 import pandas as pd
-from har_datasets.config.config import HARConfig, NormType
+from har_datasets.config.config import NON_CHANNEL_COLS, HARConfig, NormType
 from har_datasets.config.hashing import create_cfg_hash
 from har_datasets.features.checking import check_format
 from har_datasets.features.loading import get_df
@@ -33,7 +33,7 @@ def pipeline(
 
     # define directories
     datasets_dir = cfg.common.datasets_dir
-    dataset_dir = os.path.join(datasets_dir, cfg.dataset.info.dataset_id)
+    dataset_dir = os.path.join(datasets_dir, cfg.dataset.info.id)
     windowing_dir = os.path.join(dataset_dir, "windowing/")
     windows_dir = os.path.join(windowing_dir, "windows/")
 
@@ -54,12 +54,12 @@ def pipeline(
                 overlap=cfg.common.spectrogram.overlap,
                 mode=cfg.common.spectrogram.mode,
             )
-            if cfg.common.spectrogram.use_spectrogram
+            if cfg.common.use_spectrogram
             else None
         )
 
         # return in-memory windowing or windowing on disk
-        if cfg.dataset.in_memory:
+        if cfg.dataset.training.in_memory:
             return dataset_dir, window_index, windows, spectrograms
         else:
             return dataset_dir, window_index, None, None
@@ -67,28 +67,30 @@ def pipeline(
     # load or generate dataframe
     df = get_df(
         datasets_dir=datasets_dir,
-        dataset_id=cfg.dataset.info.dataset_id,
-        dataset_url=cfg.dataset.info.dataset_url,
+        dataset_id=cfg.dataset.info.id,
+        download_url=cfg.dataset.info.download_url,
         parse=parse,
         override_csv=override_csv,
     )
 
     # check format of dataframe
-    check_format(df=df, required_cols=cfg.common.non_channel_cols)
+    check_format(df=df, required_cols=NON_CHANNEL_COLS)
 
     # apply resampling to dataframe for equidistant measurements
     df = resample(
         df=df,
         resampling_freq=cfg.dataset.info.sampling_freq,
-        exclude_columns=cfg.common.non_channel_cols,
+        exclude_columns=NON_CHANNEL_COLS,
     )
 
     # apply selections to dataframe
-    df = select_activities(df=df, activity_names=cfg.dataset.selections.activity_names)
+    df = select_activities(
+        df=df, activity_names=cfg.dataset.preprocessing.selections.activity_names
+    )
     df = select_channels(
         df=df,
-        channels=cfg.dataset.selections.channels,
-        exclude_cols=cfg.common.non_channel_cols,
+        channels=cfg.dataset.preprocessing.selections.sensor_channels,
+        exclude_cols=NON_CHANNEL_COLS,
     )
 
     # apply resampling to dataframe to convert to common sampling frequency
@@ -96,53 +98,53 @@ def pipeline(
         df = resample(
             df=df,
             resampling_freq=cfg.common.resampling_freq,
-            exclude_columns=cfg.common.non_channel_cols,
+            exclude_columns=NON_CHANNEL_COLS,
         )
 
     # apply global or per subject normalization to dataframe
-    match cfg.common.normalization:
+    match cfg.dataset.preprocessing.normalization:
         case NormType.STD_GLOBALLY:
             df = normalize_globally(
                 df=df,
                 normalize=standardize,
-                exclude_columns=cfg.common.non_channel_cols,
+                exclude_columns=NON_CHANNEL_COLS,
             )
         case NormType.MIN_MAX_GLOBALLY:
             df = normalize_globally(
-                df=df, normalize=min_max, exclude_columns=cfg.common.non_channel_cols
+                df=df, normalize=min_max, exclude_columns=NON_CHANNEL_COLS
             )
         case NormType.STD_PER_SUBJ:
             df = normalize_per_subject(
                 df=df,
                 normalize=standardize,
-                exclude_columns=cfg.common.non_channel_cols,
+                exclude_columns=NON_CHANNEL_COLS,
             )
         case NormType.MIN_MAX_PER_SUBJ:
             df = normalize_per_subject(
-                df=df, normalize=min_max, exclude_columns=cfg.common.non_channel_cols
+                df=df, normalize=min_max, exclude_columns=NON_CHANNEL_COLS
             )
 
     # generate windowing
     window_index, windows = generate_windowing(
         df=df,
-        window_time=cfg.common.sliding_window.window_time,
-        overlap=cfg.common.sliding_window.overlap,
-        exclude_cols=cfg.common.non_channel_cols,
+        window_time=cfg.dataset.preprocessing.sliding_window.window_time,
+        overlap=cfg.dataset.preprocessing.sliding_window.overlap,
+        exclude_cols=NON_CHANNEL_COLS,
     )
 
     # apply per sample normalization
-    match cfg.common.normalization:
+    match cfg.dataset.preprocessing.normalization:
         case NormType.STD_PER_SAMPLE:
             windows = normalize_per_sample(
                 windows=windows,
                 normalize=standardize,
-                exclude_columns=cfg.common.non_channel_cols,
+                exclude_columns=NON_CHANNEL_COLS,
             )
         case NormType.MIN_MAX_PER_SAMPLE:
             windows = normalize_per_sample(
                 windows=windows,
                 normalize=min_max,
-                exclude_columns=cfg.common.non_channel_cols,
+                exclude_columns=NON_CHANNEL_COLS,
             )
 
     # save windowing
@@ -166,12 +168,12 @@ def pipeline(
             overlap=cfg.common.spectrogram.overlap,
             mode=cfg.common.spectrogram.mode,
         )
-        if cfg.common.spectrogram.use_spectrogram
+        if cfg.common.use_spectrogram
         else None
     )
 
     # return in-memory windowing or windowing on disk
-    if cfg.dataset.in_memory:
+    if cfg.dataset.training.in_memory:
         return dataset_dir, window_index, windows, spectrograms
     else:
         return dataset_dir, window_index, None, None

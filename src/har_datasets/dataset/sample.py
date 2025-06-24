@@ -23,14 +23,14 @@ def get_sample(
     window_id = window_index.loc[index]["window_id"]
     assert isinstance(window_id, np.integer)
 
-    if cfg.dataset.in_memory:
+    if cfg.dataset.training.in_memory:
         assert windows is not None
 
         # get window and spectogram
         window = windows[window_id].values
         spect = (
             spectograms[window_id]
-            if cfg.common.spectrogram.use_spectrogram and spectograms is not None
+            if cfg.common.use_spectrogram and spectograms is not None
             else None
         )
     else:
@@ -43,7 +43,7 @@ def get_sample(
         window = load_window(windows_dir, int(window_id)).values
         spect = (
             load_spectrogram(spectograms_dir, int(window_id))
-            if cfg.common.spectrogram.use_spectrogram
+            if cfg.common.use_spectrogram
             else None
         )
 

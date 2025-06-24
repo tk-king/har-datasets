@@ -12,7 +12,7 @@ import requests
 def get_df(
     datasets_dir: str,
     dataset_id: str,
-    dataset_url: str,
+    download_url: str,
     parse: Callable[[str], pd.DataFrame],
     override_csv: bool = False,
 ) -> pd.DataFrame:
@@ -22,7 +22,7 @@ def get_df(
     csv_path = os.path.join(dataset_dir, dataset_id + ".csv")
 
     # download dataset and unzip if necessary
-    file_path = download_dataset(datasets_dir, dataset_dir, dataset_url)
+    file_path = download_dataset(datasets_dir, dataset_dir, download_url)
     extract_dataset(file_path, dataset_dir)
 
     # if file exists, load it, else parse from dataset and save

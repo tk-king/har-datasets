@@ -2,6 +2,14 @@ from enum import Enum
 from typing import List
 from pydantic import BaseModel
 
+NON_CHANNEL_COLS: List[str] = [
+    "subject_id",
+    "activity_id",
+    "session_id",
+    "activity_name",
+    "timestamp",
+]
+
 
 class NormType(Enum):
     STD_GLOBALLY = "std_globally"
@@ -35,40 +43,50 @@ class Split(BaseModel):
 
 class Training(BaseModel):
     batch_size: int  # batch size of train loader
-    shuffle: bool  # whether to shuffle train loader
     learning_rate: float
     num_epochs: int
+    seed: int = 0
+    shuffle: bool = True  # whether to shuffle train loader
+    in_memory: bool = True
+    split: Split  # how to split into train / test / val
 
 
 class Selections(BaseModel):
     activity_names: List[str]  # list of activity names to include
-    channels: List[str]  # list of channels to include
-
-
-class Info(BaseModel):
-    dataset_id: str  # id of the dataset
-    dataset_url: str  # url to download dataset
-    sampling_freq: int  # sampling frequency of the dataset
-
-
-class Dataset(BaseModel):
-    cache_csv: bool = True
-    in_memory: bool = True
-    info: Info  # info about the dataset
-    selections: Selections  # which activities and channels to include
-    split: Split  # how to split into train / test / val
-    training: Training  # training config
+    sensor_channels: List[str]  # list of channels to include
 
 
 class SlidingWindow(BaseModel):
-    cache_windows: bool = True
     window_time: float  # in seconds
     overlap: float  # in [0, 1]
 
 
-class Spectrogram(BaseModel):
-    use_spectrogram: bool = False
+class Caching(BaseModel):
+    cache_parsed: bool = True
+    cache_windows: bool = True
     cache_spectrograms: bool = True
+
+
+class Preprocessing(BaseModel):
+    selections: Selections  # which activities and channels to include
+    normalization: NormType | None = None  # type of normalization to apply to all
+    sliding_window: SlidingWindow
+    caching: Caching = Caching()
+
+
+class Info(BaseModel):
+    id: str  # id of the dataset
+    download_url: str  # url to download dataset
+    sampling_freq: int  # sampling frequency of the dataset
+
+
+class Dataset(BaseModel):
+    info: Info
+    preprocessing: Preprocessing
+    training: Training
+
+
+class Spectrogram(BaseModel):
     window_size: int | None = 32
     overlap: int | None = None
     mode: str = "magnitude"
@@ -76,18 +94,10 @@ class Spectrogram(BaseModel):
 
 class Common(BaseModel):
     datasets_dir: str  # directory to save all datasets
-    resampling_freq: int | None  # common sampling frequency to which to convert
-    normalization: NormType | None  # type of normalization to apply to all
-    include_derivative: bool  # whether to include derivative features
-    sliding_window: SlidingWindow  # common sliding window config
-    spectrogram: Spectrogram
-    non_channel_cols: List[str] = [
-        "subject_id",
-        "activity_id",
-        "session_id",
-        "activity_name",
-        "timestamp",
-    ]
+    resampling_freq: int | None = None  # common sampling frequency to which to convert
+    use_derivative: bool = False
+    use_spectrogram: bool = False
+    spectrogram: Spectrogram = Spectrogram()
 
 
 class HARConfig(BaseModel):
