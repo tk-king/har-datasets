@@ -56,8 +56,8 @@ cfg_uci_har = HARConfig(
                 split_type=SplitType.GIVEN,
                 given_split=GivenSplit(
                     train_subj_ids=list(range(1, 21)),
-                    test_subj_ids=list(range(21, 26)),
-                    val_subj_ids=list(range(26, 31)),
+                    val_subj_ids=list(range(21, 26)),
+                    test_subj_ids=list(range(26, 31)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(
                     subj_id_groups=[

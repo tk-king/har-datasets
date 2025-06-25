@@ -49,8 +49,8 @@ cfg_wisdm_12 = HARConfig(
                 split_type=SplitType.GIVEN,
                 given_split=GivenSplit(
                     train_subj_ids=list(range(1, 26)),
-                    test_subj_ids=list(range(26, 31)),
-                    val_subj_ids=list(range(31, 37)),
+                    val_subj_ids=list(range(26, 31)),
+                    test_subj_ids=list(range(31, 37)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(
                     subj_id_groups=[
