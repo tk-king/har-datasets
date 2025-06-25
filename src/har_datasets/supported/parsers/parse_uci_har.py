@@ -60,9 +60,9 @@ def parse_uci_har(dir: str) -> pd.DataFrame:
     df["session_id"] = changes.cumsum()
 
     # add timestamp column per session
-    SAMPLING_INTERVAL = 1 / 50 * 1e9  # 50 Hz → 0.02 seconds -> to ns
+    sampling_interval = 1 / 50 * 1e9  # 50 Hz → 0.02 seconds -> to ns
     df["timestamp"] = (
-        df.groupby("session_id", group_keys=False).cumcount() * SAMPLING_INTERVAL
+        df.groupby("session_id", group_keys=False).cumcount() * sampling_interval
     )
 
     # specify types

@@ -8,23 +8,25 @@ from har_datasets.config.config import HARConfig
 from har_datasets.supported.configs.cfg_pamap2 import cfg_pamap2
 from har_datasets.supported.configs.cfg_wisdm_12 import cfg_wisdm_12
 from har_datasets.supported.configs.cfg_uci_har import cfg_uci_har
+from har_datasets.supported.configs.cfg_motion_sense import cfg_motion_sense
 from har_datasets.supported.parsers.parse_pamap2 import parse_pamap2
 from har_datasets.supported.parsers.parse_uci_har import parse_uci_har
 from har_datasets.supported.parsers.parse_wisdm_12 import parse_wisdm_12
+from har_datasets.supported.parsers.parse_motion_sense import parse_motion_sense
 
 
 class DatasetId(Enum):
     UCI_HAR = "uci_har"
     WISDM_12 = "wisdm_12"
     PAMAP2 = "pamap2"
-    # WISDM_19_PHONE = "wisdm_19_phone"
-    # WISDM_19_WATCH = "wisdm_19_watch"
+    MOTION_SENSE = "motion_sense"
 
 
 har_dataset_dict: Dict[DatasetId, Tuple[HARConfig, Callable[[str], pd.DataFrame]]] = {
     DatasetId.UCI_HAR: (cfg_uci_har, parse_uci_har),
     DatasetId.WISDM_12: (cfg_wisdm_12, parse_wisdm_12),
     DatasetId.PAMAP2: (cfg_pamap2, parse_pamap2),
+    DatasetId.MOTION_SENSE: (cfg_motion_sense, parse_motion_sense),
 }
 
 

@@ -106,7 +106,7 @@ def parse_pamap2(dir: str) -> pd.DataFrame:
         # change timestamp to datetime in ns
         sub_df["timestamp"] = pd.to_datetime(sub_df["timestamp"], unit="s")
 
-        # map all to float32 except activity_id and subject_id
+        # map to types
         types_map = defaultdict(lambda: "float32")
         types_map["activity_id"] = "int32"
         types_map["subject_id"] = "int32"
@@ -132,6 +132,15 @@ def parse_pamap2(dir: str) -> pd.DataFrame:
 
     # map activity_id to activity_name
     df["activity_name"] = df["activity_id"].map(ACTIVITY_MAP)
+
+    # map to types
+    types_map = defaultdict(lambda: "float32")
+    types_map["activity_name"] = "str"
+    types_map["activity_id"] = "int32"
+    types_map["subject_id"] = "int32"
+    types_map["session_id"] = "int32"
+    types_map["timestamp"] = "datetime64[ns]"
+    df = df.astype(types_map)
 
     # reset index
     df = df.reset_index(drop=True)

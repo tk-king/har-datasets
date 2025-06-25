@@ -26,7 +26,7 @@ from har_datasets.features.windowing import (
 
 
 def pipeline(
-    cfg: HARConfig, parse: Callable[[str], pd.DataFrame], override_csv: bool = False
+    cfg: HARConfig, parse: Callable[[str], pd.DataFrame], override_cache: bool = False
 ) -> Tuple[str, pd.DataFrame, List[pd.DataFrame] | None, List[np.ndarray] | None]:
     # create config hash
     cfg_hash = create_cfg_hash(cfg)
@@ -38,7 +38,11 @@ def pipeline(
     windows_dir = os.path.join(windowing_dir, "windows/")
 
     # check if windowing exists and corresponds to cfg
-    if os.path.exists(windowing_dir) and cfg_hash == load_cfg_hash(windowing_dir):
+    if (
+        os.path.exists(windowing_dir)
+        and cfg_hash == load_cfg_hash(windowing_dir)
+        and not override_cache
+    ):
         # load windowing
         window_index, windows = load_windowing(windowing_dir, windows_dir)
 
@@ -53,6 +57,7 @@ def pipeline(
                 window_size=cfg.common.spectrogram.window_size,
                 overlap=cfg.common.spectrogram.overlap,
                 mode=cfg.common.spectrogram.mode,
+                override_cache=override_cache,
             )
             if cfg.common.use_spectrogram
             else None
@@ -70,7 +75,7 @@ def pipeline(
         dataset_id=cfg.dataset.info.id,
         download_url=cfg.dataset.info.download_url,
         parse=parse,
-        override_csv=override_csv,
+        override_cache=override_cache,
     )
 
     # check format of dataframe
@@ -167,6 +172,7 @@ def pipeline(
             window_size=cfg.common.spectrogram.window_size,
             overlap=cfg.common.spectrogram.overlap,
             mode=cfg.common.spectrogram.mode,
+            override_cache=override_cache,
         )
         if cfg.common.use_spectrogram
         else None

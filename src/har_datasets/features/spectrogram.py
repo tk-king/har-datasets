@@ -17,6 +17,7 @@ def get_spectrograms(
     window_size: int | None,
     overlap: int | None,
     mode: str,
+    override_cache: bool,
 ) -> List[np.ndarray]:
     print("Getting spectrograms...")
 
@@ -25,7 +26,11 @@ def get_spectrograms(
     spectograms_dir = os.path.join(windowing_dir, "spectograms/")
 
     # check if windowing corresponds to cfg
-    if os.path.exists(windowing_dir) and cfg_hash == load_cfg_hash(windowing_dir):
+    if (
+        os.path.exists(windowing_dir)
+        and cfg_hash == load_cfg_hash(windowing_dir)
+        and not override_cache
+    ):
         spectograms = load_spectrograms(windowing_dir, spectograms_dir)
 
     # if not, generate and save spectrograms

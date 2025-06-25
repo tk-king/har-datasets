@@ -14,7 +14,7 @@ def get_df(
     dataset_id: str,
     download_url: str,
     parse: Callable[[str], pd.DataFrame],
-    override_csv: bool = False,
+    override_cache: bool = False,
 ) -> pd.DataFrame:
     print("Loading data...")
 
@@ -26,7 +26,7 @@ def get_df(
     extract_dataset(file_path, dataset_dir)
 
     # if file exists, load it, else parse from dataset and save
-    if os.path.exists(csv_path) and not override_csv:
+    if os.path.exists(csv_path) and not override_cache:
         # set types for cols, default to float
         # read csv while setting types and parsing timestamp
         df = read_csv(

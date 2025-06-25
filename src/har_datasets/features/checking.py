@@ -24,5 +24,5 @@ def check_format(df: pd.DataFrame, required_cols: List[str]) -> None:
     for c in channel_cols:
         assert ptypes.is_float_dtype(df[c])
 
-    # assert df is sorted by session_id, activity_id, timestamp
-    assert df.sort_values(["session_id", "activity_id", "timestamp"]).equals(df)
+    # assert df is sorted by session_id, timestamp
+    assert df.sort_values(["session_id", "timestamp"]).equals(df)

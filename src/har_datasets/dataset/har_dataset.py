@@ -18,14 +18,14 @@ class HARDataset(Dataset[Tuple[Tensor, Tensor | None, Tensor | None]]):
         self,
         cfg: HARConfig,
         parse: Callable[[str], pd.DataFrame],
-        override_csv: bool = False,
+        override_cache: bool = False,
     ):
         super().__init__()
 
         self.cfg = cfg
 
         self.dataset_dir, self.window_index, self.windows, self.spectograms = pipeline(
-            cfg=cfg, parse=parse, override_csv=override_csv
+            cfg=cfg, parse=parse, override_cache=override_cache
         )
 
         self.seed = cfg.dataset.training.seed
