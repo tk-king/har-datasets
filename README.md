@@ -52,6 +52,8 @@ For unsupported har datasets, a custom parse function and config can be implente
 - [] [w-HAR](https://github.com/thunguyenth/HAR_IMU_Stretch)
 - [] [SWELL](https://www.kaggle.com/datasets/qiriro/swell-heart-rate-variability-hrv)
 - [] [WISDM-19](https://archive.ics.uci.edu/dataset/507/wisdm+smartphone+and+smartwatch+activity+and+biometrics+dataset)
+- [] [DG]()
+- [] [HAPT](https://archive.ics.uci.edu/dataset/341/smartphone+based+recognition+of+human+activities+and+postural+transitions) (update of UCI_HAR)
 
 # Common Format
 
