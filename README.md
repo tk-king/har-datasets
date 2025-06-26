@@ -38,7 +38,7 @@ For unsupported har datasets, a custom parse function and config can be implente
 - [x] [WISDM-12](https://www.cis.fordham.edu/wisdm/dataset.php)
 - [] [RealWorld](https://www.uni-mannheim.de/dws/research/projects/activity-recognition/dataset/dataset-realworld/)
 - [X] [MotionSense](https://github.com/mmalekzadeh/motion-sense)
-- [] [OPPORTUNITY](https://archive.ics.uci.edu/dataset/226/opportunity+activity+recognition)
+- [X] [OPPORTUNITY](https://archive.ics.uci.edu/dataset/226/opportunity+activity+recognition)
 - [X] [PAMAP2](https://archive.ics.uci.edu/dataset/231/pamap2+physical+activity+monitoring)
 - [] [Daphnet](https://archive.ics.uci.edu/dataset/245/daphnet+freezing+of+gait)
 - [] [KU-HAR](https://data.mendeley.com/datasets/45f952y38r/5)
