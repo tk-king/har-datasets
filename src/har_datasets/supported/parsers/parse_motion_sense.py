@@ -61,7 +61,7 @@ def get_sub_dfs(dir: str, names: List[str] | None) -> List[pd.DataFrame]:
     return sub_dfs
 
 
-def parse_motion_sense(dir: str) -> pd.DataFrame:
+def parse_motion_sense(dir: str, activity_id_col: str) -> pd.DataFrame:
     dir = os.path.join(dir, "motion-sense-master/data/")
     motion_dir = os.path.join(dir, "A_DeviceMotion_data/A_DeviceMotion_data/")
     accel_dir = os.path.join(dir, "B_Accelerometer_data/B_Accelerometer_data/")

@@ -8,7 +8,6 @@ from har_datasets.config.config import (
     Selections,
     SlidingWindow,
     Split,
-    SplitType,
     SubjCrossValSplit,
     Training,
 )
@@ -64,7 +63,6 @@ cfg_pamap2 = HARConfig(
             learning_rate=0.0001,
             num_epochs=100,
             split=Split(
-                split_type=SplitType.GIVEN,
                 given_split=GivenSplit(
                     train_subj_ids=list(range(1, 7)),
                     val_subj_ids=list(range(7, 9)),

@@ -17,7 +17,7 @@ class HARDataset(Dataset[Tuple[Tensor, Tensor | None, Tensor | None]]):
     def __init__(
         self,
         cfg: HARConfig,
-        parse: Callable[[str], pd.DataFrame],
+        parse: Callable[[str, str], pd.DataFrame],
         override_cache: bool = False,
     ):
         super().__init__()
@@ -44,16 +44,20 @@ class HARDataset(Dataset[Tuple[Tensor, Tensor | None, Tensor | None]]):
         train_shuffle: bool | None = None,
     ) -> Tuple[DataLoader, DataLoader, DataLoader]:
         # get split indices from config
-        self.train_indices, self.val_indices, self.test_indices = get_split(
+        train_indices, val_indices, test_indices = get_split(
             cfg=self.cfg,
             window_index=self.window_index,
             subj_cross_val_group_index=subj_cross_val_group_index,
         )
 
         # specify split subsets
-        train_set = Subset(self, self.train_indices)
-        test_set = Subset(self, self.test_indices)
-        val_set = Subset(self, self.val_indices)
+        train_set = Subset(self, train_indices)
+        test_set = Subset(self, test_indices)
+        val_set = Subset(self, val_indices)
+
+        print(self.window_index["subject_id"].value_counts())
+        print(len(train_indices), len(val_indices), len(test_indices))
+        print(f"train: {len(train_set)} | val: {len(val_set)} | test: {len(test_set)}")
 
         # override default batch size and shuffle
         batch_size = train_batch_size or self.cfg.dataset.training.batch_size
@@ -86,18 +90,10 @@ class HARDataset(Dataset[Tuple[Tensor, Tensor | None, Tensor | None]]):
 
         return train_loader, val_loader, test_loader
 
-    def get_class_weights(self, type: str = "train") -> dict:
-        match type:
-            case "train":
-                return compute_class_weights(self.window_index.iloc[self.train_indices])
-            case "val":
-                return compute_class_weights(self.window_index.iloc[self.val_indices])
-            case "test":
-                return compute_class_weights(self.window_index.iloc[self.test_indices])
-            case "all":
-                return compute_class_weights(self.window_index)
-            case _:
-                raise ValueError(f"Unknown type: {type}")
+    def get_class_weights(self, dataloader: DataLoader) -> dict:
+        indices = dataloader.dataset.indices  # type: ignore
+        assert indices is not None
+        return compute_class_weights(self.window_index.iloc[indices])
 
     def __len__(self) -> int:
         return len(self.window_index)

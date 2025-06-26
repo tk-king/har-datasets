@@ -2,7 +2,7 @@ import os
 import pandas as pd
 
 
-def parse_wisdm_12(dir: str) -> pd.DataFrame:
+def parse_wisdm_12(dir: str, activity_id_col: str) -> pd.DataFrame:
     dir = os.path.join(dir, "WISDM_ar_v1.1/")
     file_path = os.path.join(dir, "WISDM_ar_v1.1_raw.txt")
 

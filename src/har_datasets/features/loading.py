@@ -13,7 +13,8 @@ def get_df(
     datasets_dir: str,
     dataset_id: str,
     download_url: str,
-    parse: Callable[[str], pd.DataFrame],
+    parse: Callable[[str, str], pd.DataFrame],
+    activity_id_col: str,
     override_cache: bool = False,
 ) -> pd.DataFrame:
     print("Loading data...")
@@ -43,7 +44,7 @@ def get_df(
             parse_dates=["timestamp"],
         )
     else:
-        df = parse(dataset_dir)
+        df = parse(dataset_dir, activity_id_col)
         df.to_csv(csv_path, index=True)
 
     return df

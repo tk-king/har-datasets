@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 
-def parse_uci_har(dir: str) -> pd.DataFrame:
+def parse_uci_har(dir: str, activity_id_col: str) -> pd.DataFrame:
     dir = os.path.join(dir, "UCI HAR Dataset/UCI HAR Dataset/")
 
     # directories of raw data

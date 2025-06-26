@@ -82,7 +82,7 @@ ACTIVITY_MAP = {
 }
 
 
-def parse_pamap2(dir: str) -> pd.DataFrame:
+def parse_pamap2(dir: str, activity_id_col: str) -> pd.DataFrame:
     dir = os.path.join(dir, "PAMAP2_Dataset/PAMAP2_Dataset/Protocol/")
     files = [f for f in os.listdir(dir) if f.endswith(".dat")]
 

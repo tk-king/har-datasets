@@ -20,11 +20,6 @@ class NormType(Enum):
     MIN_MAX_PER_SUBJ = "min_max_per_subj"
 
 
-class SplitType(Enum):
-    GIVEN = "given"
-    SUBJ_CROSS_VAL = "subj_cross_val"
-
-
 class GivenSplit(BaseModel):
     train_subj_ids: List[int]  # list of subject ids in train set
     test_subj_ids: List[int]  # list of subject ids in test set
@@ -36,7 +31,6 @@ class SubjCrossValSplit(BaseModel):
 
 
 class Split(BaseModel):
-    split_type: SplitType  # type of split, either given or subj cross val
     given_split: GivenSplit | None  # how to split subjects into train / test / val
     subj_cross_val_split: SubjCrossValSplit | None  # split based on groups
 
@@ -68,6 +62,7 @@ class Caching(BaseModel):
 
 
 class Preprocessing(BaseModel):
+    activity_id_col: str = "activity_id"
     selections: Selections  # which activities and channels to include
     normalization: NormType | None = None  # type of normalization to apply to all
     sliding_window: SlidingWindow

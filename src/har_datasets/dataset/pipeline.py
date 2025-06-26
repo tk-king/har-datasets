@@ -26,7 +26,9 @@ from har_datasets.features.windowing import (
 
 
 def pipeline(
-    cfg: HARConfig, parse: Callable[[str], pd.DataFrame], override_cache: bool = False
+    cfg: HARConfig,
+    parse: Callable[[str, str], pd.DataFrame],
+    override_cache: bool = False,
 ) -> Tuple[str, pd.DataFrame, List[pd.DataFrame] | None, List[np.ndarray] | None]:
     # create config hash
     cfg_hash = create_cfg_hash(cfg)
@@ -75,6 +77,7 @@ def pipeline(
         dataset_id=cfg.dataset.info.id,
         download_url=cfg.dataset.info.download_url,
         parse=parse,
+        activity_id_col=cfg.dataset.preprocessing.activity_id_col,
         override_cache=override_cache,
     )
 

@@ -5,10 +5,12 @@ import pandas as pd
 # from hydra import initialize, compose
 
 from har_datasets.config.config import HARConfig
+from har_datasets.supported.configs.cfg_opportunity import cfg_opportunity
 from har_datasets.supported.configs.cfg_pamap2 import cfg_pamap2
 from har_datasets.supported.configs.cfg_wisdm_12 import cfg_wisdm_12
 from har_datasets.supported.configs.cfg_uci_har import cfg_uci_har
 from har_datasets.supported.configs.cfg_motion_sense import cfg_motion_sense
+from har_datasets.supported.parsers.parse_opportunity import parse_opportunity
 from har_datasets.supported.parsers.parse_pamap2 import parse_pamap2
 from har_datasets.supported.parsers.parse_uci_har import parse_uci_har
 from har_datasets.supported.parsers.parse_wisdm_12 import parse_wisdm_12
@@ -20,19 +22,23 @@ class DatasetId(Enum):
     WISDM_12 = "wisdm_12"
     PAMAP2 = "pamap2"
     MOTION_SENSE = "motion_sense"
+    OPPORTUNITY = "opportunity"
 
 
-har_dataset_dict: Dict[DatasetId, Tuple[HARConfig, Callable[[str], pd.DataFrame]]] = {
+har_dataset_dict: Dict[
+    DatasetId, Tuple[HARConfig, Callable[[str, str], pd.DataFrame]]
+] = {
     DatasetId.UCI_HAR: (cfg_uci_har, parse_uci_har),
     DatasetId.WISDM_12: (cfg_wisdm_12, parse_wisdm_12),
     DatasetId.PAMAP2: (cfg_pamap2, parse_pamap2),
     DatasetId.MOTION_SENSE: (cfg_motion_sense, parse_motion_sense),
+    DatasetId.OPPORTUNITY: (cfg_opportunity, parse_opportunity),
 }
 
 
 def get_har_dataset_cfg_and_parser(
     dataset_id: DatasetId, datasets_dir: str = "./datasets"
-) -> Tuple[HARConfig, Callable[[str], pd.DataFrame]]:
+) -> Tuple[HARConfig, Callable[[str, str], pd.DataFrame]]:
     # load dataset-specific config and parser
     cfg, parse = har_dataset_dict[dataset_id]
 
