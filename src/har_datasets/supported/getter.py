@@ -1,16 +1,16 @@
 from enum import Enum
 from typing import Callable, Dict, Tuple
 import pandas as pd
-# from omegaconf import OmegaConf
-# from hydra import initialize, compose
 
 from har_datasets.config.config import HARConfig
+from har_datasets.supported.configs.cfg_dsads import cfg_dsads
 from har_datasets.supported.configs.cfg_mhealth import cfg_mhealth
 from har_datasets.supported.configs.cfg_opportunity import cfg_opportunity
 from har_datasets.supported.configs.cfg_pamap2 import cfg_pamap2
 from har_datasets.supported.configs.cfg_wisdm_12 import cfg_wisdm_12
 from har_datasets.supported.configs.cfg_uci_har import cfg_uci_har
 from har_datasets.supported.configs.cfg_motion_sense import cfg_motion_sense
+from har_datasets.supported.parsers.parse_dsads import parse_dsads
 from har_datasets.supported.parsers.parse_mhealth import parse_mhealth
 from har_datasets.supported.parsers.parse_opportunity import parse_opportunity
 from har_datasets.supported.parsers.parse_pamap2 import parse_pamap2
@@ -26,6 +26,7 @@ class DatasetId(Enum):
     MOTION_SENSE = "motion_sense"
     OPPORTUNITY = "opportunity"
     MHEALTH = "mhealth"
+    DSADS = "dsads"
 
 
 har_dataset_dict: Dict[
@@ -37,6 +38,7 @@ har_dataset_dict: Dict[
     DatasetId.MOTION_SENSE: (cfg_motion_sense, parse_motion_sense),
     DatasetId.OPPORTUNITY: (cfg_opportunity, parse_opportunity),
     DatasetId.MHEALTH: (cfg_mhealth, parse_mhealth),
+    DatasetId.DSADS: (cfg_dsads, parse_dsads),
 }
 
 
@@ -50,19 +52,3 @@ def get_har_dataset_cfg_and_parser(
     cfg.common.datasets_dir = datasets_dir
 
     return cfg, parse
-
-
-# def get_har_dataset_cfg_and_parser(
-#     dataset_id: DatasetId, config_dir: str = "../../../config"
-# ) -> Tuple[HARConfig, Callable[[str], pd.DataFrame]]:
-#     # load dataset-specific config from dir
-#     with initialize(version_base=None, config_path=config_dir):
-#         cfg = compose(config_name="cfg", overrides=[f"dataset={dataset_id.value}"])
-#         cfg = OmegaConf.to_container(cfg, resolve=True)  # type: ignore
-#         cfg = HARConfig(**cfg)  # type: ignore
-#         assert isinstance(cfg, HARConfig)
-
-#     # get parser corresponding to dataset
-#     parse = HAR_DATASETS_DICT[dataset_id]
-
-#     return cfg, parse
