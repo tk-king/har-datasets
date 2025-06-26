@@ -86,8 +86,18 @@ class HARDataset(Dataset[Tuple[Tensor, Tensor | None, Tensor | None]]):
 
         return train_loader, val_loader, test_loader
 
-    def get_class_weights(self) -> dict:
-        return compute_class_weights(self.window_index)
+    def get_class_weights(self, type: str = "train") -> dict:
+        match type:
+            case "train":
+                return compute_class_weights(self.window_index.iloc[self.train_indices])
+            case "val":
+                return compute_class_weights(self.window_index.iloc[self.val_indices])
+            case "test":
+                return compute_class_weights(self.window_index.iloc[self.test_indices])
+            case "all":
+                return compute_class_weights(self.window_index)
+            case _:
+                raise ValueError(f"Unknown type: {type}")
 
     def __len__(self) -> int:
         return len(self.window_index)

@@ -133,6 +133,9 @@ def parse_pamap2(dir: str) -> pd.DataFrame:
     # map activity_id to activity_name
     df["activity_name"] = df["activity_id"].map(ACTIVITY_MAP)
 
+    # convert activity_id to categorical starting from 0
+    df["activity_id"] = pd.factorize(df["activity_id"])[0]
+
     # map to types
     types_map = defaultdict(lambda: "float32")
     types_map["activity_name"] = "str"
