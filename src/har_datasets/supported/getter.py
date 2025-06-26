@@ -5,11 +5,13 @@ import pandas as pd
 # from hydra import initialize, compose
 
 from har_datasets.config.config import HARConfig
+from har_datasets.supported.configs.cfg_mhealth import cfg_mhealth
 from har_datasets.supported.configs.cfg_opportunity import cfg_opportunity
 from har_datasets.supported.configs.cfg_pamap2 import cfg_pamap2
 from har_datasets.supported.configs.cfg_wisdm_12 import cfg_wisdm_12
 from har_datasets.supported.configs.cfg_uci_har import cfg_uci_har
 from har_datasets.supported.configs.cfg_motion_sense import cfg_motion_sense
+from har_datasets.supported.parsers.parse_mhealth import parse_mhealth
 from har_datasets.supported.parsers.parse_opportunity import parse_opportunity
 from har_datasets.supported.parsers.parse_pamap2 import parse_pamap2
 from har_datasets.supported.parsers.parse_uci_har import parse_uci_har
@@ -23,6 +25,7 @@ class DatasetId(Enum):
     PAMAP2 = "pamap2"
     MOTION_SENSE = "motion_sense"
     OPPORTUNITY = "opportunity"
+    MHEALTH = "mhealth"
 
 
 har_dataset_dict: Dict[
@@ -33,6 +36,7 @@ har_dataset_dict: Dict[
     DatasetId.PAMAP2: (cfg_pamap2, parse_pamap2),
     DatasetId.MOTION_SENSE: (cfg_motion_sense, parse_motion_sense),
     DatasetId.OPPORTUNITY: (cfg_opportunity, parse_opportunity),
+    DatasetId.MHEALTH: (cfg_mhealth, parse_mhealth),
 }
 
 

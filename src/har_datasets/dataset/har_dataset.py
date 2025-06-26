@@ -56,7 +56,7 @@ class HARDataset(Dataset[Tuple[Tensor, Tensor | None, Tensor | None]]):
         val_set = Subset(self, val_indices)
 
         print(self.window_index["subject_id"].value_counts())
-        print(len(train_indices), len(val_indices), len(test_indices))
+        print(self.window_index["activity_id"].value_counts())
         print(f"train: {len(train_set)} | val: {len(val_set)} | test: {len(test_set)}")
 
         # override default batch size and shuffle
