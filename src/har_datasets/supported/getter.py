@@ -3,6 +3,7 @@ from typing import Callable, Dict, Tuple
 import pandas as pd
 
 from har_datasets.config.config import HARConfig
+from har_datasets.supported.configs.cfg_ku_har import cfg_ku_har
 from har_datasets.supported.configs.cfg_dsads import cfg_dsads
 from har_datasets.supported.configs.cfg_mhealth import cfg_mhealth
 from har_datasets.supported.configs.cfg_opportunity import cfg_opportunity
@@ -10,6 +11,7 @@ from har_datasets.supported.configs.cfg_pamap2 import cfg_pamap2
 from har_datasets.supported.configs.cfg_wisdm_12 import cfg_wisdm_12
 from har_datasets.supported.configs.cfg_uci_har import cfg_uci_har
 from har_datasets.supported.configs.cfg_motion_sense import cfg_motion_sense
+from har_datasets.supported.parsers.parse_ku_har import parse_ku_har
 from har_datasets.supported.parsers.parse_dsads import parse_dsads
 from har_datasets.supported.parsers.parse_mhealth import parse_mhealth
 from har_datasets.supported.parsers.parse_opportunity import parse_opportunity
@@ -27,6 +29,7 @@ class DatasetId(Enum):
     OPPORTUNITY = "opportunity"
     MHEALTH = "mhealth"
     DSADS = "dsads"
+    KU_HAR = "ku_har"
 
 
 har_dataset_dict: Dict[
@@ -39,6 +42,7 @@ har_dataset_dict: Dict[
     DatasetId.OPPORTUNITY: (cfg_opportunity, parse_opportunity),
     DatasetId.MHEALTH: (cfg_mhealth, parse_mhealth),
     DatasetId.DSADS: (cfg_dsads, parse_dsads),
+    DatasetId.KU_HAR: (cfg_ku_har, parse_ku_har),
 }
 
 
