@@ -12,6 +12,8 @@ from har_datasets.supported.configs.cfg_wisdm_12 import cfg_wisdm_12
 from har_datasets.supported.configs.cfg_uci_har import cfg_uci_har
 from har_datasets.supported.configs.cfg_motion_sense import cfg_motion_sense
 from har_datasets.supported.configs.cfg_daphnet import cfg_daphnet
+from har_datasets.supported.configs.cfg_har_sense import cfg_har_sense
+from har_datasets.supported.parsers.parse_har_sense import parse_har_sense
 from har_datasets.supported.parsers.parse_daphnet import parse_daphnet
 from har_datasets.supported.parsers.parse_ku_har import parse_ku_har
 from har_datasets.supported.parsers.parse_dsads import parse_dsads
@@ -33,6 +35,7 @@ class DatasetId(Enum):
     DSADS = "dsads"
     KU_HAR = "ku_har"
     DAPHNET = "daphnet"
+    HAR_SENSE = "har_sense"
 
 
 har_dataset_dict: Dict[
@@ -47,6 +50,7 @@ har_dataset_dict: Dict[
     DatasetId.DSADS: (cfg_dsads, parse_dsads),
     DatasetId.KU_HAR: (cfg_ku_har, parse_ku_har),
     DatasetId.DAPHNET: (cfg_daphnet, parse_daphnet),
+    DatasetId.HAR_SENSE: (cfg_har_sense, parse_har_sense),
 }
 
 
