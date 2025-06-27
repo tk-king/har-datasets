@@ -19,10 +19,10 @@ def check_format(df: pd.DataFrame, required_cols: List[str]) -> None:
     assert ptypes.is_string_dtype(df["activity_name"])
     assert ptypes.is_datetime64_ns_dtype(df["timestamp"])
 
-    # assert channel column types
+    # assert sensorchannel column types
     channel_cols = [col for col in df.columns if col not in required_cols]
     for c in channel_cols:
-        assert ptypes.is_float_dtype(df[c])
+        assert ptypes.is_float_dtype(df[c]) or ptypes.is_integer_dtype(df[c])
 
     # assert df is sorted by session_id, timestamp
     assert df.sort_values(["session_id", "timestamp"]).equals(df)

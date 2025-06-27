@@ -11,6 +11,8 @@ from har_datasets.supported.configs.cfg_pamap2 import cfg_pamap2
 from har_datasets.supported.configs.cfg_wisdm_12 import cfg_wisdm_12
 from har_datasets.supported.configs.cfg_uci_har import cfg_uci_har
 from har_datasets.supported.configs.cfg_motion_sense import cfg_motion_sense
+from har_datasets.supported.configs.cfg_daphnet import cfg_daphnet
+from har_datasets.supported.parsers.parse_daphnet import parse_daphnet
 from har_datasets.supported.parsers.parse_ku_har import parse_ku_har
 from har_datasets.supported.parsers.parse_dsads import parse_dsads
 from har_datasets.supported.parsers.parse_mhealth import parse_mhealth
@@ -30,6 +32,7 @@ class DatasetId(Enum):
     MHEALTH = "mhealth"
     DSADS = "dsads"
     KU_HAR = "ku_har"
+    DAPHNET = "daphnet"
 
 
 har_dataset_dict: Dict[
@@ -43,6 +46,7 @@ har_dataset_dict: Dict[
     DatasetId.MHEALTH: (cfg_mhealth, parse_mhealth),
     DatasetId.DSADS: (cfg_dsads, parse_dsads),
     DatasetId.KU_HAR: (cfg_ku_har, parse_ku_har),
+    DatasetId.DAPHNET: (cfg_daphnet, parse_daphnet),
 }
 
 
