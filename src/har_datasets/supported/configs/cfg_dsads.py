@@ -108,7 +108,7 @@ cfg_dsads = HARConfig(
                 given_split=GivenSplit(
                     train_subj_ids=list(range(1, 5)),
                     val_subj_ids=list(range(5, 7)),
-                    test_subj_ids=list(range(7, 8)),
+                    test_subj_ids=list(range(7, 9)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(
                     subj_id_groups=[[1, 2], [3, 4], [5, 6], [7, 8]],
