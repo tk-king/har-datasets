@@ -6,17 +6,17 @@ from torch import Tensor
 import torch
 from torch.utils.data import Dataset, Subset, DataLoader
 
-from har_datasets.dataset.pipeline import pipeline
-from har_datasets.dataset.sample import get_sample
-from har_datasets.dataset.split import get_split
-from har_datasets.features.weighting import compute_class_weights
-from har_datasets.config.config import HARConfig
+from whar_datasets.core.pipeline import pipeline
+from whar_datasets.core.sample import get_sample
+from whar_datasets.core.split import get_split
+from whar_datasets.core.weighting import compute_class_weights
+from whar_datasets.core.config import WHARConfig
 
 
-class HARDataset(Dataset[Tuple[Tensor, Tensor | None, Tensor | None]]):
+class PytorchAdapter(Dataset[Tuple[Tensor, Tensor | None, Tensor | None]]):
     def __init__(
         self,
-        cfg: HARConfig,
+        cfg: WHARConfig,
         parse: Callable[[str, str], pd.DataFrame],
         override_cache: bool = False,
     ):

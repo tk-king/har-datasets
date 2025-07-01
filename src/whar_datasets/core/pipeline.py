@@ -3,21 +3,21 @@ from typing import Callable, List, Tuple
 
 import numpy as np
 import pandas as pd
-from har_datasets.config.config import NON_CHANNEL_COLS, HARConfig, NormType
-from har_datasets.config.hashing import create_cfg_hash
-from har_datasets.features.checking import check_format
-from har_datasets.features.loading import get_df
-from har_datasets.features.normalizing import (
+from whar_datasets.core.config import NON_CHANNEL_COLS, WHARConfig, NormType
+from whar_datasets.core.features.hashing import create_cfg_hash
+from whar_datasets.core.features.checking import check_format
+from whar_datasets.core.features.loading import get_df
+from whar_datasets.core.features.normalizing import (
     min_max,
     normalize_globally,
     normalize_per_sample,
     normalize_per_subject,
     standardize,
 )
-from har_datasets.features.resampling import resample
-from har_datasets.features.selecting import select_activities, select_channels
-from har_datasets.features.spectrogram import get_spectrograms
-from har_datasets.features.windowing import (
+from whar_datasets.core.features.resampling import resample
+from whar_datasets.core.features.selecting import select_activities, select_channels
+from whar_datasets.core.features.spectrogram import get_spectrograms
+from whar_datasets.core.features.windowing import (
     generate_windowing,
     load_cfg_hash,
     load_windowing,
@@ -26,7 +26,7 @@ from har_datasets.features.windowing import (
 
 
 def pipeline(
-    cfg: HARConfig,
+    cfg: WHARConfig,
     parse: Callable[[str, str], pd.DataFrame],
     override_cache: bool = False,
 ) -> Tuple[str, pd.DataFrame, List[pd.DataFrame] | None, List[np.ndarray] | None]:

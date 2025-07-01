@@ -1,8 +1,8 @@
-from har_datasets.config.config import (
+from whar_datasets.core.config import (
     Common,
     Dataset,
     GivenSplit,
-    HARConfig,
+    WHARConfig,
     Info,
     Preprocessing,
     Selections,
@@ -12,7 +12,7 @@ from har_datasets.config.config import (
     Training,
 )
 
-cfg_ku_har = HARConfig(
+cfg_ku_har = WHARConfig(
     common=Common(
         datasets_dir="./datasets",
     ),

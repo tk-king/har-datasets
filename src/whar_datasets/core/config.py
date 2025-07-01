@@ -95,6 +95,6 @@ class Common(BaseModel):
     spectrogram: Spectrogram = Spectrogram()
 
 
-class HARConfig(BaseModel):
+class WHARConfig(BaseModel):
     common: Common  # common config applyed to all datasets
     dataset: Dataset  # dataset specific config

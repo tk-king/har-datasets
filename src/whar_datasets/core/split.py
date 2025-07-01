@@ -1,11 +1,11 @@
 from typing import List, Tuple
 
 import pandas as pd
-from har_datasets.config.config import HARConfig
+from whar_datasets.core.config import WHARConfig
 
 
 def get_split(
-    cfg: HARConfig,
+    cfg: WHARConfig,
     window_index: pd.DataFrame,
     subj_cross_val_group_index: int | None = None,
 ) -> Tuple[List[int], List[int], List[int]]:

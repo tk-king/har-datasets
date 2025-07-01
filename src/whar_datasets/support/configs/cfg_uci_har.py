@@ -1,8 +1,8 @@
-from har_datasets.config.config import (
+from whar_datasets.core.config import (
     Common,
     Dataset,
     GivenSplit,
-    HARConfig,
+    WHARConfig,
     Info,
     Preprocessing,
     Selections,
@@ -13,14 +13,14 @@ from har_datasets.config.config import (
 )
 
 
-cfg_uci_har = HARConfig(
+cfg_uci_har = WHARConfig(
     common=Common(
         datasets_dir="./datasets",
     ),
     dataset=Dataset(
         info=Info(
-            id="real_world",
-            download_url="http://wifo5-14.informatik.uni-mannheim.de/sensor/dataset/realworld2016/realworld2016_dataset.zip",
+            id="uci_har",
+            download_url="https://archive.ics.uci.edu/static/public/240/human+activity+recognition+using+smartphones.zip",
             sampling_freq=50,
         ),
         preprocessing=Preprocessing(
@@ -54,8 +54,8 @@ cfg_uci_har = HARConfig(
             split=Split(
                 given_split=GivenSplit(
                     train_subj_ids=list(range(1, 21)),
-                    test_subj_ids=list(range(21, 26)),
-                    val_subj_ids=list(range(26, 31)),
+                    val_subj_ids=list(range(21, 26)),
+                    test_subj_ids=list(range(26, 31)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(
                     subj_id_groups=[

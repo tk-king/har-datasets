@@ -1,8 +1,8 @@
 import hashlib
-from har_datasets.config.config import HARConfig
+from whar_datasets.core.config import WHARConfig
 
 
-def create_cfg_hash(cfg: HARConfig) -> str:
+def create_cfg_hash(cfg: WHARConfig) -> str:
     print("Creating config hash...")
 
     # copy config to not modify original

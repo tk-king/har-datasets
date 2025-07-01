@@ -2,13 +2,13 @@ import os
 from typing import List, Tuple
 import numpy as np
 import pandas as pd
-from har_datasets.config.config import HARConfig
-from har_datasets.features.spectrogram import load_spectrogram
-from har_datasets.features.windowing import load_window
+from whar_datasets.core.config import WHARConfig
+from whar_datasets.core.features.spectrogram import load_spectrogram
+from whar_datasets.core.features.windowing import load_window
 
 
 def get_sample(
-    cfg: HARConfig,
+    cfg: WHARConfig,
     index: int,
     dataset_dir: str,
     window_index: pd.DataFrame,
