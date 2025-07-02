@@ -5,7 +5,7 @@ import pandas as pd
 from scipy.signal import spectrogram  # type: ignore
 from tqdm import tqdm
 
-from whar_datasets.core.features.windowing import load_cfg_hash
+from whar_datasets.core.utils.hashing import load_cfg_hash
 
 
 def get_spectrograms(

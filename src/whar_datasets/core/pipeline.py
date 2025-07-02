@@ -4,22 +4,21 @@ from typing import Callable, List, Tuple
 import numpy as np
 import pandas as pd
 from whar_datasets.core.config import NON_CHANNEL_COLS, WHARConfig, NormType
-from whar_datasets.core.features.hashing import create_cfg_hash
-from whar_datasets.core.features.checking import check_format
-from whar_datasets.core.features.loading import get_df
-from whar_datasets.core.features.normalizing import (
+from whar_datasets.core.utils.hashing import create_cfg_hash, load_cfg_hash
+from whar_datasets.core.steps.checking import check_format
+from whar_datasets.core.steps.loading import get_df
+from whar_datasets.core.steps.normalizing import (
     min_max,
     normalize_globally,
     normalize_per_sample,
     normalize_per_subject,
     standardize,
 )
-from whar_datasets.core.features.resampling import resample
-from whar_datasets.core.features.selecting import select_activities, select_channels
+from whar_datasets.core.steps.resampling import resample
+from whar_datasets.core.steps.selecting import select_activities, select_channels
 from whar_datasets.core.features.spectrogram import get_spectrograms
-from whar_datasets.core.features.windowing import (
+from whar_datasets.core.steps.windowing import (
     generate_windowing,
-    load_cfg_hash,
     load_windowing,
     save_windowing,
 )

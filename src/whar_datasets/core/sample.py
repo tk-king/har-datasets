@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from whar_datasets.core.config import WHARConfig
 from whar_datasets.core.features.spectrogram import load_spectrogram
-from whar_datasets.core.features.windowing import load_window
+from whar_datasets.core.steps.windowing import load_window
 
 
 def get_sample(

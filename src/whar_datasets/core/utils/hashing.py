@@ -1,5 +1,6 @@
 import hashlib
 from whar_datasets.core.config import WHARConfig
+import os
 
 
 def create_cfg_hash(cfg: WHARConfig) -> str:
@@ -18,3 +19,10 @@ def create_cfg_hash(cfg: WHARConfig) -> str:
     hash = hashlib.sha256(cfg_json.encode("utf-8")).hexdigest()
 
     return hash
+
+
+def load_cfg_hash(windowing_dir: str) -> str:
+    print("Loading config hash...")
+
+    with open(os.path.join(windowing_dir, "cfg_hash.txt"), "r") as f:
+        return f.read()
