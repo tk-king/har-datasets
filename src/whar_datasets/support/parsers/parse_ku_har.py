@@ -36,6 +36,11 @@ def parse_ku_har(
         for d in os.listdir(dir)
         if d != "cache" and d != "windowing" and d != "ku_har.csv"
     ]
+    activity_dirs = [
+        d
+        for d in os.listdir(dir)
+        if d != "windowing" and d != "ku_har.csv" and d != "cache"
+    ]
 
     for activity_dir in activity_dirs:
         # get activity from dirname
