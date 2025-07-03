@@ -1,6 +1,5 @@
 import os
 from typing import List, Tuple
-import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
@@ -20,16 +19,16 @@ def load_windowing(
     for i in loop:
         # get window_id
         window_id = window_index.loc[i]["window_id"]
-        assert isinstance(window_id, np.integer)
+        assert isinstance(window_id, str)
 
         # load window and append
-        window = load_window(windows_dir, int(window_id))
+        window = load_window(windows_dir, window_id)
         windows.append(window)
 
     return window_index, windows
 
 
-def load_window(windows_dir: str, window_id: int) -> pd.DataFrame:
+def load_window(windows_dir: str, window_id: str) -> pd.DataFrame:
     return pd.read_parquet(os.path.join(windows_dir, f"window_{window_id}.parquet"))
 
 

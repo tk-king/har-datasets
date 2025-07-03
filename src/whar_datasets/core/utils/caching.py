@@ -19,17 +19,18 @@ def cache_windows(
     window_index: pd.DataFrame,
     windows: List[pd.DataFrame],
 ) -> None:
-    # create directories if do not exist
+    # if exists delete
+    if os.path.exists(windows_dir):
+        os.system(f"rm -rf {windows_dir}")
+
+    # create windowing directory if it does not exist
     os.makedirs(windows_dir, exist_ok=True)
 
     # save windows
-    loop = tqdm(enumerate(windows))
-    loop.set_description("Saving windows")
-
-    for i, window in loop:
+    for i, window in enumerate(windows):
         # get window_id
         window_id = window_index.loc[i]["window_id"]
-        assert isinstance(window_id, np.integer)
+        assert isinstance(window_id, str)
 
         # save window
         window_path = os.path.join(windows_dir, f"window_{window_id}.parquet")
@@ -72,10 +73,10 @@ def cache_common_format(
     )
 
     # save sessions
-    loop = tqdm(enumerate(sessions))
-    loop.set_description("Saving sessions")
+    loop = tqdm(sessions)
+    loop.set_description("Caching sessions")
 
-    for i, session in loop:
+    for i, session in enumerate(loop):
         # get session_id
         session_id = session_index.loc[i]["session_id"]
         assert isinstance(session_id, np.integer)

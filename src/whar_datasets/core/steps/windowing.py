@@ -1,17 +1,15 @@
 from collections import defaultdict
 from typing import Dict, List, Tuple
+import numpy as np
 import pandas as pd
-from tqdm import tqdm
 import short_unique_id as suid  # type: ignore
 
 
 def generate_windowing(
     session_df: pd.DataFrame, session_id: int, window_time: float, overlap: float
 ) -> Tuple[pd.DataFrame, List[pd.DataFrame]]:
-    print("Generating windows...")
-
     # create containers for windows and index
-    window_dict: Dict[str, List[int]] = defaultdict(list)
+    window_dict = defaultdict(list)
     windows: List[pd.DataFrame] = []
 
     # specify window and stride as timedeltas
@@ -39,7 +37,7 @@ def generate_windowing(
 
         # add window info to window index
         window_dict["session_id"].append(session_id)
-        window_dict["window_id"].append(suid.get_next_snowflake_id())
+        window_dict["window_id"].append(suid.generate_short_id())
 
         # step to next window
         current_start_time += stride_timedelta
@@ -50,5 +48,6 @@ def generate_windowing(
 
     # create window index
     window_index = pd.DataFrame(window_dict)
+    window_index.astype({"window_id": "string"})
 
     return window_index, windows

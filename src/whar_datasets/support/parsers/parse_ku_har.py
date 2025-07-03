@@ -1,6 +1,9 @@
 from collections import defaultdict
 import os
+from typing import List, Tuple
+import numpy as np
 import pandas as pd
+import short_unique_id as suid  # type: ignore
 
 ACTIVITY_MAP = {
     0: "Stand",
@@ -24,12 +27,13 @@ ACTIVITY_MAP = {
 }
 
 
-def parse_ku_har(dir: str, activity_id_col: str) -> pd.DataFrame:
-    sub_dfs = []
+def parse_ku_har(
+    dir: str, activity_id_col: str
+) -> Tuple[pd.DataFrame, pd.DataFrame, List[pd.DataFrame]]:
+    session_index_dict = defaultdict(list)
+    session_dfs = []
 
-    activity_dirs = os.listdir(dir)
-    activity_dirs.remove("windowing")
-    activity_dirs.remove("ku_har.csv")
+    activity_dirs = [d for d in os.listdir(dir) if d != "cache"]
 
     for activity_dir in activity_dirs:
         # get activity from dirname
@@ -45,7 +49,7 @@ def parse_ku_har(dir: str, activity_id_col: str) -> pd.DataFrame:
             subject_id = int(file.split("_")[0])
 
             # read csv
-            sub_df = pd.read_csv(
+            session_df = pd.read_csv(
                 os.path.join(activity_dir, file),
                 names=[
                     "timestamp_acc",
@@ -61,14 +65,16 @@ def parse_ku_har(dir: str, activity_id_col: str) -> pd.DataFrame:
             )
 
             # convert to datetime
-            sub_df["timestamp_acc"] = pd.to_datetime(sub_df["timestamp_acc"], unit="s")
-            sub_df["timestamp_gyro"] = pd.to_datetime(
-                sub_df["timestamp_gyro"], unit="s"
+            session_df["timestamp_acc"] = pd.to_datetime(
+                session_df["timestamp_acc"], unit="s"
+            )
+            session_df["timestamp_gyro"] = pd.to_datetime(
+                session_df["timestamp_gyro"], unit="s"
             )
 
             # select columns
-            acc_df = sub_df[["timestamp_acc", "acc_x", "acc_y", "acc_z"]]
-            gyro_df = sub_df[["timestamp_gyro", "gyro_x", "gyro_y", "gyro_z"]]
+            acc_df = session_df[["timestamp_acc", "acc_x", "acc_y", "acc_z"]]
+            gyro_df = session_df[["timestamp_gyro", "gyro_x", "gyro_y", "gyro_z"]]
 
             # sort by timestamp
             acc_df = acc_df.sort_values("timestamp_acc")
@@ -86,60 +92,38 @@ def parse_ku_har(dir: str, activity_id_col: str) -> pd.DataFrame:
             merged_df = merged_df.drop(columns=["timestamp_gyro"])
             merged_df = merged_df.rename(columns={"timestamp_acc": "timestamp"})
 
-            merged_df["subject_id"] = subject_id
-            merged_df["activity_id"] = activity_id
+            session_index_dict["subject_id"].append(subject_id)
+            session_index_dict["activity_id"].append(activity_id)
 
-            sub_dfs.append(merged_df)
+            session_dfs.append(merged_df)
 
-    # concat all sub_dfs
-    df = pd.concat(sub_dfs)
-
-    # identify where activity or subject changes
-    changes = (df["activity_id"] != df["activity_id"].shift(1)) | (
-        df["subject_id"] != df["subject_id"].shift(1)
+    # define session index
+    session_index = pd.DataFrame(session_index_dict)
+    session_index["session_id"] = list(range(len(session_dfs)))
+    session_index = session_index.astype(
+        {"session_id": "int32", "subject_id": "int32", "activity_id": "int32"}
     )
 
-    # assign a unique session to each continuous segment
-    df["session_id"] = changes.cumsum()
+    # define activity index
+    activity_index = pd.DataFrame(
+        list(ACTIVITY_MAP.items()), columns=["activity_id", "activity_name"]
+    )
+    activity_index = activity_index.astype(
+        {"activity_id": "int32", "activity_name": "string"}
+    )
 
-    # add activity name
-    df["activity_name"] = df["activity_id"].map(ACTIVITY_MAP)
-
-    # factorize activity_id to start from 0
-    df["activity_id"] = pd.factorize(df["activity_id"])[0]
-    df["subject_id"] = pd.factorize(df["subject_id"])[0]
-
-    # specify types
-    types_map = defaultdict(lambda: "float32")
-    types_map["activity_name"] = "str"
-    types_map["activity_id"] = "int32"
-    types_map["subject_id"] = "int32"
-    types_map["session_id"] = "int32"
-    types_map["timestamp"] = "datetime64[ns]"
-    df = df.astype(types_map)
+    # factorize to start from 0
+    session_index["activity_id"] = pd.factorize(session_index["activity_id"])[0]
+    session_index["subject_id"] = pd.factorize(session_index["subject_id"])[0]
 
     # round all floats to 6 decimal places
-    df = df.round(6)
+    session_dfs = [session_df.round(6) for session_df in session_dfs]
 
-    # reorder columns
-    order = ["subject_id", "activity_id", "activity_name", "session_id", "timestamp"]
-    df = df[
-        [
-            *order,
-            *df.columns.difference(
-                order,
-                sort=False,
-            ),
-        ]
-    ]
+    print(session_index.head())
+    print(activity_index.head())
+    print(session_dfs[0].head())
 
-    # sort
-    df = df.sort_values(["session_id", "timestamp"])
-
-    # reset index
-    df = df.reset_index(drop=True)
-
-    return df
+    return activity_index, session_index, session_dfs
 
 
 # accel_df = df[["timestamp_acc", "acc_x", "acc_y", "acc_z"]]

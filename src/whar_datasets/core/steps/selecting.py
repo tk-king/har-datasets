@@ -3,20 +3,19 @@ import pandas as pd
 
 
 def select_activities(
-    session_df: pd.DataFrame, activity_names: List[str]
+    session_index: pd.DataFrame, activity_index: pd.DataFrame, activity_names: List[str]
 ) -> pd.DataFrame:
-    print("Selecting activities...")
+    # print("Selecting activities...")
 
-    # if activity_ids is empty, return df
-    return (
-        session_df[session_df["activity_name"].isin(activity_names)]
-        if len(activity_names) != 0
-        else session_df
-    )
+    activity_ids = activity_index[activity_index["activity_name"].isin(activity_names)][
+        "activity_id"
+    ]
+
+    return session_index[session_index["activity_id"].isin(activity_ids)]
 
 
 def select_channels(session_df: pd.DataFrame, channels: List[str]) -> pd.DataFrame:
-    print("Selecting channels...")
+    # print("Selecting channels...")
 
     # if channels is empty, return df
     return session_df[channels + ["timestamp"]] if len(channels) != 0 else session_df

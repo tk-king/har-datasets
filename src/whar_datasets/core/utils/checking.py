@@ -65,9 +65,9 @@ def check_common_format(cache_dir: str, sessions_dir: str) -> bool:
 
     # check types in session index
     if not (
-        sessions_index["session_id"].dtype == "Int32"
-        and sessions_index["subject_id"].dtype == "Int32"
-        and sessions_index["activity_id"].dtype == "Int32"
+        sessions_index["session_id"].dtype == "int32"
+        and sessions_index["subject_id"].dtype == "int32"
+        and sessions_index["activity_id"].dtype == "int32"
         and sessions_index["session_id"].nunique() == len(os.listdir(sessions_dir))
         and sessions_index["session_id"].min() == 0
     ):
@@ -77,7 +77,7 @@ def check_common_format(cache_dir: str, sessions_dir: str) -> bool:
 
     # check types in activity index
     if not (
-        activity_index["activity_id"].dtype == "Int32"
+        activity_index["activity_id"].dtype == "int32"
         and activity_index["activity_name"].dtype == "string"
         and activity_index["activity_id"].min() == 0
     ):

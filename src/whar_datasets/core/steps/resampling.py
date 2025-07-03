@@ -1,10 +1,8 @@
-from typing import List
-
 import pandas as pd
 
 
 def resample(session_df: pd.DataFrame, resampling_freq: float) -> pd.DataFrame:
-    print("Resampling data...")
+    # print("Resampling data...")
 
     # convert resampling freq to time delta in ms
     time_delta_ns = int(1e6 / resampling_freq)
@@ -21,4 +19,4 @@ def resample(session_df: pd.DataFrame, resampling_freq: float) -> pd.DataFrame:
     # Reset index and add timestamp back
     resampled_df.reset_index(inplace=True, drop=False)
 
-    return session_df
+    return resampled_df

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Callable, Dict, Tuple
+from typing import Callable, Dict, List, Tuple
 import pandas as pd
 
 from whar_datasets.core.config import WHARConfig
@@ -39,7 +39,11 @@ class WHARDatasetID(Enum):
 
 
 har_dataset_dict: Dict[
-    WHARDatasetID, Tuple[WHARConfig, Callable[[str, str], pd.DataFrame]]
+    WHARDatasetID,
+    Tuple[
+        WHARConfig,
+        Callable[[str, str], Tuple[pd.DataFrame, pd.DataFrame, List[pd.DataFrame]]],
+    ],
 ] = {
     WHARDatasetID.UCI_HAR: (cfg_uci_har, parse_uci_har),
     WHARDatasetID.WISDM_12: (cfg_wisdm_12, parse_wisdm_12),
@@ -56,7 +60,10 @@ har_dataset_dict: Dict[
 
 def get_cfg_and_parser(
     dataset_id: WHARDatasetID, datasets_dir: str = "./datasets"
-) -> Tuple[WHARConfig, Callable[[str, str], pd.DataFrame]]:
+) -> Tuple[
+    WHARConfig,
+    Callable[[str, str], Tuple[pd.DataFrame, pd.DataFrame, List[pd.DataFrame]]],
+]:
     # load dataset-specific config and parser
     cfg, parse = har_dataset_dict[dataset_id]
 

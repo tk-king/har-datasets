@@ -6,7 +6,7 @@ def normalize_per_session(
     session_df: pd.DataFrame,
     normalize: Callable[[pd.DataFrame, List[str]], pd.DataFrame] | None,
 ) -> pd.DataFrame:
-    print("Normalizing data per session...")
+    # print("Normalizing data per session...")
 
     if normalize is None:
         return session_df
@@ -18,7 +18,7 @@ def normalize_per_sample(
     window_dfs: List[pd.DataFrame],
     normalize: Callable[[pd.DataFrame, List[str]], pd.DataFrame] | None,
 ) -> List[pd.DataFrame]:
-    print("Normalizing data per sample...")
+    # print("Normalizing data per sample...")
 
     if normalize is None:
         return window_dfs
@@ -27,7 +27,7 @@ def normalize_per_sample(
 
 
 def min_max(df: pd.DataFrame, exclude_columns: List[str]) -> pd.DataFrame:
-    print("Normalizing with min-max normalization...")
+    # print("Normalizing with min-max normalization...")
 
     cols = df.columns.difference(exclude_columns)
 
@@ -42,7 +42,7 @@ def min_max(df: pd.DataFrame, exclude_columns: List[str]) -> pd.DataFrame:
 
 
 def standardize(df: pd.DataFrame, exclude_columns: List[str]) -> pd.DataFrame:
-    print("Normalizing with standardization...")
+    # print("Normalizing with standardization...")
 
     cols = df.columns.difference(exclude_columns)
 
@@ -57,7 +57,7 @@ def standardize(df: pd.DataFrame, exclude_columns: List[str]) -> pd.DataFrame:
 
 
 def robust_scale(df: pd.DataFrame, exclude_columns: List[str]) -> pd.DataFrame:
-    print("Normalizing with robust scaling...")
+    # print("Normalizing with robust scaling...")
 
     cols = df.columns.difference(exclude_columns)
 
