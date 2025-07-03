@@ -27,9 +27,11 @@ ACTIVITY_MAP = {
 def parse_ku_har(dir: str, activity_id_col: str) -> pd.DataFrame:
     sub_dfs = []
 
-    activity_dirs = os.listdir(dir)
-    activity_dirs.remove("windowing")
-    activity_dirs.remove("ku_har.csv")
+    activity_dirs = [
+        d
+        for d in os.listdir(dir)
+        if d != "windowing" and d != "ku_har.csv" and d != "cache"
+    ]
 
     for activity_dir in activity_dirs:
         # get activity from dirname
