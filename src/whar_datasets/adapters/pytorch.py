@@ -1,31 +1,36 @@
 import random
-from typing import Callable, Tuple
+from typing import Callable, List, Tuple
 import numpy as np
 import pandas as pd
 from torch import Tensor
 import torch
 from torch.utils.data import Dataset, Subset, DataLoader
 
-from whar_datasets.core.pipeline import pipeline
-from whar_datasets.core.sample import get_sample
+from whar_datasets.core.process import process
+from whar_datasets.core.sample import get_label, get_window
 from whar_datasets.core.split import get_split
+from whar_datasets.core.utils.loading import load_session_index, load_windowing
 from whar_datasets.core.weighting import compute_class_weights
 from whar_datasets.core.config import WHARConfig
 
 
-class PytorchAdapter(Dataset[Tuple[Tensor, Tensor | None, Tensor | None]]):
+class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
     def __init__(
         self,
         cfg: WHARConfig,
-        parse: Callable[[str, str], pd.DataFrame],
+        parse: Callable[
+            [str, str], Tuple[pd.DataFrame, pd.DataFrame, List[pd.DataFrame]]
+        ],
         override_cache: bool = False,
     ):
         super().__init__()
 
         self.cfg = cfg
 
-        self.dataset_dir, self.window_index, self.windows, self.spectograms = pipeline(
-            cfg=cfg, parse=parse, override_cache=override_cache
+        self.cache_dir, self.windows_dir = process(cfg, parse, override_cache)
+        self.session_index = load_session_index(self.cache_dir)
+        self.window_index, self.windows = load_windowing(
+            self.cache_dir, self.windows_dir
         )
 
         self.seed = cfg.dataset.training.seed
@@ -45,9 +50,7 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor | None, Tensor | None]]):
     ) -> Tuple[DataLoader, DataLoader, DataLoader]:
         # get split indices from config
         train_indices, val_indices, test_indices = get_split(
-            cfg=self.cfg,
-            window_index=self.window_index,
-            subj_cross_val_group_index=subj_cross_val_group_index,
+            self.cfg, self.session_index, self.window_index, subj_cross_val_group_index
         )
 
         # specify split subsets
@@ -68,7 +71,6 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor | None, Tensor | None]]):
             dataset=train_set,
             batch_size=batch_size,
             shuffle=shuffle,
-            collate_fn=collate_fn,
             generator=self.generator,
         )
 
@@ -76,7 +78,6 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor | None, Tensor | None]]):
             dataset=val_set,
             batch_size=len(val_set),
             shuffle=False,
-            collate_fn=collate_fn,
             generator=self.generator,
         )
 
@@ -84,7 +85,6 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor | None, Tensor | None]]):
             dataset=test_set,
             batch_size=1,
             shuffle=False,
-            collate_fn=collate_fn,
             generator=self.generator,
         )
 
@@ -98,30 +98,25 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor | None, Tensor | None]]):
     def __len__(self) -> int:
         return len(self.window_index)
 
-    def __getitem__(self, index: int) -> Tuple[Tensor, Tensor, Tensor | None]:
-        # get label, window and spectogram
-        label, window, spect = get_sample(
-            cfg=self.cfg,
-            index=index,
-            dataset_dir=self.dataset_dir,
-            window_index=self.window_index,
-            windows=self.windows,
-            spectograms=self.spectograms,
+    def __getitem__(self, index: int) -> Tuple[Tensor, Tensor]:
+        # get label, window and window
+        label = get_label(index, self.window_index, self.session_index)
+        window = get_window(
+            index, self.cfg, self.windows_dir, self.window_index, self.windows
         )
 
         # convert to tensors
         y = torch.tensor([label], dtype=torch.long)
-        x1 = torch.tensor(window, dtype=torch.float32)
-        x2 = torch.tensor(spect, dtype=torch.float32) if spect is not None else None
+        x = torch.tensor(window, dtype=torch.float32)
 
-        return y, x1, x2
+        return y, x
 
 
-def collate_fn(data: list[Tuple[Tensor, Tensor, Tensor | None]]) -> tuple:
-    y, x1, x2 = zip(*data)
+# def collate_fn(data: list[Tuple[Tensor, Tensor, Tensor | None]]) -> tuple:
+#     y, x1, x2 = zip(*data)
 
-    tensor_y = torch.stack(y)
-    tensor_x1 = torch.stack(x1)
-    tensor_x2 = None if None in x2 else torch.stack(x2)
+#     tensor_y = torch.stack(y)
+#     tensor_x1 = torch.stack(x1)
+#     tensor_x2 = None if None in x2 else torch.stack(x2)
 
-    return tensor_y, tensor_x1, tensor_x2
+#     return tensor_y, tensor_x1, tensor_x2

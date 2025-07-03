@@ -6,10 +6,10 @@ from tqdm import tqdm
 
 
 def load_windowing(
-    windowing_dir: str, windows_dir: str
+    cache_dir: str, windows_dir: str
 ) -> Tuple[pd.DataFrame, List[pd.DataFrame]]:
     # load window index
-    window_index = pd.read_csv(os.path.join(windowing_dir, "window_index.csv"))
+    window_index = load_window_index(cache_dir)
 
     windows: List[pd.DataFrame] = []
 
@@ -30,4 +30,16 @@ def load_windowing(
 
 
 def load_window(windows_dir: str, window_id: int) -> pd.DataFrame:
-    return pd.read_csv(os.path.join(windows_dir, f"window_{window_id}.csv"))
+    return pd.read_parquet(os.path.join(windows_dir, f"window_{window_id}.parquet"))
+
+
+def load_window_index(cache_dir: str) -> pd.DataFrame:
+    return pd.read_parquet(os.path.join(cache_dir, "window_index.parquet"))
+
+
+def load_session_index(cache_dir: str) -> pd.DataFrame:
+    return pd.read_parquet(os.path.join(cache_dir, "session_index.parquet"))
+
+
+def load_activity_index(cache_dir: str) -> pd.DataFrame:
+    return pd.read_parquet(os.path.join(cache_dir, "activity_index.parquet"))

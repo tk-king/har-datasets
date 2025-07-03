@@ -2,36 +2,28 @@ from typing import Callable, List
 import pandas as pd
 
 
-def normalize_globally(
-    df: pd.DataFrame,
-    normalize: Callable[[pd.DataFrame, List[str]], pd.DataFrame],
-    exclude_columns: List[str],
+def normalize_per_session(
+    session_df: pd.DataFrame,
+    normalize: Callable[[pd.DataFrame, List[str]], pd.DataFrame] | None,
 ) -> pd.DataFrame:
-    print("Normalizing data globally...")
+    print("Normalizing data per session...")
 
-    return normalize(df, exclude_columns)
-
-
-def normalize_per_subject(
-    df: pd.DataFrame,
-    normalize: Callable[[pd.DataFrame, List[str]], pd.DataFrame],
-    exclude_columns: List[str],
-) -> pd.DataFrame:
-    print("Normalizing data per subject...")
-
-    return df.groupby("subject_id", group_keys=False).transform(
-        lambda x: normalize(x, exclude_columns)
-    )
+    if normalize is None:
+        return session_df
+    else:
+        return normalize(session_df, ["timestamp"])
 
 
 def normalize_per_sample(
-    windows: List[pd.DataFrame],
-    normalize: Callable[[pd.DataFrame, List[str]], pd.DataFrame],
-    exclude_columns: List[str],
+    window_dfs: List[pd.DataFrame],
+    normalize: Callable[[pd.DataFrame, List[str]], pd.DataFrame] | None,
 ) -> List[pd.DataFrame]:
     print("Normalizing data per sample...")
 
-    return [normalize(window, exclude_columns) for window in windows]
+    if normalize is None:
+        return window_dfs
+    else:
+        return [normalize(w, ["timestamp"]) for w in window_dfs]
 
 
 def min_max(df: pd.DataFrame, exclude_columns: List[str]) -> pd.DataFrame:
