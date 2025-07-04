@@ -33,7 +33,11 @@ def parse_ku_har(
     session_index_dict = defaultdict(list)
     session_dfs = []
 
-    activity_dirs = [d for d in os.listdir(dir) if d != "cache"]
+    activity_dirs = [
+        d
+        for d in os.listdir(dir)
+        if d != "cache" and d != "windowing" and d != "ku_har.csv"
+    ]
 
     for activity_dir in activity_dirs:
         # get activity from dirname
@@ -97,13 +101,6 @@ def parse_ku_har(
 
             session_dfs.append(merged_df)
 
-    # define session index
-    session_index = pd.DataFrame(session_index_dict)
-    session_index["session_id"] = list(range(len(session_dfs)))
-    session_index = session_index.astype(
-        {"session_id": "int32", "subject_id": "int32", "activity_id": "int32"}
-    )
-
     # define activity index
     activity_index = pd.DataFrame(
         list(ACTIVITY_MAP.items()), columns=["activity_id", "activity_name"]
@@ -112,16 +109,26 @@ def parse_ku_har(
         {"activity_id": "int32", "activity_name": "string"}
     )
 
+    # define session index
+    session_index = pd.DataFrame(session_index_dict)
+    session_index["session_id"] = list(range(len(session_dfs)))
+
     # factorize to start from 0
     session_index["activity_id"] = pd.factorize(session_index["activity_id"])[0]
     session_index["subject_id"] = pd.factorize(session_index["subject_id"])[0]
 
+    session_index = session_index.astype(
+        {"session_id": "int32", "subject_id": "int32", "activity_id": "int32"}
+    )
+
     # round all floats to 6 decimal places
     session_dfs = [session_df.round(6) for session_df in session_dfs]
 
-    print(session_index.head())
-    print(activity_index.head())
-    print(session_dfs[0].head())
+    for i, session_df in enumerate(session_dfs):
+        session_df["timestamp"] = pd.to_datetime(session_df["timestamp"], unit="ms")
+        dtypes = {col: "float32" for col in session_df.columns if col != "timestamp"}
+        dtypes["timestamp"] = "datetime64[ms]"
+        session_dfs[i] = session_df.astype(dtypes)
 
     return activity_index, session_index, session_dfs
 

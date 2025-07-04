@@ -5,7 +5,7 @@ import pandas as pd
 def select_activities(
     session_index: pd.DataFrame, activity_index: pd.DataFrame, activity_names: List[str]
 ) -> pd.DataFrame:
-    # print("Selecting activities...")
+    print("Selecting activities...")
 
     activity_ids = activity_index[activity_index["activity_name"].isin(activity_names)][
         "activity_id"

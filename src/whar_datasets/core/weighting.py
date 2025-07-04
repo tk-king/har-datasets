@@ -2,12 +2,17 @@ import pandas as pd
 from collections import Counter
 
 
-def compute_class_weights(session_index: pd.DataFrame) -> dict:
-    # Get label for each session
-    session_labels = session_index["activity_id"].tolist()
+def compute_class_weights(
+    session_index: pd.DataFrame, window_index: pd.DataFrame
+) -> dict:
+    # Merge to assign activity_id to each window
+    merged = window_index.merge(session_index, on="session_id", how="left")
+
+    # Extract activity_id per window
+    window_labels = merged["activity_id"].tolist()
 
     # Count occurrences
-    label_counts = Counter(session_labels)
+    label_counts = Counter(window_labels)
     total = sum(label_counts.values())
 
     # Inverse frequency

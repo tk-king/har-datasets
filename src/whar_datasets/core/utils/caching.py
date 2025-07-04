@@ -19,17 +19,16 @@ def cache_windows(
     window_index: pd.DataFrame,
     windows: List[pd.DataFrame],
 ) -> None:
-    # if exists delete
-    if os.path.exists(windows_dir):
-        os.system(f"rm -rf {windows_dir}")
-
     # create windowing directory if it does not exist
     os.makedirs(windows_dir, exist_ok=True)
 
+    loop = tqdm(windows)
+    loop.set_description("Caching windows")
+
     # save windows
-    for i, window in enumerate(windows):
+    for i, window in enumerate(loop):
         # get window_id
-        window_id = window_index.loc[i]["window_id"]
+        window_id = str(window_index.iloc[i]["window_id"])
         assert isinstance(window_id, str)
 
         # save window
@@ -39,13 +38,13 @@ def cache_windows(
 
 def cache_window_index(
     cache_dir: str,
-    window_indexs: List[pd.DataFrame],
+    window_index: pd.DataFrame,
 ):
     # create directories if do not exist
     os.makedirs(cache_dir, exist_ok=True)
 
     # save window index
-    window_index = pd.concat(window_indexs)
+
     window_index.to_parquet(
         os.path.join(cache_dir, "window_index.parquet"), index=False
     )

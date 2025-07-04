@@ -3,11 +3,12 @@ from typing import Dict, List, Tuple
 import numpy as np
 import pandas as pd
 import short_unique_id as suid  # type: ignore
+from tqdm import tqdm  # type: ignore
 
 
 def generate_windowing(
     session_df: pd.DataFrame, session_id: int, window_time: float, overlap: float
-) -> Tuple[pd.DataFrame, List[pd.DataFrame]]:
+) -> Tuple[pd.DataFrame | None, List[pd.DataFrame] | None]:
     # create containers for windows and index
     window_dict = defaultdict(list)
     windows: List[pd.DataFrame] = []
@@ -32,7 +33,7 @@ def generate_windowing(
 
         # get window based on mask and keep_cols and reset index
         window_df = session_df[mask]
-        window_df.reset_index(drop=True)
+        window_df = window_df.drop(columns=["timestamp"]).reset_index(drop=True)
         windows.append(window_df)
 
         # add window info to window index
@@ -41,6 +42,9 @@ def generate_windowing(
 
         # step to next window
         current_start_time += stride_timedelta
+
+    if len(windows) == 0:
+        return None, None
 
     # trim to shortest window for batching
     min_len = min([len(window) for window in windows])

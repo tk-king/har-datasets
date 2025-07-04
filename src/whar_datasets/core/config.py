@@ -67,6 +67,7 @@ class Preprocessing(BaseModel):
     normalization: NormType | None = None  # type of normalization to apply to all
     sliding_window: SlidingWindow
     caching: Caching = Caching()
+    in_parallel: bool = False
 
 
 class Info(BaseModel):

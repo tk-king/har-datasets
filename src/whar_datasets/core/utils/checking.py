@@ -3,33 +3,46 @@ import pandas as pd
 from dask.delayed import delayed
 from dask.base import compute
 
-from whar_datasets.core.config import WHARConfig
-from whar_datasets.core.utils.hashing import create_cfg_hash, load_cfg_hash
+from whar_datasets.core.utils.hashing import load_cfg_hash
 
 
-def check_download(datasets_dir: str, cfg: WHARConfig) -> bool:
+def check_download(dataset_dir: str) -> bool:
     print("Checking download...")
 
-    dataset_dir = os.path.join(datasets_dir, cfg.dataset.info.id)
+    if not os.path.exists(dataset_dir):
+        print(f"Error: Dataset directory not found at '{dataset_dir}'.")
+        return False
 
-    return os.path.exists(dataset_dir)
+    print("Download is up-to-date.")
+    return True
 
 
-def check_windowing(cache_dir: str, windows_dir: str, cfg: WHARConfig) -> bool:
+def check_windowing(cache_dir: str, windows_dir: str, cfg_hash: str) -> bool:
     print("Checking windowing...")
 
     if not os.path.exists(windows_dir):
+        print(f"Error: Windows directory not found at '{windows_dir}'.")
         return False
 
-    if not len(os.listdir(windows_dir)) > 0:
+    if len(os.listdir(windows_dir)) == 0:
+        print(f"Error: Windows directory '{windows_dir}' is empty.")
         return False
 
-    if not os.path.exists(os.path.join(cache_dir, "window_index.parquet")):
+    window_index_path = os.path.join(cache_dir, "window_index.parquet")
+
+    if not os.path.exists(window_index_path):
+        print(f"Error: Window index file not found at '{window_index_path}'.")
         return False
 
-    if not create_cfg_hash(cfg) == load_cfg_hash(cache_dir):
+    current_hash = load_cfg_hash(cache_dir)
+
+    if cfg_hash != current_hash:
+        print(
+            f"Error: Config hash mismatch. Expected: {cfg_hash}, Found: {current_hash}"
+        )
         return False
 
+    print("Windowing is up-to-date.")
     return True
 
 
@@ -37,14 +50,24 @@ def check_sessions(cache_dir: str, sessions_dir: str) -> bool:
     print("Checking sessions...")
 
     if not os.path.exists(sessions_dir):
+        print(f"Error: Sessions directory not found at '{sessions_dir}'.")
         return False
 
-    if not len(os.listdir(sessions_dir)) > 0:
+    if len(os.listdir(sessions_dir)) == 0:
+        print(f"Error: Sessions directory '{sessions_dir}' is empty.")
         return False
 
-    if not os.path.exists(os.path.join(cache_dir, "session_index.parquet")):
+    session_index_path = os.path.join(cache_dir, "session_index.parquet")
+    if not os.path.exists(session_index_path):
+        print(f"Error: Session index file not found at '{session_index_path}'.")
         return False
 
+    activity_index_path = os.path.join(cache_dir, "activity_index.parquet")
+    if not os.path.exists(activity_index_path):
+        print(f"Error: Activity index file not found at '{activity_index_path}'.")
+        return False
+
+    print("Sessions are up-to-date.")
     return True
 
 
@@ -54,33 +77,51 @@ def check_common_format(cache_dir: str, sessions_dir: str) -> bool:
     session_index_path = os.path.join(cache_dir, "session_index.parquet")
     activity_index_path = os.path.join(cache_dir, "activity_index.parquet")
 
-    if not (
-        os.path.exists(sessions_dir)
-        and os.path.exists(session_index_path)
-        and os.path.exists(activity_index_path)
-    ):
+    # Check paths
+    if not os.path.exists(sessions_dir):
+        print(f"Error: sessions directory does not exist at {sessions_dir}")
+        return False
+
+    if not os.path.exists(session_index_path):
+        print(f"Error: session_index.parquet not found at {session_index_path}")
+        return False
+
+    if not os.path.exists(activity_index_path):
+        print(f"Error: activity_index.parquet not found at {activity_index_path}")
         return False
 
     sessions_index = pd.read_parquet(session_index_path)
 
-    # check types in session index
-    if not (
-        sessions_index["session_id"].dtype == "int32"
-        and sessions_index["subject_id"].dtype == "int32"
-        and sessions_index["activity_id"].dtype == "int32"
-        and sessions_index["session_id"].nunique() == len(os.listdir(sessions_dir))
-        and sessions_index["session_id"].min() == 0
-    ):
+    # Check session_index columns
+    if not pd.api.types.is_integer_dtype(sessions_index["session_id"]):
+        print("Error: 'session_id' column in session_index is not integer type.")
+        return False
+    if not pd.api.types.is_integer_dtype(sessions_index["subject_id"]):
+        print("Error: 'subject_id' column in session_index is not integer type.")
+        return False
+    if not pd.api.types.is_integer_dtype(sessions_index["activity_id"]):
+        print("Error: 'activity_id' column in session_index is not integer type.")
+        return False
+    if sessions_index["session_id"].nunique() != len(os.listdir(sessions_dir)):
+        print(
+            "Error: Number of unique session_ids does not match number of session files."
+        )
+        return False
+    if sessions_index["session_id"].min() != 0:
+        print("Error: Minimum session_id is not 0.")
         return False
 
     activity_index = pd.read_parquet(activity_index_path)
 
-    # check types in activity index
-    if not (
-        activity_index["activity_id"].dtype == "int32"
-        and activity_index["activity_name"].dtype == "string"
-        and activity_index["activity_id"].min() == 0
-    ):
+    # Check activity_index columns
+    if not pd.api.types.is_integer_dtype(activity_index["activity_id"]):
+        print("Error: 'activity_id' column in activity_index is not integer type.")
+        return False
+    if not pd.api.types.is_string_dtype(activity_index["activity_name"]):
+        print("Error: 'activity_name' column in activity_index is not string type.")
+        return False
+    if activity_index["activity_id"].min() != 0:
+        print("Error: Minimum activity_id is not 0.")
         return False
 
     @delayed
@@ -88,17 +129,20 @@ def check_common_format(cache_dir: str, sessions_dir: str) -> bool:
         session_path = os.path.join(sessions_dir, f"session_{session_id}.parquet")
 
         if not os.path.exists(session_path):
+            print(f"Error: Session file not found: {session_path}")
             return False
 
         session_df = pd.read_parquet(session_path)
 
-        # check that timestamp col is datetime
-        if session_df["timestamp"].dtype != "datetime64[ms]":
+        if not pd.api.types.is_datetime64_dtype(session_df["timestamp"]):
+            print(
+                f"Error: 'timestamp' column in {session_path} is not datetime64 type."
+            )
             return False
 
-        # check that all other cols are float
         for col in session_df.columns.difference(["timestamp"]):
-            if session_df[col].dtype != "float32":
+            if not pd.api.types.is_float_dtype(session_df[col]):
+                print(f"Error: Column '{col}' in {session_path} is not float type.")
                 return False
 
         return True
@@ -106,4 +150,8 @@ def check_common_format(cache_dir: str, sessions_dir: str) -> bool:
     checks = [session_exists(session_id) for session_id in sessions_index["session_id"]]
     results = compute(*checks)
 
-    return all(results)
+    if not all(results):
+        return False
+
+    print("Common format is up-to-date.")
+    return True

@@ -30,7 +30,7 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
         self.cache_dir, self.windows_dir = process(cfg, parse, override_cache)
         self.session_index = load_session_index(self.cache_dir)
         self.window_index, self.windows = load_windowing(
-            self.cache_dir, self.windows_dir
+            self.cache_dir, self.windows_dir, self.cfg
         )
 
         self.seed = cfg.dataset.training.seed
@@ -58,8 +58,8 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
         test_set = Subset(self, test_indices)
         val_set = Subset(self, val_indices)
 
-        print(self.window_index["subject_id"].value_counts())
-        print(self.window_index["activity_id"].value_counts())
+        print(self.session_index["subject_id"].value_counts())
+        print(self.session_index["activity_id"].value_counts())
         print(f"train: {len(train_set)} | val: {len(val_set)} | test: {len(test_set)}")
 
         # override default batch size and shuffle
@@ -93,7 +93,10 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
     def get_class_weights(self, dataloader: DataLoader) -> dict:
         indices = dataloader.dataset.indices  # type: ignore
         assert indices is not None
-        return compute_class_weights(self.window_index.iloc[indices])
+
+        return compute_class_weights(
+            self.session_index, self.window_index.iloc[indices]
+        )
 
     def __len__(self) -> int:
         return len(self.window_index)

@@ -11,12 +11,14 @@ def get_label(
     window_index: pd.DataFrame,
     session_index: pd.DataFrame,
 ) -> np.integer:
-    # get window_id
-    window_id = window_index.loc[index]["window_id"]
-    assert isinstance(window_id, np.integer)
+    # get session_id
+    session_id = window_index.iloc[index]["session_id"]
+    assert isinstance(session_id, np.integer)
 
-    # get activtiy id from sessionindex where window_id fits
-    label = session_index[session_index["window_id"] == window_id]["activity_id"]
+    # get activity id from sessionindex
+    label = session_index.loc[
+        session_index["session_id"] == session_id, "activity_id"
+    ].values[0]
     assert isinstance(label, np.integer)
 
     return label
@@ -30,14 +32,14 @@ def get_window(
     windows: List[pd.DataFrame] | None,
 ) -> np.ndarray:
     # get window_id
-    window_id = window_index.loc[index]["window_id"]
-    assert isinstance(window_id, np.integer)
+    window_id = window_index.iloc[index]["window_id"]
+    assert isinstance(window_id, str)
 
     # select or load window
     window = (
-        windows[window_id].values
+        windows[index].values
         if windows is not None and cfg.dataset.training.in_memory
-        else load_window(windows_dir, int(window_id)).values
+        else load_window(windows_dir, window_id).values
     )
 
     return window
@@ -51,7 +53,7 @@ def get_spectrogram(
     spectograms: List[np.ndarray] | None,
 ) -> np.ndarray:
     # get window_id
-    window_id = window_index.loc[index]["window_id"]
+    window_id = window_index.iloc[index]["window_id"]
     assert isinstance(window_id, np.integer)
 
     # select or load spectogram

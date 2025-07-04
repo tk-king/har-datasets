@@ -3,12 +3,17 @@ from typing import List, Tuple
 import pandas as pd
 from tqdm import tqdm
 
+from whar_datasets.core.config import WHARConfig
+
 
 def load_windowing(
-    cache_dir: str, windows_dir: str
-) -> Tuple[pd.DataFrame, List[pd.DataFrame]]:
+    cache_dir: str, windows_dir: str, cfg: WHARConfig
+) -> Tuple[pd.DataFrame, List[pd.DataFrame] | None]:
     # load window index
     window_index = load_window_index(cache_dir)
+
+    if not cfg.dataset.training.in_memory:
+        return window_index, None
 
     windows: List[pd.DataFrame] = []
 
