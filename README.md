@@ -1,6 +1,6 @@
-# HAR Datasets
+# WHAR Datasets
 
-This library provides support for popular HAR (human activity recognition) datasets including
+This library provides support for popular WHAR (wearable human activity recognition) datasets including
 
 - metadata descriptions in [DCAT-AP](https://www.dcat-ap.de/) and [Croissant](https://github.com/mlcommons/croissant)
 - downloading from original source with caching
@@ -8,7 +8,7 @@ This library provides support for popular HAR (human activity recognition) datas
 - preparation via config with caching
 - pytorch integration.
 
-HAR datasets not included can be used by writing a custom config and parser, which can then be integrated easily.
+WHAR datasets not included can be used by writing a custom config and parser, which can then be integrated easily.
 
 # How to Install
 
@@ -21,18 +21,18 @@ This installs the library into the active environment.
 # How To Use
 
 ```python
-from har_datasets.dataset.har_dataset import HARDataset
-from har_datasets.supported.getter import DatasetId, get_har_dataset_cfg_and_parser
+from whar_datasets.adapters.pytorch import PytorchAdapter
+from whar_datasets.support.getter import WHARDatasetID, get_cfg_and_parser
 
-cfg, parse = get_har_dataset_cfg_and_parser(dataset_id=DatasetId.UCI_HAR)
-dataset = HARDataset(cfg=cfg, parse=parse)
+cfg, parse = get_cfg_and_parser(WHARDatasetID.UCI_HAR)
+dataset = PytorchAdapter(cfg, parse, override_cache=False)
 
 train_loader, val_loader, test_loader = dataset.get_dataloaders()
 ```
 
 For unsupported har datasets, a custom parse function and config can be implented and used instead.
 
-# Supported HAR Datasets
+# Supported WHAR Datasets
 
 - [x] [UCI-HAR](https://archive.ics.uci.edu/dataset/240/human+activity+recognition+using+smartphones)
 - [x] [WISDM-12](https://www.cis.fordham.edu/wisdm/dataset.php)
@@ -60,7 +60,7 @@ For unsupported har datasets, a custom parse function and config can be implente
 
 # Common Format
 
-Since all HAR datasets do not share a common format, specific parsers are provided for each datasets to bring it into a common format which simplifies preparation. As common format a single csv is specified, which contains sensor channels as different columns. Additionally it contains the columns
+Since all WHAR datasets do not share a common format, specific parsers are provided for each datasets to bring it into a common format which simplifies preparation. As common format a single csv is specified, which contains sensor channels as different columns. Additionally it contains the columns
 
 | Column         | Type  |
 |----------------|-------|
