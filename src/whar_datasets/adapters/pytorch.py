@@ -44,9 +44,9 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
 
     def get_dataloaders(
         self,
+        train_batch_size: int,
+        train_shuffle: bool = True,
         subj_cross_val_group_index: int | None = None,
-        train_batch_size: int | None = None,
-        train_shuffle: bool | None = None,
     ) -> Tuple[DataLoader, DataLoader, DataLoader]:
         # get split indices from config
         train_indices, val_indices, test_indices = get_split(
@@ -58,19 +58,15 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
         test_set = Subset(self, test_indices)
         val_set = Subset(self, val_indices)
 
-        print(self.session_index["subject_id"].value_counts())
-        print(self.session_index["activity_id"].value_counts())
+        print(f"subject_ids: {self.session_index['subject_id'].unique()}")
+        print(f"activity_ids: {self.session_index['activity_id'].unique()}")
         print(f"train: {len(train_set)} | val: {len(val_set)} | test: {len(test_set)}")
-
-        # override default batch size and shuffle
-        batch_size = train_batch_size or self.cfg.dataset.training.batch_size
-        shuffle = train_shuffle or self.cfg.dataset.training.shuffle
 
         # create dataloaders from split
         train_loader = DataLoader(
             dataset=train_set,
-            batch_size=batch_size,
-            shuffle=shuffle,
+            batch_size=train_batch_size,
+            shuffle=train_shuffle,
             generator=self.generator,
         )
 
@@ -109,7 +105,7 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
         )
 
         # convert to tensors
-        y = torch.tensor([label], dtype=torch.long)
+        y = torch.tensor(label, dtype=torch.long)
         x = torch.tensor(window, dtype=torch.float32)
 
         return y, x

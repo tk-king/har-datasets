@@ -21,6 +21,9 @@ cfg_ku_har = WHARConfig(
             id="ku_har",
             download_url="https://data.mendeley.com/public-files/datasets/45f952y38r/files/49c6120b-59fd-466c-97da-35d53a4be595/file_downloaded",
             sampling_freq=100,
+            num_of_subjects=89,
+            num_of_activities=18,
+            num_of_channels=6,
         ),
         preprocessing=Preprocessing(
             selections=Selections(
@@ -56,9 +59,6 @@ cfg_ku_har = WHARConfig(
             sliding_window=SlidingWindow(window_time=2.56, overlap=0),
         ),
         training=Training(
-            batch_size=32,
-            learning_rate=0.0001,
-            num_epochs=100,
             split=Split(
                 given_split=GivenSplit(
                     train_subj_ids=list(range(0, 60)),

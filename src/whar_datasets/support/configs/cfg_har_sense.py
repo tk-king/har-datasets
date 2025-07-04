@@ -21,6 +21,9 @@ cfg_har_sense = WHARConfig(
             id="har_sense",
             download_url="https://www.kaggle.com/api/v1/datasets/download/nurulaminchoudhury/harsense-datatset",
             sampling_freq=50,
+            num_of_subjects=12,
+            num_of_activities=6,
+            num_of_channels=16,
         ),
         preprocessing=Preprocessing(
             selections=Selections(
@@ -54,9 +57,6 @@ cfg_har_sense = WHARConfig(
             sliding_window=SlidingWindow(window_time=2.56, overlap=0),
         ),
         training=Training(
-            batch_size=32,
-            learning_rate=0.0001,
-            num_epochs=100,
             split=Split(
                 given_split=GivenSplit(
                     train_subj_ids=list(range(1, 9)),

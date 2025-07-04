@@ -21,6 +21,9 @@ cfg_opportunity = WHARConfig(
             id="opportunity",
             download_url="https://archive.ics.uci.edu/static/public/226/opportunity+activity+recognition.zip",
             sampling_freq=30,
+            num_of_subjects=4,
+            num_of_activities=5,
+            num_of_channels=134,
         ),
         preprocessing=Preprocessing(
             activity_id_col="Locomotion",
@@ -45,9 +48,6 @@ cfg_opportunity = WHARConfig(
             sliding_window=SlidingWindow(window_time=2.56, overlap=0),
         ),
         training=Training(
-            batch_size=32,
-            learning_rate=0.0001,
-            num_epochs=100,
             split=Split(
                 given_split=GivenSplit(
                     train_subj_ids=list(range(1, 3)),

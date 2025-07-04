@@ -21,6 +21,9 @@ cfg_daphnet = WHARConfig(
             id="daphnet",
             download_url="https://archive.ics.uci.edu/static/public/245/daphnet+freezing+of+gait.zip",
             sampling_freq=64,
+            num_of_subjects=10,
+            num_of_activities=3,
+            num_of_channels=9,
         ),
         preprocessing=Preprocessing(
             selections=Selections(
@@ -43,9 +46,6 @@ cfg_daphnet = WHARConfig(
             sliding_window=SlidingWindow(window_time=1, overlap=0),
         ),
         training=Training(
-            batch_size=32,
-            learning_rate=0.0001,
-            num_epochs=100,
             split=Split(
                 given_split=GivenSplit(
                     train_subj_ids=list(range(1, 7)),

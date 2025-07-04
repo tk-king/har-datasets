@@ -36,12 +36,8 @@ class Split(BaseModel):
 
 
 class Training(BaseModel):
-    batch_size: int  # batch size of train loader
-    learning_rate: float
-    num_epochs: int
     seed: int = 0
-    shuffle: bool = True  # whether to shuffle train loader
-    in_memory: bool = True
+    in_memory: bool = False
     split: Split  # how to split into train / test / val
 
 
@@ -74,6 +70,9 @@ class Info(BaseModel):
     id: str  # id of the dataset
     download_url: str  # url to download dataset
     sampling_freq: int  # sampling frequency of the dataset
+    num_of_subjects: int
+    num_of_activities: int
+    num_of_channels: int
 
 
 class Dataset(BaseModel):

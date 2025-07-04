@@ -21,6 +21,9 @@ cfg_dsads = WHARConfig(
             id="dsads",
             download_url="https://archive.ics.uci.edu/static/public/256/daily+and+sports+activities.zip",
             sampling_freq=25,
+            num_of_subjects=8,
+            num_of_activities=19,
+            num_of_channels=45,
         ),
         preprocessing=Preprocessing(
             selections=Selections(
@@ -101,9 +104,6 @@ cfg_dsads = WHARConfig(
             sliding_window=SlidingWindow(window_time=2.56, overlap=0),
         ),
         training=Training(
-            batch_size=32,
-            learning_rate=0.0001,
-            num_epochs=100,
             split=Split(
                 given_split=GivenSplit(
                     train_subj_ids=list(range(1, 5)),

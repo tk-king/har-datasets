@@ -22,6 +22,9 @@ cfg_uci_har = WHARConfig(
             id="uci_har",
             download_url="https://archive.ics.uci.edu/static/public/240/human+activity+recognition+using+smartphones.zip",
             sampling_freq=50,
+            num_of_subjects=30,
+            num_of_activities=6,
+            num_of_channels=9,
         ),
         preprocessing=Preprocessing(
             selections=Selections(
@@ -48,9 +51,6 @@ cfg_uci_har = WHARConfig(
             sliding_window=SlidingWindow(window_time=2.56, overlap=0),
         ),
         training=Training(
-            batch_size=32,
-            learning_rate=0.0001,
-            num_epochs=100,
             split=Split(
                 given_split=GivenSplit(
                     train_subj_ids=list(range(1, 21)),

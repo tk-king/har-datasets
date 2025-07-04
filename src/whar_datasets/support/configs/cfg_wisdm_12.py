@@ -21,6 +21,9 @@ cfg_wisdm_12 = WHARConfig(
             id="wisdm_12",
             download_url="https://www.cis.fordham.edu/wisdm/includes/datasets/latest/WISDM_ar_latest.tar.gz",
             sampling_freq=20,
+            num_of_subjects=36,
+            num_of_activities=6,
+            num_of_channels=3,
         ),
         preprocessing=Preprocessing(
             selections=Selections(
@@ -41,9 +44,6 @@ cfg_wisdm_12 = WHARConfig(
             sliding_window=SlidingWindow(window_time=2.56, overlap=0),
         ),
         training=Training(
-            batch_size=32,
-            learning_rate=0.0001,
-            num_epochs=100,
             split=Split(
                 given_split=GivenSplit(
                     train_subj_ids=list(range(1, 26)),

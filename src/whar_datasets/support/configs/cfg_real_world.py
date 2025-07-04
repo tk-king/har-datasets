@@ -22,6 +22,9 @@ cfg_uci_har = WHARConfig(
             id="real_world",
             download_url="http://wifo5-14.informatik.uni-mannheim.de/sensor/dataset/realworld2016/realworld2016_dataset.zip",
             sampling_freq=50,
+            num_of_subjects=30,
+            num_of_activities=6,
+            num_of_channels=9,
         ),
         preprocessing=Preprocessing(
             selections=Selections(
@@ -48,9 +51,6 @@ cfg_uci_har = WHARConfig(
             sliding_window=SlidingWindow(window_time=2.56, overlap=0),
         ),
         training=Training(
-            batch_size=32,
-            learning_rate=0.0001,
-            num_epochs=100,
             split=Split(
                 given_split=GivenSplit(
                     train_subj_ids=list(range(1, 21)),

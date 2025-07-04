@@ -21,6 +21,9 @@ cfg_pamap2 = WHARConfig(
             id="pamap2",
             download_url="https://archive.ics.uci.edu/static/public/231/pamap2+physical+activity+monitoring.zip",
             sampling_freq=100,
+            num_of_subjects=9,
+            num_of_activities=18,
+            num_of_channels=9,
         ),
         preprocessing=Preprocessing(
             selections=Selections(
@@ -59,9 +62,6 @@ cfg_pamap2 = WHARConfig(
             sliding_window=SlidingWindow(window_time=2.56, overlap=0),
         ),
         training=Training(
-            batch_size=32,
-            learning_rate=0.0001,
-            num_epochs=100,
             split=Split(
                 given_split=GivenSplit(
                     train_subj_ids=list(range(1, 7)),

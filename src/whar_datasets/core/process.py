@@ -38,6 +38,10 @@ def process(
     parse: Callable[[str, str], Tuple[pd.DataFrame, pd.DataFrame, List[pd.DataFrame]]],
     override_cache: bool = False,
 ) -> Tuple[str, str]:
+    if override_cache:
+        print("Overriding cache...")
+
+    # create config hash
     cfg_hash = create_cfg_hash(cfg)
 
     # define directories
@@ -71,7 +75,8 @@ def process(
             cache_dir, sessions_dir, activity_index, session_index, sessions
         )
 
-        assert check_common_format(cache_dir, sessions_dir)
+    # check if common format is up-to-date
+    assert check_common_format(cfg, cache_dir, sessions_dir)
 
     # load session and activity index
     session_index = load_session_index(cache_dir)

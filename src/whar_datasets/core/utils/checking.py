@@ -3,6 +3,7 @@ import pandas as pd
 from dask.delayed import delayed
 from dask.base import compute
 
+from whar_datasets.core.config import WHARConfig
 from whar_datasets.core.utils.hashing import load_cfg_hash
 
 
@@ -71,7 +72,7 @@ def check_sessions(cache_dir: str, sessions_dir: str) -> bool:
     return True
 
 
-def check_common_format(cache_dir: str, sessions_dir: str) -> bool:
+def check_common_format(cfg: WHARConfig, cache_dir: str, sessions_dir: str) -> bool:
     print("Checking common format...")
 
     session_index_path = os.path.join(cache_dir, "session_index.parquet")
@@ -103,12 +104,27 @@ def check_common_format(cache_dir: str, sessions_dir: str) -> bool:
         print("Error: 'activity_id' column in session_index is not integer type.")
         return False
     if sessions_index["session_id"].nunique() != len(os.listdir(sessions_dir)):
-        print(
-            "Error: Number of unique session_ids does not match number of session files."
-        )
+        print("Error: Number of session_ids does not match number of session files.")
         return False
     if sessions_index["session_id"].min() != 0:
-        print("Error: Minimum session_id is not 0.")
+        print("Error: Minimum session_id is not 0 in session_index.")
+        return False
+    if sessions_index["subject_id"].min() != 0:
+        print("Error: Minimum subject_id is not 0 in session_index.")
+        return False
+    if sessions_index["activity_id"].min() != 0:
+        print("Error: Minimum activity_id is not 0 in session_index.")
+        return False
+    if sessions_index["subject_id"].nunique() != cfg.dataset.info.num_of_subjects:
+        # print(sessions_index["subject_id"].unique())
+        print(
+            "Error: Number of subject_ids does not match number of subjects in session_index."
+        )
+        return False
+    if sessions_index["activity_id"].nunique() != cfg.dataset.info.num_of_activities:
+        print(
+            "Error: Number of activity_ids does not match number of activities in session_index."
+        )
         return False
 
     activity_index = pd.read_parquet(activity_index_path)
@@ -121,9 +137,15 @@ def check_common_format(cache_dir: str, sessions_dir: str) -> bool:
         print("Error: 'activity_name' column in activity_index is not string type.")
         return False
     if activity_index["activity_id"].min() != 0:
-        print("Error: Minimum activity_id is not 0.")
+        print("Error: Minimum activity_id is not 0 in activity_index.")
+        return False
+    if activity_index["activity_id"].nunique() != cfg.dataset.info.num_of_activities:
+        print(
+            "Error: Number of activity_ids does not match number of activities in activity_index."
+        )
         return False
 
+    # Check session files
     @delayed
     def session_exists(session_id):
         session_path = os.path.join(sessions_dir, f"session_{session_id}.parquet")
@@ -137,6 +159,15 @@ def check_common_format(cache_dir: str, sessions_dir: str) -> bool:
         if not pd.api.types.is_datetime64_dtype(session_df["timestamp"]):
             print(
                 f"Error: 'timestamp' column in {session_path} is not datetime64 type."
+            )
+            return False
+
+        if (
+            len(session_df.columns.difference(["timestamp"]))
+            != cfg.dataset.info.num_of_channels
+        ):
+            print(
+                f"Error: Number of columns in {session_path} does not match number of channels."
             )
             return False
 

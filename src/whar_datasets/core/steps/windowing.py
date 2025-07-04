@@ -1,9 +1,7 @@
 from collections import defaultdict
-from typing import Dict, List, Tuple
-import numpy as np
+from typing import List, Tuple
 import pandas as pd
 import short_unique_id as suid  # type: ignore
-from tqdm import tqdm  # type: ignore
 
 
 def generate_windowing(
