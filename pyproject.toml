@@ -21,8 +21,10 @@ dependencies = [
     "scipy>=1.15.3",
     "sempyro>=2.0.1",
     "short-unique-id>=0.2.1",
+    "tensorflow>=2.19.0",
     "torch>=2.7.1",
     "tqdm>=4.67.1",
+    "types-tensorflow>=2.18.0.20250516",
     "types-tqdm>=4.67.0.20250516",
 ]
 
