@@ -58,8 +58,8 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
         test_set = Subset(self, test_indices)
         val_set = Subset(self, val_indices)
 
-        print(f"subject_ids: {self.session_index['subject_id'].unique()}")
-        print(f"activity_ids: {self.session_index['activity_id'].unique()}")
+        print(f"subject_ids: {np.sort(self.session_index['subject_id'].unique())}")
+        print(f"activity_ids: {np.sort(self.session_index['activity_id'].unique())}")
         print(f"train: {len(train_set)} | val: {len(val_set)} | test: {len(test_set)}")
 
         # create dataloaders from split

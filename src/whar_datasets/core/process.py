@@ -11,7 +11,6 @@ from whar_datasets.core.config import NormType, WHARConfig
 from whar_datasets.core.utils.checking import (
     check_common_format,
     check_download,
-    check_sessions,
     check_windowing,
 )
 from whar_datasets.core.utils.downloading import download, extract
@@ -64,8 +63,9 @@ def process(
         extract(file_path, dataset_dir)
 
     # if not yet done, parse and cache common format
-    if not check_sessions(cache_dir, sessions_dir) or override_cache:
+    if not check_common_format(cfg, cache_dir, sessions_dir) or override_cache:
         # parse original dataset to common format
+        print("Parsing...")
         activity_index, session_index, sessions = parse(
             dataset_dir, cfg.dataset.preprocessing.activity_id_col
         )
@@ -75,7 +75,6 @@ def process(
             cache_dir, sessions_dir, activity_index, session_index, sessions
         )
 
-    # check if common format is up-to-date
     assert check_common_format(cfg, cache_dir, sessions_dir)
 
     # load session and activity index
@@ -139,6 +138,7 @@ def process_sessions_sequentially(
             int(session_id),
             cfg.dataset.preprocessing.sliding_window.window_time,
             cfg.dataset.preprocessing.sliding_window.overlap,
+            cfg.common.resampling_freq or cfg.dataset.info.sampling_freq,
         )
 
         # skip if no window could be generated
@@ -195,6 +195,7 @@ def process_sessions_parallely(
             session_id,
             cfg.dataset.preprocessing.sliding_window.window_time,
             cfg.dataset.preprocessing.sliding_window.overlap,
+            cfg.common.resampling_freq or cfg.dataset.info.sampling_freq,
         )
 
         if window_index is None or windows is None:

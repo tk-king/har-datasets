@@ -21,7 +21,7 @@ cfg_motion_sense = WHARConfig(
             id="motion_sense",
             download_url="https://github.com/mmalekzadeh/motion-sense/archive/refs/heads/master.zip",
             sampling_freq=50,
-            num_of_subjects=9,
+            num_of_subjects=24,
             num_of_activities=6,
             num_of_channels=18,
         ),
@@ -61,12 +61,19 @@ cfg_motion_sense = WHARConfig(
         training=Training(
             split=Split(
                 given_split=GivenSplit(
-                    train_subj_ids=list(range(1, 7)),
-                    val_subj_ids=list(range(7, 9)),
-                    test_subj_ids=list(range(9, 10)),
+                    train_subj_ids=list(range(0, 18)),
+                    val_subj_ids=list(range(18, 21)),
+                    test_subj_ids=list(range(21, 24)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(
-                    subj_id_groups=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+                    subj_id_groups=[
+                        [0, 1, 2, 3],
+                        [4, 5, 6, 7],
+                        [8, 9, 10, 11],
+                        [12, 13, 14, 15],
+                        [16, 17, 18, 19],
+                        [20, 21, 22, 23],
+                    ],
                 ),
             ),
         ),

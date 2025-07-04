@@ -5,7 +5,11 @@ import short_unique_id as suid  # type: ignore
 
 
 def generate_windowing(
-    session_df: pd.DataFrame, session_id: int, window_time: float, overlap: float
+    session_df: pd.DataFrame,
+    session_id: int,
+    window_time: float,
+    overlap: float,
+    sampling_freq: float,
 ) -> Tuple[pd.DataFrame | None, List[pd.DataFrame] | None]:
     # create containers for windows and index
     window_dict = defaultdict(list)
@@ -44,9 +48,11 @@ def generate_windowing(
     if len(windows) == 0:
         return None, None
 
-    # trim to shortest window for batching
-    min_len = min([len(window) for window in windows])
-    windows = [window[:min_len] for window in windows]
+    # compute window size from sampling freq and window time
+    window_size = int(window_time * sampling_freq)
+
+    # trim to window size for batching
+    windows = [window[:window_size] for window in windows]
 
     # create window index
     window_index = pd.DataFrame(window_dict)

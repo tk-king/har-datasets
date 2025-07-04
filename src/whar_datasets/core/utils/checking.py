@@ -92,6 +92,7 @@ def check_common_format(cfg: WHARConfig, cache_dir: str, sessions_dir: str) -> b
         return False
 
     sessions_index = pd.read_parquet(session_index_path)
+    activity_index = pd.read_parquet(activity_index_path)
 
     # Check session_index columns
     if not pd.api.types.is_integer_dtype(sessions_index["session_id"]):
@@ -104,7 +105,9 @@ def check_common_format(cfg: WHARConfig, cache_dir: str, sessions_dir: str) -> b
         print("Error: 'activity_id' column in session_index is not integer type.")
         return False
     if sessions_index["session_id"].nunique() != len(os.listdir(sessions_dir)):
-        print("Error: Number of session_ids does not match number of session files.")
+        print(
+            f"Error: Number of session_ids {sessions_index['session_id'].nunique()} does not match number of session files {len(os.listdir(sessions_dir))}."
+        )
         return False
     if sessions_index["session_id"].min() != 0:
         print("Error: Minimum session_id is not 0 in session_index.")
@@ -118,16 +121,15 @@ def check_common_format(cfg: WHARConfig, cache_dir: str, sessions_dir: str) -> b
     if sessions_index["subject_id"].nunique() != cfg.dataset.info.num_of_subjects:
         # print(sessions_index["subject_id"].unique())
         print(
-            "Error: Number of subject_ids does not match number of subjects in session_index."
+            f"In session_index, num of subject_ids {sessions_index['subject_id'].nunique()} does not match num of subjects {cfg.dataset.info.num_of_subjects}."
         )
         return False
     if sessions_index["activity_id"].nunique() != cfg.dataset.info.num_of_activities:
+        print(activity_index["activity_name"].unique())
         print(
-            "Error: Number of activity_ids does not match number of activities in session_index."
+            f"In session_index, number of activity_ids {sessions_index['activity_id'].nunique()} does not match number of activities {cfg.dataset.info.num_of_activities} ."
         )
         return False
-
-    activity_index = pd.read_parquet(activity_index_path)
 
     # Check activity_index columns
     if not pd.api.types.is_integer_dtype(activity_index["activity_id"]):
@@ -166,8 +168,9 @@ def check_common_format(cfg: WHARConfig, cache_dir: str, sessions_dir: str) -> b
             len(session_df.columns.difference(["timestamp"]))
             != cfg.dataset.info.num_of_channels
         ):
+            print(session_df.columns.difference(["timestamp"]))
             print(
-                f"Error: Number of columns in {session_path} does not match number of channels."
+                f"Error: Number of columns {len(session_df.columns.difference(['timestamp']))} in {session_path} does not match number of channel {cfg.dataset.info.num_of_channels}."
             )
             return False
 

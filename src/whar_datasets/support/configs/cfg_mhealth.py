@@ -22,7 +22,7 @@ cfg_mhealth = WHARConfig(
             download_url="https://archive.ics.uci.edu/static/public/319/mhealth+dataset.zip",
             sampling_freq=50,
             num_of_subjects=10,
-            num_of_activities=12,
+            num_of_activities=13,
             num_of_channels=23,
         ),
         preprocessing=Preprocessing(
@@ -72,12 +72,12 @@ cfg_mhealth = WHARConfig(
         training=Training(
             split=Split(
                 given_split=GivenSplit(
-                    train_subj_ids=list(range(1, 7)),
-                    val_subj_ids=list(range(7, 9)),
-                    test_subj_ids=list(range(9, 11)),
+                    train_subj_ids=list(range(0, 8)),
+                    val_subj_ids=list(range(8, 9)),
+                    test_subj_ids=list(range(9, 10)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(
-                    subj_id_groups=[[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]],
+                    subj_id_groups=[[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]],
                 ),
             ),
         ),

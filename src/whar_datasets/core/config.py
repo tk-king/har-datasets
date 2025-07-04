@@ -36,6 +36,9 @@ class Split(BaseModel):
 
 
 class Training(BaseModel):
+    batch_size: int = 64
+    learning_rate: float = 1e-4
+    num_epochs: int = 100
     seed: int = 0
     in_memory: bool = False
     split: Split  # how to split into train / test / val
@@ -63,7 +66,7 @@ class Preprocessing(BaseModel):
     normalization: NormType | None = None  # type of normalization to apply to all
     sliding_window: SlidingWindow
     caching: Caching = Caching()
-    in_parallel: bool = False
+    in_parallel: bool = True
 
 
 class Info(BaseModel):

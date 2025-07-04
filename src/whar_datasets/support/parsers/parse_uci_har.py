@@ -1,92 +1,7 @@
 import os
-from typing import List
+from typing import List, Tuple
 import numpy as np
 import pandas as pd
-
-
-def parse_uci_har(dir: str, activity_id_col: str) -> pd.DataFrame:
-    dir = os.path.join(dir, "UCI HAR Dataset/UCI HAR Dataset/")
-
-    # directories of raw data
-    train_path = os.path.join(dir, "train/Inertial Signals/")
-    test_path = os.path.join(dir, "test/Inertial Signals/")
-
-    # file paths
-    train_subj_path = os.path.join(dir, "train/subject_train.txt")
-    test_subj_path = os.path.join(dir, "test/subject_test.txt")
-    train_labels_path = os.path.join(dir, "train/y_train.txt")
-    test_labels_path = os.path.join(dir, "test/y_test.txt")
-    labels_map_path = os.path.join(dir, "activity_labels.txt")
-
-    # get all files in train and test dirs
-    train_files = os.listdir(train_path)
-    test_files = os.listdir(test_path)
-
-    # get train and test dfs
-    train_df = get_df_from_files_uci_har(
-        files=train_files,
-        files_dir=train_path,
-        subj_path=train_subj_path,
-        labels_path=train_labels_path,
-        slice_end=-10,
-    )  # (seg_size * num_segs, num_activities + 3)
-
-    test_df = get_df_from_files_uci_har(
-        files=test_files,
-        files_dir=test_path,
-        subj_path=test_subj_path,
-        labels_path=test_labels_path,
-        slice_end=-9,
-    )  # (seg_size * num_segs, num_activities + 3)
-
-    # concat for varying splits and set index
-    df = pd.concat([train_df, test_df])
-    df = df.reset_index(drop=True)
-    # (seg_size * (num_segs_train + num_segs_test), num_activities + 3)
-
-    # add col with activity names
-    ldf = pd.read_csv(labels_map_path, sep="\\s+", header=None, names=["id", "label"])
-    df["activity_name"] = df["activity_id"].map(dict(zip(ldf.id, ldf.label)))
-
-    # convert activity_id to categorical starting from 0
-    df["activity_id"] = pd.factorize(df["activity_id"])[0]
-
-    # identify where activity or subject changes
-    changes = (df["activity_id"] != df["activity_id"].shift(1)) | (
-        df["subject_id"] != df["subject_id"].shift(1)
-    )
-
-    # assign a unique session to each continuous segment
-    df["session_id"] = changes.cumsum()
-
-    # add timestamp column per session
-    sampling_interval = 1 / 50 * 1e9  # 50 Hz → 0.02 seconds -> to ns
-    df["timestamp"] = (
-        df.groupby("session_id", group_keys=False).cumcount() * sampling_interval
-    )
-
-    # specify types
-    df = df.astype(
-        {
-            "subject_id": "int32",
-            "activity_name": "str",
-            "timestamp": "float32",
-            "total_acc_x": "float32",
-            "total_acc_y": "float32",
-            "total_acc_z": "float32",
-            "body_acc_x": "float32",
-            "body_acc_y": "float32",
-            "body_acc_z": "float32",
-            "body_gyro_x": "float32",
-            "body_gyro_y": "float32",
-            "body_gyro_z": "float32",
-        }
-    )
-
-    # change timestamp to datetime in ns
-    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ns")
-
-    return df
 
 
 def get_df_from_files_uci_har(
@@ -151,3 +66,115 @@ def get_df_from_files_uci_har(
     # (seg_size * num_segs, num_activities + 2)
 
     return df
+
+
+def parse_uci_har(
+    dir: str, activity_id_col: str
+) -> Tuple[pd.DataFrame, pd.DataFrame, List[pd.DataFrame]]:
+    dir = os.path.join(dir, "UCI HAR Dataset/UCI HAR Dataset/")
+
+    # directories of raw data
+    train_path = os.path.join(dir, "train/Inertial Signals/")
+    test_path = os.path.join(dir, "test/Inertial Signals/")
+
+    # file paths
+    train_subj_path = os.path.join(dir, "train/subject_train.txt")
+    test_subj_path = os.path.join(dir, "test/subject_test.txt")
+    train_labels_path = os.path.join(dir, "train/y_train.txt")
+    test_labels_path = os.path.join(dir, "test/y_test.txt")
+    labels_map_path = os.path.join(dir, "activity_labels.txt")
+
+    # get all files in train and test dirs
+    train_files = os.listdir(train_path)
+    test_files = os.listdir(test_path)
+
+    # get train and test dfs
+    train_df = get_df_from_files_uci_har(
+        files=train_files,
+        files_dir=train_path,
+        subj_path=train_subj_path,
+        labels_path=train_labels_path,
+        slice_end=-10,
+    )  # (seg_size * num_segs, num_activities + 3)
+
+    test_df = get_df_from_files_uci_har(
+        files=test_files,
+        files_dir=test_path,
+        subj_path=test_subj_path,
+        labels_path=test_labels_path,
+        slice_end=-9,
+    )  # (seg_size * num_segs, num_activities + 3)
+
+    # concat for varying splits and set index
+    df = pd.concat([train_df, test_df])
+    df = df.reset_index(drop=True)
+    # (seg_size * (num_segs_train + num_segs_test), num_activities + 3)
+
+    # add col with activity names
+    ldf = pd.read_csv(labels_map_path, sep="\\s+", header=None, names=["id", "label"])
+    df["activity_name"] = df["activity_id"].map(dict(zip(ldf.id, ldf.label)))
+
+    # convert activity_id to categorical starting from 0
+    df["activity_id"] = pd.factorize(df["activity_id"])[0]
+
+    # identify where activity or subject changes
+    changes = (df["activity_id"] != df["activity_id"].shift(1)) | (
+        df["subject_id"] != df["subject_id"].shift(1)
+    )
+
+    # assign a unique session to each continuous segment
+    df["session_id"] = changes.cumsum()
+
+    # add timestamp column per session
+    sampling_interval = 1 / 50 * 1e3  # 50 Hz → 0.02 seconds -> to ms
+    df["timestamp"] = (
+        df.groupby("session_id", group_keys=False).cumcount() * sampling_interval
+    )
+
+    # factorize
+    df["activity_id"] = df["activity_id"].factorize()[0]
+    df["subject_id"] = df["subject_id"].factorize()[0]
+    df["session_id"] = df["session_id"].factorize()[0]
+
+    # create activity index
+    activity_index = (
+        df[["activity_id", "activity_name"]]
+        .drop_duplicates(subset=["activity_id"], keep="first")
+        .reset_index(drop=True)
+    )
+
+    # create session_index
+    session_index = (
+        df[["session_id", "subject_id", "activity_id"]]
+        .drop_duplicates(subset=["session_id"], keep="first")
+        .reset_index(drop=True)
+    )
+
+    # create session dfs
+    session_dfs = []
+    for session_id in session_index["session_id"].unique():
+        session_df = df[df["session_id"] == session_id]
+        session_df = session_df.drop(
+            columns=[
+                "session_id",
+                "subject_id",
+                "activity_id",
+                "activity_name",
+            ]
+        ).reset_index(drop=True)
+        session_dfs.append(session_df)
+
+    # set types
+    activity_index["activity_id"] = activity_index["activity_id"].astype("int32")
+    activity_index["activity_name"] = activity_index["activity_name"].astype("string")
+    session_index["session_id"] = session_index["session_id"].astype("int32")
+    session_index["subject_id"] = session_index["subject_id"].astype("int32")
+    session_index["activity_id"] = session_index["activity_id"].astype("int32")
+    for i, session_df in enumerate(session_dfs):
+        session_df["timestamp"] = pd.to_datetime(session_df["timestamp"], unit="ms")
+        dtypes = {col: "float32" for col in session_df.columns if col != "timestamp"}
+        dtypes["timestamp"] = "datetime64[ms]"
+        session_dfs[i] = session_df.round(6)
+        session_dfs[i] = session_df.astype(dtypes)
+
+    return activity_index, session_index, session_dfs

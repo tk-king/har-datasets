@@ -53,22 +53,18 @@ cfg_uci_har = WHARConfig(
         training=Training(
             split=Split(
                 given_split=GivenSplit(
-                    train_subj_ids=list(range(1, 21)),
+                    train_subj_ids=list(range(0, 21)),
                     val_subj_ids=list(range(21, 26)),
-                    test_subj_ids=list(range(26, 31)),
+                    test_subj_ids=list(range(26, 30)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(
                     subj_id_groups=[
-                        [1, 2, 3],
-                        [4, 5, 6],
-                        [7, 8, 9],
-                        [10, 11, 12],
-                        [13, 14, 15],
-                        [16, 17, 18],
-                        [19, 20, 21],
-                        [22, 23, 24],
-                        [25, 26, 27],
-                        [28, 29, 30],
+                        [0, 1, 2, 3, 4],
+                        [5, 6, 7, 8, 9],
+                        [10, 11, 12, 13, 14],
+                        [15, 16, 17, 18, 19],
+                        [20, 21, 22, 23, 24],
+                        [25, 26, 27, 28, 29],
                     ],
                 ),
             ),

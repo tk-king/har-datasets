@@ -127,8 +127,8 @@ def parse_ku_har(
         session_df["timestamp"] = pd.to_datetime(session_df["timestamp"], unit="ms")
         dtypes = {col: "float32" for col in session_df.columns if col != "timestamp"}
         dtypes["timestamp"] = "datetime64[ms]"
-        session_dfs[i] = session_df.astype(dtypes)
         session_dfs[i] = session_df.round(6)
+        session_dfs[i] = session_df.astype(dtypes)
 
     return activity_index, session_index, session_dfs
 

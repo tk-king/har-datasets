@@ -22,7 +22,7 @@ cfg_har_sense = WHARConfig(
             download_url="https://www.kaggle.com/api/v1/datasets/download/nurulaminchoudhury/harsense-datatset",
             sampling_freq=50,
             num_of_subjects=12,
-            num_of_activities=6,
+            num_of_activities=7,
             num_of_channels=16,
         ),
         preprocessing=Preprocessing(
@@ -34,6 +34,7 @@ cfg_har_sense = WHARConfig(
                     "Downstairs",
                     "Running",
                     "Sitting",
+                    "Sleeping",
                 ],
                 sensor_channels=[
                     "AG-X",
@@ -59,12 +60,12 @@ cfg_har_sense = WHARConfig(
         training=Training(
             split=Split(
                 given_split=GivenSplit(
-                    train_subj_ids=list(range(1, 9)),
+                    train_subj_ids=list(range(0, 9)),
                     val_subj_ids=list(range(9, 11)),
-                    test_subj_ids=list(range(11, 13)),
+                    test_subj_ids=list(range(11, 12)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(
-                    subj_id_groups=[[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]],
+                    subj_id_groups=[[0, 1], [2, 3], [4, 5], [6, 7], [8, 9], [10, 11]],
                 ),
             ),
         ),

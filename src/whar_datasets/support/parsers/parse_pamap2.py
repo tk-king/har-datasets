@@ -1,5 +1,6 @@
 from collections import defaultdict
 import os
+from typing import List, Tuple
 import pandas as pd
 
 NAMES = [
@@ -82,7 +83,9 @@ ACTIVITY_MAP = {
 }
 
 
-def parse_pamap2(dir: str, activity_id_col: str) -> pd.DataFrame:
+def parse_pamap2(
+    dir: str, activity_id_col: str
+) -> Tuple[pd.DataFrame, pd.DataFrame, List[pd.DataFrame]]:
     dir = os.path.join(dir, "PAMAP2_Dataset/PAMAP2_Dataset/Protocol/")
     files = [f for f in os.listdir(dir) if f.endswith(".dat")]
 
@@ -110,7 +113,7 @@ def parse_pamap2(dir: str, activity_id_col: str) -> pd.DataFrame:
         types_map = defaultdict(lambda: "float32")
         types_map["activity_id"] = "int32"
         types_map["subject_id"] = "int32"
-        types_map["timestamp"] = "datetime64[ns]"
+        types_map["timestamp"] = "datetime64[ms]"
         sub_df = sub_df.astype(types_map)
 
         # interpolate missing values
@@ -133,19 +136,50 @@ def parse_pamap2(dir: str, activity_id_col: str) -> pd.DataFrame:
     # map activity_id to activity_name
     df["activity_name"] = df["activity_id"].map(ACTIVITY_MAP)
 
-    # convert activity_id to categorical starting from 0
-    df["activity_id"] = pd.factorize(df["activity_id"])[0]
+    # factorize
+    df["activity_id"] = df["activity_id"].factorize()[0]
+    df["subject_id"] = df["subject_id"].factorize()[0]
+    df["session_id"] = df["session_id"].factorize()[0]
 
-    # map to types
-    types_map = defaultdict(lambda: "float32")
-    types_map["activity_name"] = "str"
-    types_map["activity_id"] = "int32"
-    types_map["subject_id"] = "int32"
-    types_map["session_id"] = "int32"
-    types_map["timestamp"] = "datetime64[ns]"
-    df = df.astype(types_map)
+    # create activity index
+    activity_index = (
+        df[["activity_id", "activity_name"]]
+        .drop_duplicates(subset=["activity_id"], keep="first")
+        .reset_index(drop=True)
+    )
 
-    # reset index
-    df = df.reset_index(drop=True)
+    # create session_index
+    session_index = (
+        df[["session_id", "subject_id", "activity_id"]]
+        .drop_duplicates(subset=["session_id"], keep="first")
+        .reset_index(drop=True)
+    )
 
-    return df
+    # create session dfs
+    session_dfs = []
+    for session_id in session_index["session_id"].unique():
+        session_df = df[df["session_id"] == session_id]
+        session_df = session_df.drop(
+            columns=[
+                "session_id",
+                "subject_id",
+                "activity_id",
+                "activity_name",
+            ]
+        ).reset_index(drop=True)
+        session_dfs.append(session_df)
+
+    # set types
+    activity_index["activity_id"] = activity_index["activity_id"].astype("int32")
+    activity_index["activity_name"] = activity_index["activity_name"].astype("string")
+    session_index["session_id"] = session_index["session_id"].astype("int32")
+    session_index["subject_id"] = session_index["subject_id"].astype("int32")
+    session_index["activity_id"] = session_index["activity_id"].astype("int32")
+    for i, session_df in enumerate(session_dfs):
+        session_df["timestamp"] = pd.to_datetime(session_df["timestamp"], unit="ms")
+        dtypes = {col: "float32" for col in session_df.columns if col != "timestamp"}
+        dtypes["timestamp"] = "datetime64[ms]"
+        session_dfs[i] = session_df.round(6)
+        session_dfs[i] = session_df.astype(dtypes)
+
+    return activity_index, session_index, session_dfs
