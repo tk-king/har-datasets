@@ -22,15 +22,15 @@ This installs the library into the active environment.
 
 ```python
 from whar_datasets.adapters.pytorch import PytorchAdapter
-from whar_datasets.support.getter import WHARDatasetID, get_cfg_and_parser
+from whar_datasets.support.getter import WHARDatasetID, get_whar_cfg
 
-cfg, parse = get_cfg_and_parser(WHARDatasetID.UCI_HAR)
-dataset = PytorchAdapter(cfg, parse, override_cache=False)
+cfg = get_whar_cfg(WHARDatasetID.KU_HAR)
+dataset = PytorchAdapter(cfg, override_cache=False)
 
-train_loader, val_loader, test_loader = dataset.get_dataloaders()
+train_loader, val_loader, test_loader = dataset.get_dataloaders(train_batch_size=32)
 ```
 
-For unsupported har datasets, a custom parse function and config can be implented and used instead.
+For unsupported har datasets, a custom config, including a custom parse function, can be implented and used instead.
 
 # Supported WHAR Datasets
 
@@ -60,18 +60,6 @@ For unsupported har datasets, a custom parse function and config can be implente
 
 # Common Format
 
-Since all WHAR datasets do not share a common format, specific parsers are provided for each datasets to bring it into a common format which simplifies preparation. As common format a single csv is specified, which contains sensor channels as different columns. Additionally it contains the columns
-
-| Column         | Type  |
-|----------------|-------|
-| timestamp      | datetime in ns |
-| subject_id     | int   |
-| activity_id    | int   |
-| activity_name  | str   |
-| session_id     | int   |
-
-All parsers must ensure to output this format. 
-
 # Config
 
 A hierarchical config system built on [pydantic](https://docs.pydantic.dev/latest/) is used for both common and dataset-specific configuration.
@@ -85,24 +73,6 @@ A hierarchical config system built on [pydantic](https://docs.pydantic.dev/lates
 - spectrogram hyperparams
 
 ### Dataset-Specific Config
-
-- info
-    - identifier (name)
-    - download url
-    - sampling frequency
-    - activity names
-    - sensor channel names
-    - subject ids
-- preprocessing
-    - activity and subject selections
-    - normalization type (same type for all channels but applied individually to sensor channels)
-    - sliding window hyperparams
-    - cache df, windows, spectrograms
-- training
-    - given split into train, val, test
-    - split groups for subject-based cross validation
-    - batch size, learning rate, number of epochs, seed
-    - in_memory or read each sample from disk
 
 
 # Preparation Features
