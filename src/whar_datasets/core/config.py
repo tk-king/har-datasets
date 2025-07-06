@@ -1,6 +1,12 @@
 from enum import Enum
-from typing import List
-from pydantic import BaseModel
+from typing import Callable, List, Tuple, TypeAlias, Dict
+import numpy as np
+from pydantic import BaseModel, field_serializer
+import pandas as pd
+
+Parse: TypeAlias = Callable[
+    [str, str], Tuple[pd.DataFrame, pd.DataFrame, Dict[int, pd.DataFrame]]
+]
 
 NON_CHANNEL_COLS: List[str] = [
     "subject_id",
@@ -21,18 +27,18 @@ class NormType(Enum):
 
 
 class GivenSplit(BaseModel):
-    train_subj_ids: List[int]  # list of subject ids in train set
-    test_subj_ids: List[int]  # list of subject ids in test set
-    val_subj_ids: List[int]  # list of subject ids in val set
+    train_subj_ids: List[int]
+    test_subj_ids: List[int]
+    val_subj_ids: List[int]
 
 
 class SubjCrossValSplit(BaseModel):
-    subj_id_groups: List[List[int]]  # groups containing multiple subject ids
+    subj_id_groups: List[List[int]]
 
 
 class Split(BaseModel):
-    given_split: GivenSplit | None  # how to split subjects into train / test / val
-    subj_cross_val_split: SubjCrossValSplit | None  # split based on groups
+    given_split: GivenSplit | None
+    subj_cross_val_split: SubjCrossValSplit | None
 
 
 class Training(BaseModel):
@@ -41,12 +47,12 @@ class Training(BaseModel):
     num_epochs: int = 100
     seed: int = 0
     in_memory: bool = False
-    split: Split  # how to split into train / test / val
+    split: Split
 
 
 class Selections(BaseModel):
-    activity_names: List[str]  # list of activity names to include
-    sensor_channels: List[str]  # list of channels to include
+    activity_names: List[str]
+    sensor_channels: List[str]
 
 
 class SlidingWindow(BaseModel):
@@ -61,18 +67,26 @@ class Caching(BaseModel):
 
 
 class Preprocessing(BaseModel):
-    activity_id_col: str = "activity_id"
-    selections: Selections  # which activities and channels to include
-    normalization: NormType | None = None  # type of normalization to apply to all
+    selections: Selections
+    normalization: NormType | None = NormType.STD_PER_SAMPLE
     sliding_window: SlidingWindow
-    caching: Caching = Caching()
     in_parallel: bool = True
 
 
+class Parsing(BaseModel):
+    parse: Parse
+    activity_id_col: str = "activity_id"
+
+    @field_serializer("parse")
+    def serialize_func(self, func, _info):
+        # Serialize the function by its name
+        return func.__name__
+
+
 class Info(BaseModel):
-    id: str  # id of the dataset
-    download_url: str  # url to download dataset
-    sampling_freq: int  # sampling frequency of the dataset
+    id: str
+    download_url: str
+    sampling_freq: int
     num_of_subjects: int
     num_of_activities: int
     num_of_channels: int
@@ -80,8 +94,10 @@ class Info(BaseModel):
 
 class Dataset(BaseModel):
     info: Info
+    parsing: Parsing
     preprocessing: Preprocessing
     training: Training
+    caching: Caching = Caching()
 
 
 class Spectrogram(BaseModel):
@@ -91,8 +107,8 @@ class Spectrogram(BaseModel):
 
 
 class Common(BaseModel):
-    datasets_dir: str  # directory to save all datasets
-    resampling_freq: int | None = None  # common sampling frequency to which to convert
+    datasets_dir: str
+    resampling_freq: int | None = None
     use_derivative: bool = False
     use_spectrogram: bool = False
     spectrogram: Spectrogram = Spectrogram()

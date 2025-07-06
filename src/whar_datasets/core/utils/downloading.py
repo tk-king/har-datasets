@@ -13,6 +13,7 @@ def download(datasets_dir: str, dataset_dir: str, dataset_url: str) -> str:
         with open(gitignore_path, "w") as f:
             f.write("*")
 
+    # Use filename to define file path
     filename = dataset_url.split("/")[-1]
     file_path = os.path.join(datasets_dir, filename)
 

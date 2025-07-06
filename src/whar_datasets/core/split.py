@@ -4,55 +4,70 @@ import pandas as pd
 from whar_datasets.core.config import WHARConfig
 
 
-def get_group_indices(
-    session_index: pd.DataFrame, window_index: pd.DataFrame, group: List[int]
-) -> List[int]:
-    sessions = session_index[session_index["subject_id"].isin(group)]
-    relevant_session_ids = sessions["session_id"].unique()
-    relevant_windows = window_index[
-        window_index["session_id"].isin(relevant_session_ids)
-    ]
-    return relevant_windows.index.to_list()
-
-
 def get_split(
     cfg: WHARConfig,
-    session_index: pd.DataFrame,
-    window_index: pd.DataFrame,
+    session_metadata: pd.DataFrame,
+    window_metadata: pd.DataFrame,
     subj_cross_val_group_index: int | None = None,
 ) -> Tuple[List[int], List[int], List[int]]:
     # if no split group is specified, use given split
     if subj_cross_val_group_index is None:
-        split_g = cfg.dataset.training.split.given_split
-        assert split_g is not None
+        assert cfg.dataset.training.split.given_split is not None
 
-        train_indices = get_group_indices(
-            session_index, window_index, split_g.train_subj_ids
+        # get subject_ids for each group
+        train_subj_ids = cfg.dataset.training.split.given_split.train_subj_ids
+        val_subj_ids = cfg.dataset.training.split.given_split.val_subj_ids
+        test_subj_ids = cfg.dataset.training.split.given_split.test_subj_ids
+
+        # get window indices for each group
+        train_indices = get_window_indices(
+            session_metadata, window_metadata, train_subj_ids
         )
-
-        val_indices = get_group_indices(
-            session_index, window_index, split_g.val_subj_ids
+        val_indices = get_window_indices(
+            session_metadata, window_metadata, val_subj_ids
         )
-
-        test_indices = get_group_indices(
-            session_index, window_index, split_g.test_subj_ids
+        test_indices = get_window_indices(
+            session_metadata, window_metadata, test_subj_ids
         )
 
     # if split group is specified, use subject cross validation
     else:
-        split_scv = cfg.dataset.training.split.subj_cross_val_split
-        assert split_scv is not None
+        split = cfg.dataset.training.split.subj_cross_val_split
+        assert split is not None
+        assert subj_cross_val_group_index < len(split.subj_id_groups)
 
-        assert subj_cross_val_group_index < len(split_scv.subj_id_groups)
-
-        val_subj_ids = split_scv.subj_id_groups[subj_cross_val_group_index]
-
-        val_indices = get_group_indices(session_index, window_index, val_subj_ids)
-
-        train_indices = [
-            i for i in window_index.index.to_list() if i not in val_indices
+        # get subject_ids for both groups
+        val_subj_ids = split.subj_id_groups[subj_cross_val_group_index]
+        train_subj_ids = [
+            subj_id
+            for i, group in enumerate(split.subj_id_groups)
+            if i != subj_cross_val_group_index
+            for subj_id in group
         ]
 
+        # get window indices for all groups
+        val_indices = get_window_indices(
+            session_metadata, window_metadata, val_subj_ids
+        )
+        train_indices = get_window_indices(
+            session_metadata, window_metadata, train_subj_ids
+        )
         test_indices = []
 
     return train_indices, val_indices, test_indices
+
+
+def get_window_indices(
+    session_metadata: pd.DataFrame,
+    window_metadata: pd.DataFrame,
+    subject_ids: List[int],
+) -> List[int]:
+    # get session_ids of sessions with subjects in group
+    sessions = session_metadata[session_metadata["subject_id"].isin(subject_ids)]
+    session_ids = sessions["session_id"].unique()
+
+    # get window indices of sessions with subjects in group
+    windows = window_metadata[window_metadata["session_id"].isin(session_ids)]
+    window_indices = windows.index.to_list()
+
+    return window_indices

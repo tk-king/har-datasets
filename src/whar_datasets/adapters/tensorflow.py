@@ -1,32 +1,24 @@
 import random
-from typing import Callable, List, Tuple
+from typing import List, Tuple
 
 import numpy as np
-import pandas as pd
 import tensorflow as tf
 
 from whar_datasets.core.process import process
 from whar_datasets.core.sample import get_label, get_window
 from whar_datasets.core.split import get_split
-from whar_datasets.core.utils.loading import load_session_index, load_windowing
+from whar_datasets.core.utils.loading import load_session_metadata, load_windowing
 from whar_datasets.core.weighting import compute_class_weights
 from whar_datasets.core.config import WHARConfig
 
 
 class TensorflowAdapter:
-    def __init__(
-        self,
-        cfg: WHARConfig,
-        parse: Callable[
-            [str, str], Tuple[pd.DataFrame, pd.DataFrame, List[pd.DataFrame]]
-        ],
-        override_cache: bool = False,
-    ):
+    def __init__(self, cfg: WHARConfig, override_cache: bool = False):
         self.cfg = cfg
 
-        self.cache_dir, self.windows_dir = process(cfg, parse, override_cache)
-        self.session_index = load_session_index(self.cache_dir)
-        self.window_index, self.windows = load_windowing(
+        self.cache_dir, self.windows_dir = process(cfg, override_cache)
+        self.session_metadata = load_session_metadata(self.cache_dir)
+        self.window_metadata, self.windows = load_windowing(
             self.cache_dir, self.windows_dir, self.cfg
         )
 
@@ -46,9 +38,9 @@ class TensorflowAdapter:
     ) -> tf.data.Dataset:
         def generator():
             for idx in indices:
-                label = get_label(idx, self.window_index, self.session_index)
+                label = get_label(idx, self.window_metadata, self.session_metadata)
                 window = get_window(
-                    idx, self.cfg, self.windows_dir, self.window_index, self.windows
+                    idx, self.cfg, self.windows_dir, self.window_metadata, self.windows
                 )
                 yield (
                     tf.convert_to_tensor(window, dtype=tf.float32),
@@ -74,11 +66,14 @@ class TensorflowAdapter:
         subj_cross_val_group_index: int | None = None,
     ) -> Tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
         self.train_indices, self.val_indices, self.test_indices = get_split(
-            self.cfg, self.session_index, self.window_index, subj_cross_val_group_index
+            self.cfg,
+            self.session_metadata,
+            self.window_metadata,
+            subj_cross_val_group_index,
         )
 
-        print(f"subject_ids: {np.sort(self.session_index['subject_id'].unique())}")
-        print(f"activity_ids: {np.sort(self.session_index['activity_id'].unique())}")
+        print(f"subject_ids: {np.sort(self.session_metadata['subject_id'].unique())}")
+        print(f"activity_ids: {np.sort(self.session_metadata['activity_id'].unique())}")
         print(
             f"train: {len(self.train_indices)} | val: {len(self.val_indices)} | test: {len(self.test_indices)}"
         )
@@ -108,5 +103,5 @@ class TensorflowAdapter:
             )
 
         return compute_class_weights(
-            self.session_index, self.window_index.iloc[indices]
+            self.session_metadata, self.window_metadata.iloc[indices]
         )

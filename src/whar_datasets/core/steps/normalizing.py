@@ -1,4 +1,4 @@
-from typing import Callable, List
+from typing import Callable, Dict, List
 import pandas as pd
 
 
@@ -15,15 +15,18 @@ def normalize_per_session(
 
 
 def normalize_per_sample(
-    window_dfs: List[pd.DataFrame],
+    window_dfs: Dict[str, pd.DataFrame],
     normalize: Callable[[pd.DataFrame, List[str]], pd.DataFrame] | None,
-) -> List[pd.DataFrame]:
+) -> Dict[str, pd.DataFrame]:
     # print("Normalizing data per sample...")
 
     if normalize is None:
         return window_dfs
     else:
-        return [normalize(w, ["timestamp"]) for w in window_dfs]
+        return {
+            window_id: normalize(window_df, ["timestamp"])
+            for window_id, window_df in window_dfs.items()
+        }
 
 
 def min_max(df: pd.DataFrame, exclude_columns: List[str]) -> pd.DataFrame:

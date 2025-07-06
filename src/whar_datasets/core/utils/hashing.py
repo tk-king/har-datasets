@@ -24,8 +24,10 @@ def create_cfg_hash(cfg: WHARConfig) -> str:
 def load_cfg_hash(cache_dir: str) -> str:
     print("Loading config hash...")
 
+    # define cfg hash file path
     cache_path = os.path.join(cache_dir, "cfg_hash.txt")
 
+    # return cfg hash
     if not os.path.exists(cache_path):
         return ""
     else:

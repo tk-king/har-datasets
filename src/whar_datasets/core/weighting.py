@@ -1,31 +1,28 @@
-import numpy as np
+from typing import Dict
 import pandas as pd
-from collections import Counter
 
 
 def compute_class_weights(
-    session_index: pd.DataFrame, window_index: pd.DataFrame
+    session_metadata: pd.DataFrame, window_metadata: pd.DataFrame
 ) -> dict:
-    possible_labels = session_index["activity_id"].unique().tolist()
+    # Get all possible labels
+    possible_labels = session_metadata["activity_id"].unique()
 
     # Merge to assign activity_id to each window
-    merged = window_index.merge(session_index, on="session_id", how="left")
+    merged = window_metadata.merge(session_metadata, on="session_id", how="left")
 
-    # Extract activity_id per window
-    window_labels = merged["activity_id"].tolist()
+    # Count activity_id occurrences over windows
+    label_counts = merged["activity_id"].value_counts()
 
-    # Count occurrences
-    label_counts = Counter(window_labels)
-    total = sum(label_counts.values())
+    # Compute inverse frequency
+    total = label_counts.sum()
+    class_weights: Dict[int, float] = (total / label_counts).to_dict()
 
-    # Inverse frequency
-    class_weights = {label: total / count for label, count in label_counts.items()}
-
-    # Normalize to mean = 1
+    # Normalize weights to have mean = 1
     mean_weight = sum(class_weights.values()) / len(class_weights)
     class_weights = {k: v / mean_weight for k, v in class_weights.items()}
 
-    # Add labels not in merged with weight -1
+    # Add labels not present in windows with weight -1
     for label in possible_labels:
         if label not in class_weights:
             class_weights[label] = -1
