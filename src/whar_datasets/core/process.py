@@ -1,24 +1,18 @@
 import os
 from typing import Dict, Tuple
-import numpy as np
 import pandas as pd
 from dask.delayed import delayed
 from dask.base import compute
 from tqdm import tqdm
 from dask.diagnostics.progress import ProgressBar
 
-from whar_datasets.core.config import NormType, WHARConfig
+from whar_datasets.core.config import WHARConfig
 from whar_datasets.core.utils.checking import (
     check_common_format,
     check_download,
     check_windowing,
 )
 from whar_datasets.core.utils.downloading import download, extract
-from whar_datasets.core.steps.normalizing import (
-    min_max,
-    normalize_per_sample,
-    standardize,
-)
 from whar_datasets.core.steps.resampling import resample
 from whar_datasets.core.steps.selecting import select_activities, select_channels
 from whar_datasets.core.steps.windowing import generate_windowing
@@ -143,19 +137,6 @@ def process_sessions_sequentially(
         if window_metadata is None or windows is None:
             continue
 
-        # select normalization
-        normalize = None
-        match cfg.dataset.preprocessing.normalization:
-            case NormType.STD_PER_SAMPLE:
-                normalize = standardize
-            case NormType.MIN_MAX_PER_SAMPLE:
-                normalize = min_max
-            case _:
-                normalize = None
-
-        # normalize windows
-        windows = normalize_per_sample(windows, normalize)
-
         # append to lists
         window_metadatas.append(window_metadata)
         window_dicts.append(windows)
@@ -205,18 +186,6 @@ def process_sessions_parallely(
 
         if window_metadata is None or windows is None:
             return None, None
-
-        # normalize per window
-        normalize = None
-        match cfg.dataset.preprocessing.normalization:
-            case NormType.STD_PER_SAMPLE:
-                normalize = standardize
-            case NormType.MIN_MAX_PER_SAMPLE:
-                normalize = min_max
-            case _:
-                normalize = None
-
-        windows = normalize_per_sample(windows, normalize)
 
         return window_metadata, windows
 

@@ -19,10 +19,10 @@ NON_CHANNEL_COLS: List[str] = [
 class NormType(Enum):
     STD_GLOBALLY = "std_globally"
     MIN_MAX_GLOBALLY = "min_max_globally"
+    ROBUST_SCALE_GLOBALLY = "robust_scale_globally"
     STD_PER_SAMPLE = "std_per_sample"
     MIN_MAX_PER_SAMPLE = "min_max_per_sample"
-    STD_PER_SUBJ = "std_per_subj"
-    MIN_MAX_PER_SUBJ = "min_max_per_subj"
+    ROBUST_SCALE_PER_SAMPLE = "robust_scale_per_sample"
 
 
 class GivenSplit(BaseModel):
@@ -47,6 +47,7 @@ class Training(BaseModel):
     seed: int = 0
     in_memory: bool = False
     split: Split
+    normalization: NormType | None = NormType.STD_GLOBALLY
 
 
 class Selections(BaseModel):
@@ -67,9 +68,8 @@ class Caching(BaseModel):
 
 class Preprocessing(BaseModel):
     selections: Selections
-    normalization: NormType | None = NormType.STD_PER_SAMPLE
     sliding_window: SlidingWindow
-    in_parallel: bool = False
+    in_parallel: bool = True
 
 
 class Parsing(BaseModel):

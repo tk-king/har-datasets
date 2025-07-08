@@ -1,5 +1,4 @@
 from typing import Dict
-import numpy as np
 import pandas as pd
 from whar_datasets.core.config import WHARConfig
 from whar_datasets.core.utils.loading import load_window
@@ -29,16 +28,16 @@ def get_window(
     windows_dir: str,
     window_metadata: pd.DataFrame,
     windows: Dict[str, pd.DataFrame] | None,
-) -> np.ndarray:
+) -> pd.DataFrame:
     # get window_id
     window_id = window_metadata.at[index, "window_id"]
     assert isinstance(window_id, str)
 
     # select or load window
     window = (
-        windows[window_id].values
+        windows[window_id]
         if windows is not None and cfg.dataset.training.in_memory
-        else load_window(windows_dir, window_id).values
+        else load_window(windows_dir, window_id)
     )
 
     return window
