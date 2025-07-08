@@ -16,19 +16,20 @@ def get_split(
 
         # get subject_ids for each group
         train_subj_ids = cfg.dataset.training.split.given_split.train_subj_ids
-        val_subj_ids = cfg.dataset.training.split.given_split.val_subj_ids
         test_subj_ids = cfg.dataset.training.split.given_split.test_subj_ids
 
         # get window indices for each group
         train_indices = get_window_indices(
             session_metadata, window_metadata, train_subj_ids
         )
-        val_indices = get_window_indices(
-            session_metadata, window_metadata, val_subj_ids
-        )
         test_indices = get_window_indices(
             session_metadata, window_metadata, test_subj_ids
         )
+
+        # split train into train and train
+        border = int(cfg.dataset.training.split.val_percentage * len(train_indices))
+        val_indices = train_indices[:border]
+        train_indices = train_indices[border:]
 
     # if split group is specified, use subject cross validation
     else:
@@ -37,7 +38,7 @@ def get_split(
         assert subj_cross_val_group_index < len(split.subj_id_groups)
 
         # get subject_ids for both groups
-        val_subj_ids = split.subj_id_groups[subj_cross_val_group_index]
+        test_subj_ids = split.subj_id_groups[subj_cross_val_group_index]
         train_subj_ids = [
             subj_id
             for i, group in enumerate(split.subj_id_groups)
@@ -46,13 +47,17 @@ def get_split(
         ]
 
         # get window indices for all groups
-        val_indices = get_window_indices(
-            session_metadata, window_metadata, val_subj_ids
-        )
         train_indices = get_window_indices(
             session_metadata, window_metadata, train_subj_ids
         )
-        test_indices = []
+        test_indices = get_window_indices(
+            session_metadata, window_metadata, test_subj_ids
+        )
+
+        # split train into train and train
+        border = int(cfg.dataset.training.split.val_percentage * len(train_indices))
+        val_indices = train_indices[:border]
+        train_indices = train_indices[border:]
 
     return train_indices, val_indices, test_indices
 

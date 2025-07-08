@@ -28,7 +28,6 @@ class NormType(Enum):
 class GivenSplit(BaseModel):
     train_subj_ids: List[int]
     test_subj_ids: List[int]
-    val_subj_ids: List[int]
 
 
 class SubjCrossValSplit(BaseModel):
@@ -38,6 +37,7 @@ class SubjCrossValSplit(BaseModel):
 class Split(BaseModel):
     given_split: GivenSplit | None
     subj_cross_val_split: SubjCrossValSplit | None
+    val_percentage: float = 0.1  # in [0, 1]
 
 
 class Training(BaseModel):
