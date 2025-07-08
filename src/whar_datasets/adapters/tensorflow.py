@@ -4,9 +4,10 @@ from typing import List, Tuple
 import numpy as np
 import tensorflow as tf
 
-from whar_datasets.core.process import process
-from whar_datasets.core.sample import get_label, get_window
-from whar_datasets.core.split import get_split
+from whar_datasets.core.normalizing import get_norm_params, normalize_window
+from whar_datasets.core.processing import process
+from whar_datasets.core.sampling import get_label, get_window
+from whar_datasets.core.splitting import get_split
 from whar_datasets.core.utils.loading import load_session_metadata, load_windowing
 from whar_datasets.core.weighting import compute_class_weights
 from whar_datasets.core.config import WHARConfig
@@ -21,6 +22,9 @@ class TensorflowAdapter:
         self.window_metadata, self.windows = load_windowing(
             self.cache_dir, self.windows_dir, self.cfg
         )
+
+        print(f"subject_ids: {np.sort(self.session_metadata['subject_id'].unique())}")
+        print(f"activity_ids: {np.sort(self.session_metadata['activity_id'].unique())}")
 
         self.seed = cfg.dataset.training.seed
 
@@ -42,8 +46,10 @@ class TensorflowAdapter:
                 window = get_window(
                     idx, self.cfg, self.windows_dir, self.window_metadata, self.windows
                 )
+                window = normalize_window(self.cfg, self.norm_params, window)
+
                 yield (
-                    tf.convert_to_tensor(window, dtype=tf.float32),
+                    tf.convert_to_tensor(window.values, dtype=tf.float32),
                     tf.convert_to_tensor(label, dtype=tf.int32),
                 )
 
@@ -72,8 +78,15 @@ class TensorflowAdapter:
             subj_cross_val_group_index,
         )
 
-        print(f"subject_ids: {np.sort(self.session_metadata['subject_id'].unique())}")
-        print(f"activity_ids: {np.sort(self.session_metadata['activity_id'].unique())}")
+        # get normalization parameters from train indices
+        self.norm_params = get_norm_params(
+            self.cfg,
+            self.train_indices,
+            self.windows_dir,
+            self.window_metadata,
+            self.windows,
+        )
+
         print(
             f"train: {len(self.train_indices)} | val: {len(self.val_indices)} | test: {len(self.test_indices)}"
         )

@@ -2,7 +2,7 @@ from typing import Dict, List, Tuple, TypeAlias
 import pandas as pd
 
 from whar_datasets.core.config import NormType, WHARConfig
-from whar_datasets.core.sample import get_window
+from whar_datasets.core.sampling import get_window
 
 NormParams: TypeAlias = Tuple[Dict[str, float], Dict[str, float]]
 

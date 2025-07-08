@@ -5,10 +5,10 @@ from torch import Tensor
 import torch
 from torch.utils.data import Dataset, Subset, DataLoader
 
-from whar_datasets.core.process import process
-from whar_datasets.core.sample import get_label, get_window
-from whar_datasets.core.split import get_split
-from whar_datasets.core.steps.normalizing import get_norm_params, normalize_window
+from whar_datasets.core.processing import process
+from whar_datasets.core.sampling import get_label, get_window
+from whar_datasets.core.splitting import get_split
+from whar_datasets.core.normalizing import get_norm_params, normalize_window
 from whar_datasets.core.utils.loading import load_session_metadata, load_windowing
 from whar_datasets.core.weighting import compute_class_weights
 from whar_datasets.core.config import WHARConfig

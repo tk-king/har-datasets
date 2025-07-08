@@ -13,9 +13,9 @@ from whar_datasets.core.utils.checking import (
     check_windowing,
 )
 from whar_datasets.core.utils.downloading import download, extract
-from whar_datasets.core.steps.resampling import resample
-from whar_datasets.core.steps.selecting import select_activities, select_channels
-from whar_datasets.core.steps.windowing import generate_windowing
+from whar_datasets.core.utils.resampling import resample
+from whar_datasets.core.utils.selecting import select_activities, select_channels
+from whar_datasets.core.utils.windowing import generate_windowing
 from whar_datasets.core.utils.caching import (
     cache_cfg_hash,
     cache_common_format,
