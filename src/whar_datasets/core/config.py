@@ -1,6 +1,5 @@
 from enum import Enum
 from typing import Callable, List, Tuple, TypeAlias, Dict
-import numpy as np
 from pydantic import BaseModel, field_serializer
 import pandas as pd
 
@@ -70,7 +69,7 @@ class Preprocessing(BaseModel):
     selections: Selections
     normalization: NormType | None = NormType.STD_PER_SAMPLE
     sliding_window: SlidingWindow
-    in_parallel: bool = True
+    in_parallel: bool = False
 
 
 class Parsing(BaseModel):

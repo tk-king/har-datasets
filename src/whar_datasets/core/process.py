@@ -112,11 +112,11 @@ def process_sessions_sequentially(
     window_dicts = []
 
     # loop over sessions
-    loop = tqdm(session_metadata["session_id"])
+    loop = tqdm([int(x) for x in session_metadata["session_id"].unique()])
     loop.set_description("Processing sessions")
 
     for session_id in loop:
-        assert isinstance(session_id, np.integer)
+        assert isinstance(session_id, int)
 
         # load session
         session_path = os.path.join(sessions_dir, f"session_{session_id}.parquet")
@@ -180,7 +180,7 @@ def process_sessions_parallely(
         sessions_dir: str,
         session_id: int,
     ) -> Tuple[pd.DataFrame | None, Dict[str, pd.DataFrame] | None]:
-        assert isinstance(session_id, np.integer)
+        assert isinstance(session_id, int)
 
         # load session
         session_path = os.path.join(sessions_dir, f"session_{session_id}.parquet")
@@ -224,7 +224,7 @@ def process_sessions_parallely(
     ProgressBar().register()
     tasks = [
         process_session(cfg, sessions_dir, session_id)
-        for session_id in session_metadata["session_id"].unique()
+        for session_id in [int(x) for x in session_metadata["session_id"].unique()]
     ]
 
     # execute tasks in parallel

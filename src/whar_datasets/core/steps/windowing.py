@@ -1,12 +1,11 @@
 from collections import defaultdict
 from typing import Dict, Tuple
-import numpy as np
 import pandas as pd
 import short_unique_id as suid  # type: ignore
 
 
 def generate_windowing(
-    session_id: np.integer,
+    session_id: int,
     session_df: pd.DataFrame,
     window_time: float,
     overlap: float,
