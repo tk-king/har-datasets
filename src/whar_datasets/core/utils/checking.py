@@ -1,7 +1,6 @@
 import os
 import pandas as pd
-from dask.delayed import delayed
-from dask.base import compute
+from tqdm import tqdm
 
 from whar_datasets.core.config import WHARConfig
 from whar_datasets.core.utils.hashing import load_cfg_hash
@@ -91,42 +90,41 @@ def check_common_format(cfg: WHARConfig, cache_dir: str, sessions_dir: str) -> b
         return False
 
     # load session and activity index
-    sessions_index = pd.read_parquet(session_metadata_path)
+    session_metadata = pd.read_parquet(session_metadata_path)
     activity_metadata = pd.read_parquet(activity_metadata_path)
 
     # Check session_metadata
-    if not pd.api.types.is_integer_dtype(sessions_index["session_id"]):
+    if not pd.api.types.is_integer_dtype(session_metadata["session_id"]):
         print("'session_id' column is not integer type.")
         return False
-    if not pd.api.types.is_integer_dtype(sessions_index["subject_id"]):
+    if not pd.api.types.is_integer_dtype(session_metadata["subject_id"]):
         print("'subject_id' column is not integer type.")
         return False
-    if not pd.api.types.is_integer_dtype(sessions_index["activity_id"]):
+    if not pd.api.types.is_integer_dtype(session_metadata["activity_id"]):
         print("'activity_id' column is not integer type.")
         return False
-    if sessions_index["session_id"].nunique() != len(os.listdir(sessions_dir)):
+    if session_metadata["session_id"].nunique() != len(os.listdir(sessions_dir)):
         print(
-            f"Number of session_ids {sessions_index['session_id'].nunique()} does not match number of session files {len(os.listdir(sessions_dir))}."
+            f"Number of session_ids {session_metadata['session_id'].nunique()} does not match number of session files {len(os.listdir(sessions_dir))}."
         )
         return False
-    if sessions_index["session_id"].min() != 0:
+    if session_metadata["session_id"].min() != 0:
         print("Minimum session_id is not 0.")
         return False
-    if sessions_index["subject_id"].min() != 0:
+    if session_metadata["subject_id"].min() != 0:
         print("Minimum subject_id is not 0.")
         return False
-    if sessions_index["activity_id"].min() != 0:
+    if session_metadata["activity_id"].min() != 0:
         print("Minimum activity_id is not 0.")
         return False
-    if sessions_index["subject_id"].nunique() != cfg.dataset.info.num_of_subjects:
-        # print(sessions_index["subject_id"].unique())
+    if session_metadata["subject_id"].nunique() != cfg.dataset.info.num_of_subjects:
         print(
-            f"In session_metadata, num of subject_ids {sessions_index['subject_id'].nunique()} does not match num of subjects {cfg.dataset.info.num_of_subjects}."
+            f"In session_metadata, num of subject_ids {session_metadata['subject_id'].nunique()} does not match num of subjects {cfg.dataset.info.num_of_subjects}."
         )
         return False
-    if sessions_index["activity_id"].nunique() != cfg.dataset.info.num_of_activities:
+    if session_metadata["activity_id"].nunique() != cfg.dataset.info.num_of_activities:
         print(
-            f"In session_metadata, number of activity_ids {sessions_index['activity_id'].nunique()} does not match number of activities {cfg.dataset.info.num_of_activities} ."
+            f"In session_metadata, number of activity_ids {session_metadata['activity_id'].nunique()} does not match number of activities {cfg.dataset.info.num_of_activities} ."
         )
         return False
 
@@ -145,19 +143,16 @@ def check_common_format(cfg: WHARConfig, cache_dir: str, sessions_dir: str) -> b
         return False
 
     # Check session files
-    checks = [
-        check_session(cfg, sessions_dir, session_id)
-        for session_id in sessions_index["session_id"]
-    ]
-
-    if not all(compute(*checks)):
-        return False
+    loop = tqdm(session_metadata["session_id"])
+    loop.set_description("Checking sessions")
+    for session_id in loop:
+        if not check_session(cfg, sessions_dir, session_id):
+            return False
 
     print("Common format is up-to-date.")
     return True
 
 
-@delayed
 def check_session(cfg: WHARConfig, sessions_dir, session_id: int) -> bool:
     session_path = os.path.join(sessions_dir, f"session_{session_id}.parquet")
 
@@ -185,5 +180,9 @@ def check_session(cfg: WHARConfig, sessions_dir, session_id: int) -> bool:
         if not pd.api.types.is_float_dtype(session_df[col]):
             print(f"Column '{col}' in {session_path} is not float type.")
             return False
+
+    if session_df.isna().any().any():
+        print(f"Session file {session_path} contains NaN values.")
+        return False
 
     return True

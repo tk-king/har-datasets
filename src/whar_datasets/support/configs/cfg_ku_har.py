@@ -140,6 +140,9 @@ def parse_ku_har(
         # get session df
         session_df = session_dfs[session_id]
 
+        # drop nan rows
+        session_df = session_df.dropna()
+
         # drop index
         session_df.reset_index(drop=True, inplace=True)
 

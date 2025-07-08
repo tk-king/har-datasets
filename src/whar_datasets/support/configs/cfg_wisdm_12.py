@@ -78,7 +78,7 @@ def parse_wisdm_12(
     # add activity_id
     df["activity_id"] = pd.factorize(df["activity_name"])[0]
 
-    # identify where activity or subject changes or timestamp is 0
+    # identify where activity or subject changes
     changes = (df["activity_id"] != df["activity_id"].shift(1)) | (
         df["subject_id"] != df["subject_id"].shift(1)
     )
@@ -87,9 +87,8 @@ def parse_wisdm_12(
     df["session_id"] = changes.cumsum()
 
     # change timestamp to datetime in ns
-    df = df.astype({"timestamp": "float32"})
+    # df = df.astype({"timestamp": "float32"})
     df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ns")
-    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
 
     # factorize
     df["activity_id"] = df["activity_id"].factorize()[0]
@@ -120,6 +119,9 @@ def parse_wisdm_12(
     for session_id in loop:
         # get session df
         session_df = df[df["session_id"] == session_id]
+
+        # drop nan rows
+        session_df = session_df.dropna()
 
         # drop metadata cols
         session_df = session_df.drop(

@@ -6,7 +6,7 @@ def compute_class_weights(
     session_metadata: pd.DataFrame, window_metadata: pd.DataFrame
 ) -> dict:
     # Get all possible labels
-    possible_labels = session_metadata["activity_id"].unique()
+    possible_labels = [int(label) for label in session_metadata["activity_id"].unique()]
 
     # Merge to assign activity_id to each window
     merged = window_metadata.merge(session_metadata, on="session_id", how="left")

@@ -403,6 +403,9 @@ def parse_opportunity(
         # get session df
         session_df = df[df["session_id"] == session_id]
 
+        # drop nan rows
+        session_df = session_df.dropna()
+
         # drop metadata cols
         session_df = session_df.drop(
             columns=[
@@ -596,9 +599,9 @@ cfg_opportunity = WHARConfig(
         training=Training(
             split=Split(
                 given_split=GivenSplit(
-                    train_subj_ids=list(range(0, 2)),
-                    val_subj_ids=list(range(2, 3)),
-                    test_subj_ids=list(range(3, 4)),
+                    train_subj_ids=list(range(2, 4)),
+                    val_subj_ids=list(range(0, 1)),
+                    test_subj_ids=list(range(1, 2)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(
                     subj_id_groups=[[0, 1], [2, 3]],

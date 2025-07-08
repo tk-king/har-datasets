@@ -153,6 +153,9 @@ def parse_mhealth(
         # get session df
         session_df = df[df["session_id"] == session_id]
 
+        # drop nan rows
+        session_df = session_df.dropna()
+
         # drop metadata cols
         session_df = session_df.drop(
             columns=[
