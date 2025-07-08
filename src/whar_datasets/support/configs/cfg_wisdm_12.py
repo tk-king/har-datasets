@@ -72,8 +72,16 @@ def parse_wisdm_12(
         ],
     )
 
-    # remove rows with missing timestamps
+    # remove rows with missing and nan timestamps
+    df = df.astype({"timestamp": "float32"})
     df = df[df["timestamp"] != 0]
+    df = df[df["timestamp"].notna()]
+
+    # drop nan rows
+    df = df.dropna()
+
+    # change timestamp to datetime in ns
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ns")
 
     # add activity_id
     df["activity_id"] = pd.factorize(df["activity_name"])[0]
@@ -85,10 +93,6 @@ def parse_wisdm_12(
 
     # assign a unique session to each continuous segment
     df["session_id"] = changes.cumsum()
-
-    # change timestamp to datetime in ns
-    df = df.astype({"timestamp": "float32"})
-    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ns")
 
     # factorize
     df["activity_id"] = df["activity_id"].factorize()[0]
@@ -119,9 +123,6 @@ def parse_wisdm_12(
     for session_id in loop:
         # get session df
         session_df = df[df["session_id"] == session_id]
-
-        # drop nan rows
-        session_df = session_df.dropna()
 
         # drop metadata cols
         session_df = session_df.drop(

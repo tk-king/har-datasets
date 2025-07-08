@@ -69,7 +69,7 @@ class Caching(BaseModel):
 class Preprocessing(BaseModel):
     selections: Selections
     sliding_window: SlidingWindow
-    in_parallel: bool = True
+    in_parallel: bool = False
 
 
 class Parsing(BaseModel):
