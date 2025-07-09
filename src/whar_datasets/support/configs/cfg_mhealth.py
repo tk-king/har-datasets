@@ -248,8 +248,7 @@ cfg_mhealth = WHARConfig(
         training=Training(
             split=Split(
                 given_split=GivenSplit(
-                    train_subj_ids=list(range(0, 8)),
-                    val_subj_ids=list(range(8, 9)),
+                    train_subj_ids=list(range(0, 9)),
                     test_subj_ids=list(range(9, 10)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(

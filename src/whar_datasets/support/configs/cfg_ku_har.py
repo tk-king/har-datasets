@@ -219,13 +219,12 @@ cfg_ku_har = WHARConfig(
         training=Training(
             split=Split(
                 given_split=GivenSplit(
-                    train_subj_ids=list(range(0, 60)),
-                    val_subj_ids=list(range(60, 75)),
+                    train_subj_ids=list(range(0, 75)),
                     test_subj_ids=list(range(75, 90)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(
                     subj_id_groups=[
-                        list(range(start, start + 10)) for start in range(0, 90)
+                        list(range(start, start + 10)) for start in range(0, 90, 10)
                     ],
                 ),
             ),

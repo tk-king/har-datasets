@@ -316,8 +316,7 @@ cfg_dsads = WHARConfig(
         training=Training(
             split=Split(
                 given_split=GivenSplit(
-                    train_subj_ids=list(range(0, 6)),
-                    val_subj_ids=list(range(6, 7)),
+                    train_subj_ids=list(range(0, 7)),
                     test_subj_ids=list(range(7, 8)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(

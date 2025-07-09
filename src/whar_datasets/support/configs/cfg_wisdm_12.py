@@ -190,8 +190,7 @@ cfg_wisdm_12 = WHARConfig(
         training=Training(
             split=Split(
                 given_split=GivenSplit(
-                    train_subj_ids=list(range(0, 26)),
-                    val_subj_ids=list(range(26, 31)),
+                    train_subj_ids=list(range(0, 31)),
                     test_subj_ids=list(range(31, 36)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(

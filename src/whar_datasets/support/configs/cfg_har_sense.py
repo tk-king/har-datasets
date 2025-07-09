@@ -184,8 +184,7 @@ cfg_har_sense = WHARConfig(
         training=Training(
             split=Split(
                 given_split=GivenSplit(
-                    train_subj_ids=list(range(0, 9)),
-                    val_subj_ids=list(range(9, 11)),
+                    train_subj_ids=list(range(0, 11)),
                     test_subj_ids=list(range(11, 12)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(

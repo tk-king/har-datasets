@@ -252,8 +252,7 @@ cfg_uci_har = WHARConfig(
         training=Training(
             split=Split(
                 given_split=GivenSplit(
-                    train_subj_ids=list(range(0, 21)),
-                    val_subj_ids=list(range(21, 26)),
+                    train_subj_ids=list(range(0, 26)),
                     test_subj_ids=list(range(26, 30)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(

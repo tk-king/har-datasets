@@ -242,8 +242,7 @@ cfg_motion_sense = WHARConfig(
         training=Training(
             split=Split(
                 given_split=GivenSplit(
-                    train_subj_ids=list(range(0, 18)),
-                    val_subj_ids=list(range(18, 21)),
+                    train_subj_ids=list(range(0, 21)),
                     test_subj_ids=list(range(21, 24)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(
