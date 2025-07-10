@@ -8,7 +8,7 @@ from torch.utils.data import Dataset, Subset, DataLoader
 from whar_datasets.core.processing import process
 from whar_datasets.core.sampling import get_label, get_window
 from whar_datasets.core.splitting import get_split
-from whar_datasets.core.normalizing import get_norm_params, normalize_window
+from whar_datasets.core.normalizing import get_norm_params, normalize_windows
 from whar_datasets.core.utils.loading import load_session_metadata, load_windowing
 from whar_datasets.core.weighting import compute_class_weights
 from whar_datasets.core.config import WHARConfig
@@ -42,7 +42,6 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
         self,
         train_batch_size: int,
         train_shuffle: bool = True,
-        num_workers: int = 4,
         subj_cross_val_group_index: int | None = None,
     ) -> Tuple[DataLoader, DataLoader, DataLoader]:
         # get split indices from config
@@ -62,6 +61,15 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
             self.windows,
         )
 
+        # normalize windows and cache them based on normalization parameters
+        self.window_metadata, self.windows = normalize_windows(
+            self.cfg,
+            self.norm_params,
+            self.windows_dir,
+            self.window_metadata,
+            self.windows,
+        )
+
         # specify split subsets
         train_set = Subset(self, self.train_indices)
         test_set = Subset(self, self.test_indices)
@@ -75,7 +83,6 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
             batch_size=train_batch_size,
             shuffle=train_shuffle,
             generator=self.generator,
-            num_workers=num_workers,
         )
 
         val_loader = DataLoader(
@@ -83,7 +90,6 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
             batch_size=len(val_set),
             shuffle=False,
             generator=self.generator,
-            num_workers=num_workers,
         )
 
         test_loader = DataLoader(
@@ -91,7 +97,6 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
             batch_size=1,
             shuffle=False,
             generator=self.generator,
-            num_workers=num_workers,
         )
 
         return train_loader, val_loader, test_loader
@@ -115,9 +120,6 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
         window = get_window(
             index, self.cfg, self.windows_dir, self.window_metadata, self.windows
         )
-
-        # normalize window
-        window = normalize_window(self.cfg, self.norm_params, window)
 
         # convert to tensors
         y = torch.tensor(label, dtype=torch.long)

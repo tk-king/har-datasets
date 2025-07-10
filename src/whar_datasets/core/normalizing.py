@@ -1,8 +1,11 @@
 from typing import Dict, List, Tuple, TypeAlias
 import pandas as pd
+from tqdm import tqdm
 
 from whar_datasets.core.config import NormType, WHARConfig
 from whar_datasets.core.sampling import get_window
+from whar_datasets.core.utils.caching import cache_windows
+from whar_datasets.core.utils.loading import load_window
 
 NormParams: TypeAlias = Tuple[Dict[str, float], Dict[str, float]]
 
@@ -43,6 +46,39 @@ def get_norm_params(
             return get_robust_scale_params(windows_df, ["timestamp"])
         case _:
             return None
+
+
+def normalize_windows(
+    cfg: WHARConfig,
+    norm_params: NormParams | None,
+    windows_dir: str,
+    window_metadata: pd.DataFrame,
+    windows: Dict[str, pd.DataFrame] | None = None,
+) -> Tuple[pd.DataFrame, Dict[str, pd.DataFrame] | None]:
+    normalized_windows: Dict[str, pd.DataFrame] = {}
+
+    loop = tqdm(window_metadata["window_id"])
+    loop.set_description("Normalizing windows")
+
+    for window_id in loop:
+        assert isinstance(window_id, str)
+
+        window = (
+            windows[window_id]
+            if windows is not None
+            else load_window(windows_dir, window_id)
+        )
+
+        window = normalize_window(cfg, norm_params, window)
+
+        normalized_windows[window_id] = window
+
+    cache_windows(windows_dir, window_metadata, normalized_windows)
+
+    if cfg.dataset.training.in_memory:
+        return window_metadata, normalized_windows
+
+    return window_metadata, None
 
 
 def normalize_window(
