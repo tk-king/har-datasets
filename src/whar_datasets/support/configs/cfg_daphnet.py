@@ -171,7 +171,8 @@ cfg_daphnet = WHARConfig(
         preprocessing=Preprocessing(
             selections=Selections(
                 activity_names=[
-                    "No freeze",
+                    "Unknown",
+                    "No Freeze",
                     "Freeze",
                 ],
                 sensor_channels=[

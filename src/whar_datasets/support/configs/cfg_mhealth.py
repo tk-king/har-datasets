@@ -204,6 +204,7 @@ cfg_mhealth = WHARConfig(
         preprocessing=Preprocessing(
             selections=Selections(
                 activity_names=[
+                    "Unknown",
                     "Standing still",
                     "Sitting and relaxing",
                     "Lying down",
