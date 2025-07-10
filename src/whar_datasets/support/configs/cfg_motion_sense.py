@@ -18,22 +18,6 @@ import os
 import pandas as pd
 from tqdm import tqdm
 
-
-NAMES = [
-    "attitude.roll",
-    "attitude.pitch",
-    "attitude.yaw",
-    "gravity.x",
-    "gravity.y",
-    "gravity.z",
-    "rotationRate.x",
-    "rotationRate.y",
-    "rotationRate.z",
-    "userAcceleration.x",
-    "userAcceleration.y",
-    "userAcceleration.z",
-]
-
 ACTIVITY_MAP = {
     "dws": "downstairs",
     "ups": "upstairs",
@@ -237,13 +221,13 @@ cfg_motion_sense = WHARConfig(
                     "gyro_z",
                 ],
             ),
-            sliding_window=SlidingWindow(window_time=2.56, overlap=0),
+            sliding_window=SlidingWindow(window_time=2.56, overlap=0.5),
         ),
         training=Training(
             split=Split(
                 given_split=GivenSplit(
-                    train_subj_ids=list(range(0, 21)),
-                    test_subj_ids=list(range(21, 24)),
+                    train_subj_ids=list(range(0, 19)),
+                    test_subj_ids=list(range(19, 24)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(
                     subj_id_groups=[

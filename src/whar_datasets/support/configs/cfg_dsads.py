@@ -311,13 +311,13 @@ cfg_dsads = WHARConfig(
                     "LL_zmag",
                 ],
             ),
-            sliding_window=SlidingWindow(window_time=2.56, overlap=0),
+            sliding_window=SlidingWindow(window_time=5, overlap=0.5),
         ),
         training=Training(
             split=Split(
                 given_split=GivenSplit(
-                    train_subj_ids=list(range(0, 7)),
-                    test_subj_ids=list(range(7, 8)),
+                    train_subj_ids=list(range(0, 6)),
+                    test_subj_ids=list(range(6, 8)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(
                     subj_id_groups=[[0, 1], [2, 3], [4, 5], [6, 7]],

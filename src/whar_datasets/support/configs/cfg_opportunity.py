@@ -477,42 +477,42 @@ cfg_opportunity = WHARConfig(
                     "Toggle Switch",  # 405506
                 ],
                 sensor_channels=[
-                    "RKN_upper_acc_x",
-                    "RKN_upper_acc_y",
-                    "RKN_upper_acc_z",  # 2–4
-                    "HIP_acc_x",
-                    "HIP_acc_y",
-                    "HIP_acc_z",  # 5–7
-                    "LUA_upper_acc_x",
-                    "LUA_upper_acc_y",
-                    "LUA_upper_acc_z",  # 8–10
-                    "RUA_lower_acc_x",
-                    "RUA_lower_acc_y",
-                    "RUA_lower_acc_z",  # 11–13
-                    "LH_acc_x",
-                    "LH_acc_y",
-                    "LH_acc_z",  # 14–16
-                    "BACK_acc_x",
-                    "BACK_acc_y",
-                    "BACK_acc_z",  # 17–19
-                    "RKN_lower_acc_x",
-                    "RKN_lower_acc_y",
-                    "RKN_lower_acc_z",  # 20–22
-                    "RWR_acc_x",
-                    "RWR_acc_y",
-                    "RWR_acc_z",  # 23–25
-                    "RUA_upper_acc_x",
-                    "RUA_upper_acc_y",
-                    "RUA_upper_acc_z",  # 26–28
-                    "LUA_lower_acc_x",
-                    "LUA_lower_acc_y",
-                    "LUA_lower_acc_z",  # 29–31
-                    "LWR_acc_x",
-                    "LWR_acc_y",
-                    "LWR_acc_z",  # 32–34
-                    "RH_acc_x",
-                    "RH_acc_y",
-                    "RH_acc_z",  # 35–37
+                    # "RKN_upper_acc_x",
+                    # "RKN_upper_acc_y",
+                    # "RKN_upper_acc_z",  # 2–4
+                    # "HIP_acc_x",
+                    # "HIP_acc_y",
+                    # "HIP_acc_z",  # 5–7
+                    # "LUA_upper_acc_x",
+                    # "LUA_upper_acc_y",
+                    # "LUA_upper_acc_z",  # 8–10
+                    # "RUA_lower_acc_x",
+                    # "RUA_lower_acc_y",
+                    # "RUA_lower_acc_z",  # 11–13
+                    # "LH_acc_x",
+                    # "LH_acc_y",
+                    # "LH_acc_z",  # 14–16
+                    # "BACK_acc_x",
+                    # "BACK_acc_y",
+                    # "BACK_acc_z",  # 17–19
+                    # "RKN_lower_acc_x",
+                    # "RKN_lower_acc_y",
+                    # "RKN_lower_acc_z",  # 20–22
+                    # "RWR_acc_x",
+                    # "RWR_acc_y",
+                    # "RWR_acc_z",  # 23–25
+                    # "RUA_upper_acc_x",
+                    # "RUA_upper_acc_y",
+                    # "RUA_upper_acc_z",  # 26–28
+                    # "LUA_lower_acc_x",
+                    # "LUA_lower_acc_y",
+                    # "LUA_lower_acc_z",  # 29–31
+                    # "LWR_acc_x",
+                    # "LWR_acc_y",
+                    # "LWR_acc_z",  # 32–34
+                    # "RH_acc_x",
+                    # "RH_acc_y",
+                    # "RH_acc_z",  # 35–37
                     # IMU BACK
                     "IMU_BACK_acc_x",
                     "IMU_BACK_acc_y",
@@ -594,7 +594,7 @@ cfg_opportunity = WHARConfig(
                     "IMU_RSHOE_compass",  # 134
                 ],
             ),
-            sliding_window=SlidingWindow(window_time=2.56, overlap=0),
+            sliding_window=SlidingWindow(window_time=1, overlap=0.5),
         ),
         training=Training(
             split=Split(
@@ -603,7 +603,7 @@ cfg_opportunity = WHARConfig(
                     test_subj_ids=list(range(0, 1)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(
-                    subj_id_groups=[[0, 1], [2, 3]],
+                    subj_id_groups=[[0], [1], [2], [3]],
                 ),
             ),
         ),

@@ -185,13 +185,13 @@ cfg_wisdm_12 = WHARConfig(
                     "accel_z",
                 ],
             ),
-            sliding_window=SlidingWindow(window_time=2.56, overlap=0),
+            sliding_window=SlidingWindow(window_time=5, overlap=0.5),
         ),
         training=Training(
             split=Split(
                 given_split=GivenSplit(
-                    train_subj_ids=list(range(0, 31)),
-                    test_subj_ids=list(range(31, 36)),
+                    train_subj_ids=list(range(0, 29)),
+                    test_subj_ids=list(range(29, 36)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(
                     subj_id_groups=[

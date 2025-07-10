@@ -247,13 +247,13 @@ cfg_uci_har = WHARConfig(
                     "body_gyro_z",
                 ],
             ),
-            sliding_window=SlidingWindow(window_time=2.56, overlap=0),
+            sliding_window=SlidingWindow(window_time=2.56, overlap=0.5),
         ),
         training=Training(
             split=Split(
                 given_split=GivenSplit(
-                    train_subj_ids=list(range(0, 26)),
-                    test_subj_ids=list(range(26, 30)),
+                    train_subj_ids=list(range(0, 24)),
+                    test_subj_ids=list(range(24, 30)),
                 ),
                 subj_cross_val_split=SubjCrossValSplit(
                     subj_id_groups=[
