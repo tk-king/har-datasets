@@ -83,6 +83,10 @@ def parse_ku_har(
                 header=None,
             )
 
+            # remove rows where timestamp is 0
+            session_df = session_df[session_df["timestamp_acc"] != 0]
+            session_df = session_df[session_df["timestamp_gyro"] != 0]
+
             # convert to datetime
             session_df["timestamp_acc"] = pd.to_datetime(
                 session_df["timestamp_acc"], unit="s"
@@ -126,7 +130,6 @@ def parse_ku_har(
     session_metadata["session_id"] = list(range(len(session_dfs)))
 
     # factorize to start from 0
-    session_metadata["activity_id"] = pd.factorize(session_metadata["activity_id"])[0]
     session_metadata["subject_id"] = pd.factorize(session_metadata["subject_id"])[0]
 
     # create sessions
