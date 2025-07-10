@@ -42,6 +42,7 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
         self,
         train_batch_size: int,
         train_shuffle: bool = True,
+        num_workers: int = 4,
         subj_cross_val_group_index: int | None = None,
     ) -> Tuple[DataLoader, DataLoader, DataLoader]:
         # get split indices from config
@@ -74,6 +75,7 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
             batch_size=train_batch_size,
             shuffle=train_shuffle,
             generator=self.generator,
+            num_workers=num_workers,
         )
 
         val_loader = DataLoader(
@@ -81,6 +83,7 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
             batch_size=len(val_set),
             shuffle=False,
             generator=self.generator,
+            num_workers=num_workers,
         )
 
         test_loader = DataLoader(
@@ -88,6 +91,7 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
             batch_size=1,
             shuffle=False,
             generator=self.generator,
+            num_workers=num_workers,
         )
 
         return train_loader, val_loader, test_loader

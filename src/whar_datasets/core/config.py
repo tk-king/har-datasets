@@ -45,7 +45,7 @@ class Training(BaseModel):
     learning_rate: float = 1e-4
     num_epochs: int = 100
     seed: int = 0
-    in_memory: bool = False
+    in_memory: bool = True
     split: Split
     normalization: NormType | None = NormType.STD_GLOBALLY
 
