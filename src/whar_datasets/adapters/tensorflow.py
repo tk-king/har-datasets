@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 
 from whar_datasets.core.normalizing import get_norm_params, normalize_window
-from whar_datasets.core.processing import process
+from whar_datasets.core.preprocessing import preprocess
 from whar_datasets.core.sampling import get_label, get_window
 from whar_datasets.core.splitting import get_split
 from whar_datasets.core.utils.loading import load_session_metadata, load_windowing
@@ -17,7 +17,7 @@ class TensorflowAdapter:
     def __init__(self, cfg: WHARConfig, override_cache: bool = False):
         self.cfg = cfg
 
-        self.cache_dir, self.windows_dir = process(cfg, override_cache)
+        self.cache_dir, self.windows_dir = preprocess(cfg, override_cache)
         self.session_metadata = load_session_metadata(self.cache_dir)
         self.window_metadata, self.windows = load_windowing(
             self.cache_dir, self.windows_dir, self.cfg

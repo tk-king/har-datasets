@@ -13,7 +13,32 @@ def check_download(dataset_dir: str) -> bool:
         print(f"Dataset directory not found at '{dataset_dir}'.")
         return False
 
-    print("Download is up-to-date.")
+    print("Download exists.")
+    return True
+
+
+def check_sessions(cache_dir: str, sessions_dir: str) -> bool:
+    print("Checking sessions...")
+
+    if not os.path.exists(sessions_dir):
+        print(f"Sessions directory not found at '{sessions_dir}'.")
+        return False
+
+    if len(os.listdir(sessions_dir)) == 0:
+        print(f"Sessions directory '{sessions_dir}' is empty.")
+        return False
+
+    session_metadata_path = os.path.join(cache_dir, "session_metadata.parquet")
+    if not os.path.exists(session_metadata_path):
+        print(f"Session index file not found at '{session_metadata_path}'.")
+        return False
+
+    activity_metadata_path = os.path.join(cache_dir, "activity_metadata.parquet")
+    if not os.path.exists(activity_metadata_path):
+        print(f"Activity index file not found at '{activity_metadata_path}'.")
+        return False
+
+    print("Sessions exist.")
     return True
 
 
@@ -40,37 +65,12 @@ def check_windowing(cache_dir: str, windows_dir: str, cfg_hash: str) -> bool:
         print("Config hash mismatch.")
         return False
 
-    print("Windowing is up-to-date.")
+    print("Windowing exists.")
     return True
 
 
-def check_sessions(cache_dir: str, sessions_dir: str) -> bool:
-    print("Checking sessions...")
-
-    if not os.path.exists(sessions_dir):
-        print(f"Sessions directory not found at '{sessions_dir}'.")
-        return False
-
-    if len(os.listdir(sessions_dir)) == 0:
-        print(f"Sessions directory '{sessions_dir}' is empty.")
-        return False
-
-    session_metadata_path = os.path.join(cache_dir, "session_metadata.parquet")
-    if not os.path.exists(session_metadata_path):
-        print(f"Session index file not found at '{session_metadata_path}'.")
-        return False
-
-    activity_metadata_path = os.path.join(cache_dir, "activity_metadata.parquet")
-    if not os.path.exists(activity_metadata_path):
-        print(f"Activity index file not found at '{activity_metadata_path}'.")
-        return False
-
-    print("Sessions are up-to-date.")
-    return True
-
-
-def check_common_format(cfg: WHARConfig, cache_dir: str, sessions_dir: str) -> bool:
-    print("Checking common format...")
+def validate_common_format(cfg: WHARConfig, cache_dir: str, sessions_dir: str) -> bool:
+    print("Validating common format...")
 
     # define paths
     session_metadata_path = os.path.join(cache_dir, "session_metadata.parquet")
@@ -144,16 +144,16 @@ def check_common_format(cfg: WHARConfig, cache_dir: str, sessions_dir: str) -> b
 
     # Check session files
     loop = tqdm(session_metadata["session_id"])
-    loop.set_description("Checking sessions")
+    loop.set_description("Validating sessions")
     for session_id in loop:
-        if not check_session(cfg, sessions_dir, session_id):
+        if not validate_session(cfg, sessions_dir, session_id):
             return False
 
-    print("Common format is up-to-date.")
+    print("Common format validated.")
     return True
 
 
-def check_session(cfg: WHARConfig, sessions_dir, session_id: int) -> bool:
+def validate_session(cfg: WHARConfig, sessions_dir, session_id: int) -> bool:
     session_path = os.path.join(sessions_dir, f"session_{session_id}.parquet")
 
     if not os.path.exists(session_path):

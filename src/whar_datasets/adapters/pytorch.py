@@ -5,7 +5,7 @@ from torch import Tensor
 import torch
 from torch.utils.data import Dataset, Subset, DataLoader
 
-from whar_datasets.core.processing import process
+from whar_datasets.core.preprocessing import preprocess
 from whar_datasets.core.sampling import get_label, get_window
 from whar_datasets.core.splitting import get_split
 from whar_datasets.core.normalizing import get_norm_params, normalize_windows
@@ -20,7 +20,7 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
 
         self.cfg = cfg
 
-        self.cache_dir, self.windows_dir = process(cfg, override_cache)
+        self.cache_dir, self.windows_dir = preprocess(cfg, override_cache)
         self.session_metadata = load_session_metadata(self.cache_dir)
         self.window_metadata, self.windows = load_windowing(
             self.cache_dir, self.windows_dir, self.cfg

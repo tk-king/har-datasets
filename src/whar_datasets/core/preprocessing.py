@@ -8,8 +8,9 @@ from dask.diagnostics.progress import ProgressBar
 
 from whar_datasets.core.config import WHARConfig
 from whar_datasets.core.utils.checking import (
-    check_common_format,
+    validate_common_format,
     check_download,
+    check_sessions,
     check_windowing,
 )
 from whar_datasets.core.utils.downloading import download, extract
@@ -29,7 +30,7 @@ from whar_datasets.core.utils.loading import (
 )
 
 
-def process(cfg: WHARConfig, override_cache: bool = False) -> Tuple[str, str]:
+def preprocess(cfg: WHARConfig, override_cache: bool = False) -> Tuple[str, str]:
     if override_cache:
         print("Overriding cache...")
 
@@ -43,57 +44,47 @@ def process(cfg: WHARConfig, override_cache: bool = False) -> Tuple[str, str]:
     sessions_dir = os.path.join(cache_dir, "sessions/")
     windows_dir = os.path.join(cache_dir, "windows/")
 
-    # check if windowing is up-to-date
-    if check_windowing(cache_dir, windows_dir, cfg_hash) and not override_cache:
-        return cache_dir, windows_dir
-
     # if not yet done, download and extract
     if not check_download(dataset_dir):
-        # download dataset file
         file_path = download(datasets_dir, dataset_dir, cfg.dataset.info.download_url)
-
-        # extract all archives
         extract(file_path, dataset_dir)
 
     # if not yet done, parse and cache common format
-    if not check_common_format(cfg, cache_dir, sessions_dir) or override_cache:
-        # parse original dataset to common format
+    if not check_sessions(cache_dir, sessions_dir) or override_cache:
         print("Parsing...")
         activity_metadata, session_metadata, sessions = cfg.dataset.parsing.parse(
             dataset_dir, cfg.dataset.parsing.activity_id_col
         )
-
-        # cache common format
         cache_common_format(
             cache_dir, sessions_dir, activity_metadata, session_metadata, sessions
         )
 
-    assert check_common_format(cfg, cache_dir, sessions_dir)
+    # check if parser respects common format
+    assert validate_common_format(cfg, cache_dir, sessions_dir)
 
-    # load session and activity index
-    session_metadata = load_session_metadata(cache_dir)
-    activity_metadata = load_activity_metadata(cache_dir)
+    # if windowing not up-to-date, generate and cache windowing
+    if not check_windowing(cache_dir, windows_dir, cfg_hash) and not override_cache:
+        session_metadata = load_session_metadata(cache_dir)
+        activity_metadata = load_activity_metadata(cache_dir)
 
-    # select sessions with selected activities
-    session_metadata = select_activities(
-        session_metadata,
-        activity_metadata,
-        cfg.dataset.preprocessing.selections.activity_names,
-    )
-
-    # process sessions
-    if cfg.dataset.preprocessing.in_parallel:
-        window_metadata, windows = process_sessions_parallely(
-            cfg, sessions_dir, session_metadata
-        )
-    else:
-        window_metadata, windows = process_sessions_sequentially(
-            cfg, sessions_dir, session_metadata
+        # select activities
+        session_metadata = select_activities(
+            session_metadata,
+            activity_metadata,
+            cfg.dataset.preprocessing.selections.activity_names,
         )
 
-    cache_window_metadata(cache_dir, window_metadata)
-    cache_windows(windows_dir, window_metadata, windows)
-    cache_cfg_hash(cache_dir, cfg_hash)
+        # generate windowing
+        window_metadata, windows = (
+            process_sessions_parallely(cfg, sessions_dir, session_metadata)
+            if cfg.dataset.preprocessing.in_parallel
+            else process_sessions_sequentially(cfg, sessions_dir, session_metadata)
+        )
+
+        # cache windows
+        cache_window_metadata(cache_dir, window_metadata)
+        cache_windows(windows_dir, window_metadata, windows)
+        cache_cfg_hash(cache_dir, cfg_hash)
 
     return cache_dir, windows_dir
 
