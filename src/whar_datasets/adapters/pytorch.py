@@ -8,7 +8,7 @@ from torch.utils.data import Dataset, Subset, DataLoader
 from whar_datasets.core.preprocessing import preprocess
 from whar_datasets.core.sampling import get_label, get_window
 from whar_datasets.core.splitting import get_split
-from whar_datasets.core.normalizing import get_norm_params, normalize_windows
+from whar_datasets.core.normalization import normalize_windows
 from whar_datasets.core.utils.loading import load_session_metadata, load_windowing
 from whar_datasets.core.weighting import compute_class_weights
 from whar_datasets.core.config import WHARConfig
@@ -20,7 +20,9 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
 
         self.cfg = cfg
 
-        self.cache_dir, self.windows_dir = preprocess(cfg, override_cache)
+        self.cache_dir, self.windows_dir, self.hashes_dir = preprocess(
+            cfg, override_cache
+        )
         self.session_metadata = load_session_metadata(self.cache_dir)
         self.window_metadata, self.windows = load_windowing(
             self.cache_dir, self.windows_dir, self.cfg
@@ -52,19 +54,11 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
             subj_cross_val_group_index,
         )
 
-        # get normalization parameters from train indices
-        self.norm_params = get_norm_params(
-            self.cfg,
-            self.train_indices,
-            self.windows_dir,
-            self.window_metadata,
-            self.windows,
-        )
-
-        # normalize windows and cache them based on normalization parameters
+        # normalize windows and cache them
         self.window_metadata, self.windows = normalize_windows(
             self.cfg,
-            self.norm_params,
+            self.train_indices,
+            self.hashes_dir,
             self.windows_dir,
             self.window_metadata,
             self.windows,

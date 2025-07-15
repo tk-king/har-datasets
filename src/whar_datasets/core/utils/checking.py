@@ -42,7 +42,9 @@ def check_sessions(cache_dir: str, sessions_dir: str) -> bool:
     return True
 
 
-def check_windowing(cache_dir: str, windows_dir: str, cfg_hash: str) -> bool:
+def check_windowing(
+    cache_dir: str, windows_dir: str, hashes_dir: str, cfg_hash: str
+) -> bool:
     print("Checking windowing...")
 
     if not os.path.exists(windows_dir):
@@ -59,7 +61,7 @@ def check_windowing(cache_dir: str, windows_dir: str, cfg_hash: str) -> bool:
         print(f"Window index file not found at '{window_metadata_path}'.")
         return False
 
-    current_hash = load_cfg_hash(cache_dir)
+    current_hash = load_cfg_hash(hashes_dir)
 
     if cfg_hash != current_hash:
         print("Config hash mismatch.")

@@ -250,7 +250,7 @@ cfg_ku_har = WHARConfig(
             sliding_window=SlidingWindow(window_time=2.56, overlap=0.5),
         ),
         training=Training(
-            normalization=NormType.ROBUST_SCALE_GLOBALLY,
+            normalization=NormType.STD_GLOBALLY,
             split=Split(
                 given_split=GivenSplit(
                     train_subj_ids=list(range(0, 72)),

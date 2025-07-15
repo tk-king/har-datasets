@@ -30,7 +30,7 @@ from whar_datasets.core.utils.loading import (
 )
 
 
-def preprocess(cfg: WHARConfig, override_cache: bool = False) -> Tuple[str, str]:
+def preprocess(cfg: WHARConfig, override_cache: bool = False) -> Tuple[str, str, str]:
     if override_cache:
         print("Overriding cache...")
 
@@ -43,6 +43,7 @@ def preprocess(cfg: WHARConfig, override_cache: bool = False) -> Tuple[str, str]
     cache_dir = os.path.join(dataset_dir, "cache/")
     sessions_dir = os.path.join(cache_dir, "sessions/")
     windows_dir = os.path.join(cache_dir, "windows/")
+    hashes_dir = os.path.join(cache_dir, "hashes/")
 
     # if not yet done, download and extract
     if not check_download(dataset_dir):
@@ -63,7 +64,10 @@ def preprocess(cfg: WHARConfig, override_cache: bool = False) -> Tuple[str, str]
     assert validate_common_format(cfg, cache_dir, sessions_dir)
 
     # if windowing not up-to-date, generate and cache windowing
-    if not check_windowing(cache_dir, windows_dir, cfg_hash) and not override_cache:
+    if (
+        not check_windowing(cache_dir, windows_dir, hashes_dir, cfg_hash)
+        and not override_cache
+    ):
         session_metadata = load_session_metadata(cache_dir)
         activity_metadata = load_activity_metadata(cache_dir)
 
@@ -84,9 +88,9 @@ def preprocess(cfg: WHARConfig, override_cache: bool = False) -> Tuple[str, str]
         # cache windows
         cache_window_metadata(cache_dir, window_metadata)
         cache_windows(windows_dir, window_metadata, windows)
-        cache_cfg_hash(cache_dir, cfg_hash)
+        cache_cfg_hash(hashes_dir, cfg_hash)
 
-    return cache_dir, windows_dir
+    return cache_dir, windows_dir, hashes_dir
 
 
 def process_sessions_sequentially(

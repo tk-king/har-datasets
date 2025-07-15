@@ -5,12 +5,21 @@ import pandas as pd
 from tqdm import tqdm
 
 
-def cache_cfg_hash(cache_dir: str, cfg_hash: str) -> None:
+def cache_cfg_hash(hashes_dir: str, cfg_hash: str) -> None:
     # create windowing directory if it does not exist
-    os.makedirs(cache_dir, exist_ok=True)
+    os.makedirs(hashes_dir, exist_ok=True)
 
     # save config hash
-    with open(os.path.join(cache_dir, "cfg_hash.txt"), "w") as f:
+    with open(os.path.join(hashes_dir, "cfg_hash.txt"), "w") as f:
+        f.write(cfg_hash)
+
+
+def cache_norm_params_hash(hashes_dir: str, cfg_hash: str) -> None:
+    # create windowing directory if it does not exist
+    os.makedirs(hashes_dir, exist_ok=True)
+
+    # save config hash
+    with open(os.path.join(hashes_dir, "norm_params_hash.txt"), "w") as f:
         f.write(cfg_hash)
 
 
