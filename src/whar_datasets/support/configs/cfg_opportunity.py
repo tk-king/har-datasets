@@ -324,13 +324,23 @@ def parse_opportunity(
         )
 
         # fill nans in sensor cols with linear interpolation
-        sub_df.loc[:, SENSOR_COLS] = sub_df[SENSOR_COLS].interpolate(method="linear")
+        sub_df.loc[:, SENSOR_COLS] = (
+            sub_df[SENSOR_COLS]
+            .interpolate(method="linear", limit_direction="both", axis=0)  # fill edges
+            .bfill()  # extra safety for lingering NaNs
+            .ffill()
+        )
 
         # # fills nans in label cols with backward fill
         sub_df.loc[:, LABEL_COLS] = sub_df[LABEL_COLS].bfill()
 
         # add subject id
-        sub_df["subject_id"] = subject_id
+        sub_df.loc[:, "subject_id"] = subject_id
+
+        # print(
+        #     f"NaNs after interpolation (sensors): {sub_df[SENSOR_COLS].isna().sum().sum()}"
+        # )
+        # print(f"NaNs after bfill (labels): {sub_df[LABEL_COLS].isna().sum().sum()}")
 
         # append to list
         sub_dfs.append(sub_df)
@@ -342,7 +352,7 @@ def parse_opportunity(
     df = df.rename(columns={activity_id_col: "activity_id"})
     df = df.drop(columns=[col for col in LABEL_COLS if col != activity_id_col])
 
-    # identify where activity or subject changes or chnage in nan entries
+    # identify where activity or subject changes
     changes = (df["activity_id"] != df["activity_id"].shift(1)) | (
         df["subject_id"] != df["subject_id"].shift(1)
     )

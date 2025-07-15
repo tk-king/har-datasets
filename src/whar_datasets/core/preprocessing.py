@@ -66,7 +66,7 @@ def preprocess(cfg: WHARConfig, override_cache: bool = False) -> Tuple[str, str,
     # if windowing not up-to-date, generate and cache windowing
     if (
         not check_windowing(cache_dir, windows_dir, hashes_dir, cfg_hash)
-        and not override_cache
+        or override_cache
     ):
         session_metadata = load_session_metadata(cache_dir)
         activity_metadata = load_activity_metadata(cache_dir)
@@ -185,7 +185,8 @@ def process_sessions_parallely(
         return window_metadata, windows
 
     # define processing tasks
-    ProgressBar().register()
+    pbar = ProgressBar()
+    pbar.register()
     tasks = [
         process_session(cfg, sessions_dir, session_id)
         for session_id in [int(x) for x in session_metadata["session_id"].unique()]
@@ -193,6 +194,8 @@ def process_sessions_parallely(
 
     # execute tasks in parallel
     pairs = list(compute(*tasks))
+    pbar.unregister()
+
     window_metadatas, window_dicts = zip(*pairs)
 
     # compute global window metadata and windows
