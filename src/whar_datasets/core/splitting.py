@@ -1,3 +1,4 @@
+import random
 from typing import List, Tuple
 
 import pandas as pd
@@ -26,10 +27,17 @@ def get_split(
             session_metadata, window_metadata, test_subj_ids
         )
 
-        # split train into train and train
-        border = int(cfg.dataset.training.split.val_percentage * len(train_indices))
-        val_indices = train_indices[:border]
-        train_indices = train_indices[border:]
+        # shuffle train set
+        random.seed(cfg.dataset.training.seed)
+        shuffled_train_indices = train_indices.copy()
+        random.shuffle(shuffled_train_indices)
+
+        # split train into train and val
+        num_val_indices = int(
+            cfg.dataset.training.split.val_percentage * len(train_indices)
+        )
+        val_indices = shuffled_train_indices[:num_val_indices]
+        train_indices = shuffled_train_indices[num_val_indices:]
 
     # if split group is specified, use subject cross validation
     else:
@@ -54,10 +62,17 @@ def get_split(
             session_metadata, window_metadata, test_subj_ids
         )
 
-        # split train into train and train
-        border = int(cfg.dataset.training.split.val_percentage * len(train_indices))
-        val_indices = train_indices[:border]
-        train_indices = train_indices[border:]
+        # shuffle train set
+        random.seed(cfg.dataset.training.seed)
+        shuffled_train_indices = train_indices.copy()
+        random.shuffle(shuffled_train_indices)
+
+        # split train into train and val
+        num_val_indices = int(
+            cfg.dataset.training.split.val_percentage * len(train_indices)
+        )
+        val_indices = shuffled_train_indices[:num_val_indices]
+        train_indices = shuffled_train_indices[num_val_indices:]
 
     return train_indices, val_indices, test_indices
 
