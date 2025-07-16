@@ -216,8 +216,6 @@ def get_standardize_params(
     mean_values = mean_values.round(6)
     std_values = std_values.round(6)
 
-    print(mean_values, std_values)
-
     return (mean_values.to_dict(), std_values.to_dict())
 
 
@@ -233,8 +231,6 @@ def get_robust_scale_params(
     # round to 6 decimal places
     median_values = median_values.round(6)
     iqr = iqr.round(6)
-
-    print(median_values, iqr)
 
     return (median_values.to_dict(), iqr.to_dict())
 
