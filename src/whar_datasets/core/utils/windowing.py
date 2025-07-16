@@ -1,7 +1,5 @@
-from collections import defaultdict
 from typing import Dict, Tuple
 import pandas as pd
-import short_unique_id as suid  # type: ignore
 
 
 def generate_windowing(
@@ -12,7 +10,10 @@ def generate_windowing(
     sampling_freq: float,
 ) -> Tuple[pd.DataFrame | None, Dict[str, pd.DataFrame] | None]:
     # create containers for windows and index
-    window_metadata_dict = defaultdict(list)
+    window_metadata_dict: Dict[str, list] = {
+        "session_id": [],
+        "window_id": [],
+    }
     windows: Dict[str, pd.DataFrame] = {}
 
     # specify window and stride as timedeltas
@@ -37,8 +38,8 @@ def generate_windowing(
         window_df = session_df[mask]
         window_df = window_df.drop(columns=["timestamp"]).reset_index(drop=True)
 
-        # generate unique window id
-        window_id = suid.generate_short_id()
+        # create unique window id
+        window_id = f"{session_id}_{int(current_start_time.timestamp())}"
 
         # add window to windows
         windows[window_id] = window_df

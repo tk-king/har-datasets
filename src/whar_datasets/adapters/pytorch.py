@@ -9,7 +9,11 @@ from whar_datasets.core.preprocessing import preprocess
 from whar_datasets.core.sampling import get_label, get_window
 from whar_datasets.core.splitting import get_split
 from whar_datasets.core.normalization import normalize_windows
-from whar_datasets.core.utils.loading import load_session_metadata, load_windowing
+from whar_datasets.core.utils.loading import (
+    load_session_metadata,
+    load_window_metadata,
+    load_windows,
+)
 from whar_datasets.core.weighting import compute_class_weights
 from whar_datasets.core.config import WHARConfig
 
@@ -20,12 +24,15 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
 
         self.cfg = cfg
 
-        self.cache_dir, self.windows_dir, self.hashes_dir = preprocess(
-            cfg, override_cache
-        )
+        dirs = preprocess(cfg, override_cache)
+        self.cache_dir, self.windows_dir, self.normalized_dir, self.hashes_dir = dirs
+
         self.session_metadata = load_session_metadata(self.cache_dir)
-        self.window_metadata, self.windows = load_windowing(
-            self.cache_dir, self.windows_dir, self.cfg
+        self.window_metadata = load_window_metadata(self.cache_dir)
+        self.windows = (
+            load_windows(self.window_metadata, self.windows_dir)
+            if self.cfg.dataset.training.in_memory
+            else None
         )
 
         print(f"subject_ids: {np.sort(self.session_metadata['subject_id'].unique())}")
@@ -45,6 +52,7 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
         train_batch_size: int,
         train_shuffle: bool = True,
         subj_cross_val_group_index: int | None = None,
+        override_cache: bool = False,
     ) -> Tuple[DataLoader, DataLoader, DataLoader]:
         # get split indices from config
         self.train_indices, self.val_indices, self.test_indices = get_split(
@@ -60,8 +68,10 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
             self.train_indices,
             self.hashes_dir,
             self.windows_dir,
+            self.normalized_dir,
             self.window_metadata,
             self.windows,
+            override_cache,
         )
 
         # specify split subsets
@@ -112,7 +122,7 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
 
         # get window
         window = get_window(
-            index, self.cfg, self.windows_dir, self.window_metadata, self.windows
+            index, self.cfg, self.normalized_dir, self.window_metadata, self.windows
         )
 
         # convert to tensors

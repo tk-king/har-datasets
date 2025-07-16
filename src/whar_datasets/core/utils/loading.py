@@ -1,21 +1,12 @@
 import os
-from typing import Dict, Tuple
+from typing import Dict
 import pandas as pd
 from tqdm import tqdm
 
-from whar_datasets.core.config import WHARConfig
 
-
-def load_windowing(
-    cache_dir: str, windows_dir: str, cfg: WHARConfig
-) -> Tuple[pd.DataFrame, Dict[str, pd.DataFrame] | None]:
-    # load window_metadata
-    window_metadata = load_window_metadata(cache_dir)
-
-    # return no in_memory windows if configured
-    if not cfg.dataset.training.in_memory:
-        return window_metadata, None
-
+def load_windows(
+    window_metadata: pd.DataFrame, windows_dir: str
+) -> Dict[str, pd.DataFrame]:
     # initialize map from window_id to window
     windows: Dict[str, pd.DataFrame] = {}
 
@@ -30,7 +21,7 @@ def load_windowing(
         window = load_window(windows_dir, window_id)
         windows[window_id] = window
 
-    return window_metadata, windows
+    return windows
 
 
 def load_window(windows_dir: str, window_id: str) -> pd.DataFrame:
