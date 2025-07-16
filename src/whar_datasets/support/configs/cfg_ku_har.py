@@ -50,11 +50,7 @@ def parse_ku_har(
     session_metadata_dict = defaultdict(list)
     session_dfs = []
 
-    activity_dirs = [
-        d
-        for d in os.listdir(dir)
-        if d != "windowing" and d != "ku_har.csv" and d != "cache"
-    ]
+    activity_dirs = [d for d in os.listdir(dir) if d != "cache"]
 
     for activity_dir in activity_dirs:
         # get activity from dirname
@@ -88,39 +84,6 @@ def parse_ku_har(
             # remove rows where timestamp is 0
             session_df = session_df[session_df["timestamp_acc"] != 0]
             session_df = session_df[session_df["timestamp_gyro"] != 0]
-
-            # # convert to datetime
-            # session_df["timestamp_acc"] = pd.to_datetime(
-            #     session_df["timestamp_acc"], unit="s"
-            # )
-            # session_df["timestamp_gyro"] = pd.to_datetime(
-            #     session_df["timestamp_gyro"], unit="s"
-            # )
-
-            # # select columns
-            # acc_df = session_df[["timestamp_acc", "acc_x", "acc_y", "acc_z"]]
-            # gyro_df = session_df[["timestamp_gyro", "gyro_x", "gyro_y", "gyro_z"]]
-
-            # # sort by timestamp
-            # acc_df = acc_df.sort_values("timestamp_acc")
-            # gyro_df = gyro_df.sort_values("timestamp_gyro")
-
-            # # merge_asof to match timestamps
-            # merged_df = pd.merge_asof(
-            #     acc_df,
-            #     gyro_df,
-            #     left_on="timestamp_acc",
-            #     right_on="timestamp_gyro",
-            #     direction="nearest",
-            # )
-
-            # merged_df = merged_df.drop(columns=["timestamp_gyro"])
-            # merged_df = merged_df.rename(columns={"timestamp_acc": "timestamp"})
-
-            # session_metadata_dict["subject_id"].append(subject_id)
-            # session_metadata_dict["activity_id"].append(activity_id)
-
-            # session_dfs.append(merged_df)
 
             # Interpolate gyro to acc timestamps
             for axis in ["x", "y", "z"]:
@@ -250,7 +213,7 @@ cfg_ku_har = WHARConfig(
             sliding_window=SlidingWindow(window_time=2.56, overlap=0.5),
         ),
         training=Training(
-            normalization=NormType.STD_GLOBALLY,
+            normalization=NormType.ROBUST_SCALE_GLOBALLY,
             split=Split(
                 given_split=GivenSplit(
                     train_subj_ids=list(range(0, 72)),

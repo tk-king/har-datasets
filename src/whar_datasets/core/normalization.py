@@ -1,9 +1,9 @@
 from typing import Dict, List, Tuple, TypeAlias
 import pandas as pd
 from tqdm import tqdm
-from dask.delayed import delayed
-from dask.base import compute
-from dask.diagnostics.progress import ProgressBar
+# from dask.delayed import delayed
+# from dask.base import compute
+# from dask.diagnostics.progress import ProgressBar
 
 from whar_datasets.core.config import NormType, WHARConfig
 from whar_datasets.core.sampling import get_window
@@ -22,7 +22,6 @@ def normalize_windows(
     indices: List[int],
     hashes_dir: str,
     windows_dir: str,
-    normalized_dir: str,
     window_metadata: pd.DataFrame,
     windows: Dict[str, pd.DataFrame] | None,
     override_cache: bool,
@@ -35,25 +34,25 @@ def normalize_windows(
         return window_metadata, windows
 
     # normalize windows
-    pairs = (
-        normalize_windows_parallely(
-            cfg, norm_params, windows_dir, window_metadata, windows
-        )
-        if cfg.dataset.preprocessing.in_parallel
-        else normalize_windows_sequentially(
-            cfg, norm_params, windows_dir, window_metadata, windows
-        )
+    pairs = normalize_windows_sequentially(
+        cfg, norm_params, windows_dir, window_metadata, windows
     )
 
     # construct normalized_windows
-    normalized_windows = {window_id: window_df for window_id, window_df in pairs}
+    norm_windows = {window_id: window_df for window_id, window_df in pairs}
+
+    # get new normalization parameters
+    new_norm_params = get_norm_params(
+        cfg, indices, windows_dir, window_metadata, norm_windows
+    )
+    new_norm_params_hash = create_norm_params_hash(new_norm_params)
 
     # cache normalized windows
-    cache_windows(normalized_dir, window_metadata, normalized_windows)
-    cache_norm_params_hash(hashes_dir, norm_params_hash)
+    cache_windows(windows_dir, window_metadata, norm_windows)
+    cache_norm_params_hash(hashes_dir, new_norm_params_hash)
 
     if cfg.dataset.training.in_memory:
-        return window_metadata, normalized_windows
+        return window_metadata, norm_windows
 
     return window_metadata, None
 
@@ -76,48 +75,47 @@ def normalize_windows_sequentially(
     return pairs
 
 
-def normalize_windows_parallely(
-    cfg: WHARConfig,
-    norm_params: NormParams | None,
-    windows_dir: str,
-    window_metadata: pd.DataFrame,
-    windows: Dict[str, pd.DataFrame] | None,
-) -> List[Tuple[str, pd.DataFrame]]:
-    @delayed
-    def normalize_window_delayed(window_id: str) -> Tuple[str, pd.DataFrame]:
-        assert isinstance(window_id, str)
+# def normalize_windows_parallely(
+#     cfg: WHARConfig,
+#     norm_params: NormParams | None,
+#     windows_dir: str,
+#     window_metadata: pd.DataFrame,
+# ) -> List[Tuple[str, pd.DataFrame]]:
+#     @delayed
+#     def normalize_window_delayed(window_id: str) -> Tuple[str, pd.DataFrame]:
+#         assert isinstance(window_id, str)
 
-        window_df = load_window(windows_dir, window_id)
+#         window_df = load_window(windows_dir, window_id)
 
-        match cfg.dataset.training.normalization:
-            case NormType.MIN_MAX_PER_SAMPLE:
-                return window_id, min_max(window_df, None)
-            case NormType.STD_PER_SAMPLE:
-                return window_id, standardize(window_df, None)
-            case NormType.ROBUST_SCALE_PER_SAMPLE:
-                return window_id, robust_scale(window_df, None)
-            case NormType.MIN_MAX_GLOBALLY:
-                return window_id, min_max(window_df, norm_params)
-            case NormType.STD_GLOBALLY:
-                return window_id, standardize(window_df, norm_params)
-            case NormType.ROBUST_SCALE_GLOBALLY:
-                return window_id, robust_scale(window_df, norm_params)
-            case _:
-                return window_id, window_df
+#         match cfg.dataset.training.normalization:
+#             case NormType.MIN_MAX_PER_SAMPLE:
+#                 return window_id, min_max(window_df, None)
+#             case NormType.STD_PER_SAMPLE:
+#                 return window_id, standardize(window_df, None)
+#             case NormType.ROBUST_SCALE_PER_SAMPLE:
+#                 return window_id, robust_scale(window_df, None)
+#             case NormType.MIN_MAX_GLOBALLY:
+#                 return window_id, min_max(window_df, norm_params)
+#             case NormType.STD_GLOBALLY:
+#                 return window_id, standardize(window_df, norm_params)
+#             case NormType.ROBUST_SCALE_GLOBALLY:
+#                 return window_id, robust_scale(window_df, norm_params)
+#             case _:
+#                 return window_id, window_df
 
-    # define processing tasks
-    tasks = (
-        normalize_window_delayed(window_id)
-        for window_id in window_metadata["window_id"]
-    )
+#     # define processing tasks
+#     tasks = (
+#         normalize_window_delayed(window_id)
+#         for window_id in window_metadata["window_id"]
+#     )
 
-    # execute tasks in parallel
-    pbar = ProgressBar()
-    pbar.register()
-    pairs = list(compute(*tasks, scheduler="processes"))
-    pbar.unregister()
+#     # execute tasks in parallel
+#     pbar = ProgressBar()
+#     pbar.register()
+#     pairs = list(compute(*tasks, scheduler="processes"))
+#     pbar.unregister()
 
-    return pairs
+#     return pairs
 
 
 def normalize_window(
@@ -218,6 +216,8 @@ def get_standardize_params(
     mean_values = mean_values.round(6)
     std_values = std_values.round(6)
 
+    print(mean_values, std_values)
+
     return (mean_values.to_dict(), std_values.to_dict())
 
 
@@ -233,6 +233,8 @@ def get_robust_scale_params(
     # round to 6 decimal places
     median_values = median_values.round(6)
     iqr = iqr.round(6)
+
+    print(median_values, iqr)
 
     return (median_values.to_dict(), iqr.to_dict())
 
