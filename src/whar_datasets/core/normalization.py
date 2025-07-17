@@ -28,10 +28,10 @@ def normalize_windows(
 ) -> Tuple[pd.DataFrame, Dict[str, pd.DataFrame] | None]:
     norm_params = get_norm_params(cfg, indices, windows_dir, window_metadata, windows)
 
-    # check if already cached
-    norm_params_hash = create_norm_params_hash(norm_params)
-    if norm_params_hash == load_norm_params_hash(hashes_dir) and not override_cache:
-        return window_metadata, windows
+    # # check if already cached
+    # norm_params_hash = create_norm_params_hash(norm_params)
+    # if norm_params_hash == load_norm_params_hash(hashes_dir) and not override_cache:
+    #     return window_metadata, windows
 
     # normalize windows
     pairs = normalize_windows_sequentially(
@@ -42,14 +42,14 @@ def normalize_windows(
     norm_windows = {window_id: window_df for window_id, window_df in pairs}
 
     # get new normalization parameters
-    new_norm_params = get_norm_params(
-        cfg, indices, windows_dir, window_metadata, norm_windows
-    )
-    new_norm_params_hash = create_norm_params_hash(new_norm_params)
+    # new_norm_params = get_norm_params(
+    #     cfg, indices, windows_dir, window_metadata, norm_windows
+    # )
+    # new_norm_params_hash = create_norm_params_hash(new_norm_params)
 
     # cache normalized windows
-    cache_windows(windows_dir, window_metadata, norm_windows)
-    cache_norm_params_hash(hashes_dir, new_norm_params_hash)
+    # cache_windows(windows_dir, window_metadata, norm_windows)
+    # cache_norm_params_hash(hashes_dir, new_norm_params_hash)
 
     if cfg.dataset.training.in_memory:
         return window_metadata, norm_windows
