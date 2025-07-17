@@ -12,7 +12,7 @@ from whar_datasets.core.utils.hashing import (
     create_norm_params_hash,
     load_norm_params_hash,
 )
-from whar_datasets.core.utils.loading import load_window
+from whar_datasets.core.utils.loading import load_window, load_windows
 
 NormParams: TypeAlias = Tuple[Dict[str, float], Dict[str, float]]
 
@@ -23,9 +23,9 @@ def normalize_windows(
     hashes_dir: str,
     windows_dir: str,
     window_metadata: pd.DataFrame,
-    windows: Dict[str, pd.DataFrame] | None,
     override_cache: bool,
 ) -> Tuple[pd.DataFrame, Dict[str, pd.DataFrame] | None]:
+    windows = load_windows(window_metadata, windows_dir)
     norm_params = get_norm_params(cfg, indices, windows_dir, window_metadata, windows)
 
     # # check if already cached

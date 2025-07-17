@@ -29,11 +29,6 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
 
         self.session_metadata = load_session_metadata(self.cache_dir)
         self.window_metadata = load_window_metadata(self.cache_dir)
-        self.windows = (
-            load_windows(self.window_metadata, self.windows_dir)
-            if self.cfg.dataset.training.in_memory
-            else None
-        )
 
         print(f"subject_ids: {np.sort(self.session_metadata['subject_id'].unique())}")
         print(f"activity_ids: {np.sort(self.session_metadata['activity_id'].unique())}")
@@ -69,7 +64,6 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
             self.hashes_dir,
             self.windows_dir,
             self.window_metadata,
-            self.windows,
             override_cache,
         )
 
