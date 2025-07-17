@@ -22,7 +22,7 @@ This installs the library into the active environment.
 from whar_datasets.adapters.pytorch import PytorchAdapter
 from whar_datasets.support.getter import WHARDatasetID, get_whar_cfg
 
-cfg = get_whar_cfg(WHARDatasetID.KU_HAR)
+cfg = get_whar_cfg(WHARDatasetID.UCI_HAR)
 dataset = PytorchAdapter(cfg, override_cache=False)
 
 train_loader, val_loader, test_loader = dataset.get_dataloaders(train_batch_size=32)
