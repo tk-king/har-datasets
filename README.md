@@ -1,19 +1,17 @@
 # WHAR Datasets
 
-This library provides support for popular WHAR (wearable human activity recognition) datasets including
+This library provides data handling support for popular WHAR (Wearbale Human Activity Recognition) datasets including
 
-- metadata descriptions in [DCAT-AP](https://www.dcat-ap.de/) and [Croissant](https://github.com/mlcommons/croissant)
-- downloading from original source with caching
-- parsing into a centralized format with caching
-- preparation via config with caching
-- pytorch integration.
-
-WHAR datasets not included can be used by writing a custom config and parser, which can then be integrated easily.
+<!-- - metadata descriptions in [DCAT-AP](https://www.dcat-ap.de/) and [Croissant](https://github.com/mlcommons/croissant) -->
+- downloading from original source
+- parsing into a standardized data format
+- configuration-driven preprocessing, splitting, normalization, and more
+- integration with pytorch and tensorflow
 
 # How to Install
 
 ```
-pip install "git+https://github.com/maxbrzr/har-datasets.git"
+pip install "git+https://github.com/maxbrzr/whar-datasets.git"
 ```
 
 This installs the library into the active environment.
@@ -30,9 +28,9 @@ dataset = PytorchAdapter(cfg, override_cache=False)
 train_loader, val_loader, test_loader = dataset.get_dataloaders(train_batch_size=32)
 ```
 
-For unsupported har datasets, a custom config, including a custom parse function, can be implented and used instead.
+Not yet natively supported WHAR datasets can be integrated via a custom configuration (with parser).
 
-# Supported WHAR Datasets
+# Currently Supported Datasets
 
 - [x] [UCI-HAR](https://archive.ics.uci.edu/dataset/240/human+activity+recognition+using+smartphones)
 - [x] [WISDM-12](https://www.cis.fordham.edu/wisdm/dataset.php)
@@ -56,46 +54,7 @@ For unsupported har datasets, a custom config, including a custom parse function
 - [] [SWELL](https://www.kaggle.com/datasets/qiriro/swell-heart-rate-variability-hrv)
 - [] [WISDM-19](https://archive.ics.uci.edu/dataset/507/wisdm+smartphone+and+smartwatch+activity+and+biometrics+dataset)
 - [] [DG]()
-- [] [HAPT](https://archive.ics.uci.edu/dataset/341/smartphone+based+recognition+of+human+activities+and+postural+transitions) (update of UCI_HAR)
-
-# Common Format
-
-# Config
-
-A hierarchical config system built on [pydantic](https://docs.pydantic.dev/latest/) is used for both common and dataset-specific configuration.
-
-### Common Config
-
-- dataset directory
-- resampling frequency 
-- include derivative
-- include spectrograms
-- spectrogram hyperparams
-
-### Dataset-Specific Config
-
-
-# Preparation Features
-
-- [x] Resampling
-- [x] Normalization
-- [x] Differentiation
-- [x] Windowing
-- [x] Spectrogram Generation
-- [x] Class Weights Computation
-- [x] Subject Cross Validation
-
-# PyTorch Support
-
-We provide [torch](https://pytorch.org/) datasets for easy integration into existing code bases.
-
-# TODOS
-
-- paper specifc time windows
-- alle channel same
-- configurable preprocessing piepline
-- spectrogramm allows multiple transforms
-- class resampling
-- optional in mem or not, window chaching
+- [] [HAPT](https://archive.ics.uci.edu/dataset/341/smartphone+based+recognition+of+human+activities+and+postural+transitions) 
+<!-- (update of UCI_HAR) -->
 
 
