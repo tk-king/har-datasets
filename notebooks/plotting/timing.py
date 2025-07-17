@@ -55,8 +55,8 @@ num_samples = 3
 if __name__ == "__main__":
     for dataset_id in dataset_ids:
         cfg = get_whar_cfg(dataset_id, datasets_dir="./notebooks/datasets/")
-        datasets_dir = cfg.common.datasets_dir
-        dataset_dir = os.path.join(datasets_dir, cfg.dataset.info.id)
+        datasets_dir = cfg.datasets_dir
+        dataset_dir = os.path.join(datasets_dir, cfg.dataset_id)
         cache_dir = os.path.join(dataset_dir, "cache/")
         sessions_dir = os.path.join(cache_dir, "sessions/")
         session_metadata = load_session_metadata(cache_dir)
@@ -77,8 +77,8 @@ if __name__ == "__main__":
 
     for dataset_id in dataset_ids:
         cfg = get_whar_cfg(dataset_id, datasets_dir="./notebooks/datasets/")
-        datasets_dir = cfg.common.datasets_dir
-        dataset_dir = os.path.join(datasets_dir, cfg.dataset.info.id)
+        datasets_dir = cfg.datasets_dir
+        dataset_dir = os.path.join(datasets_dir, cfg.dataset_id)
         cache_dir = os.path.join(dataset_dir, "cache/")
         sessions_dir = os.path.join(cache_dir, "sessions/")
         session_metadata = load_session_metadata(cache_dir)
