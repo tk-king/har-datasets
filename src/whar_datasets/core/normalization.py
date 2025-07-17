@@ -52,7 +52,7 @@ def normalize_windows(
     # cache_windows(windows_dir, window_metadata, norm_windows)
     # cache_norm_params_hash(hashes_dir, new_norm_params_hash)
 
-    if cfg.dataset.training.in_memory:
+    if cfg.in_memory:
         return window_metadata, norm_windows
 
     return window_metadata, None
@@ -134,7 +134,7 @@ def normalize_window(
         else load_window(windows_dir, window_id)
     )
 
-    match cfg.dataset.training.normalization:
+    match cfg.normalization:
         case NormType.MIN_MAX_PER_SAMPLE:
             return window_id, min_max(window_df, None)
         case NormType.STD_PER_SAMPLE:
@@ -161,7 +161,7 @@ def get_norm_params(
     print("Getting normalization parameters...")
 
     # return None if per sample normalization
-    match cfg.dataset.training.normalization:
+    match cfg.normalization:
         case (
             NormType.MIN_MAX_PER_SAMPLE
             | NormType.STD_PER_SAMPLE
@@ -179,7 +179,7 @@ def get_norm_params(
     windows_df = pd.concat(windows_list, ignore_index=True)
 
     # get normalization params
-    match cfg.dataset.training.normalization:
+    match cfg.normalization:
         case NormType.MIN_MAX_GLOBALLY:
             return get_min_max_params(windows_df)
         case NormType.STD_GLOBALLY:

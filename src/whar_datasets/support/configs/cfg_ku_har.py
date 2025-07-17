@@ -1,19 +1,5 @@
 import numpy as np
-from whar_datasets.core.config import (
-    Common,
-    Dataset,
-    GivenSplit,
-    NormType,
-    Parsing,
-    WHARConfig,
-    Info,
-    Preprocessing,
-    Selections,
-    SlidingWindow,
-    Split,
-    SubjCrossValSplit,
-    Training,
-)
+from whar_datasets.core.config import NormType, WHARConfig
 
 from collections import defaultdict
 import os
@@ -164,72 +150,58 @@ def parse_ku_har(
 
 
 cfg_ku_har = WHARConfig(
-    common=Common(
-        datasets_dir="./datasets",
-    ),
-    dataset=Dataset(
-        info=Info(
-            id="ku_har",
-            download_url="https://data.mendeley.com/public-files/datasets/45f952y38r/files/49c6120b-59fd-466c-97da-35d53a4be595/file_downloaded",
-            sampling_freq=100,
-            num_of_subjects=89,
-            num_of_activities=18,
-            num_of_channels=6,
-        ),
-        parsing=Parsing(
-            parse=parse_ku_har,
-        ),
-        preprocessing=Preprocessing(
-            selections=Selections(
-                activity_names=[
-                    "Stand",
-                    "Sit",
-                    "Talk-sit",
-                    "Talk-stand",
-                    "Stand-sit",
-                    "Lay",
-                    "Lay-stand",
-                    "Pick",
-                    "Jump",
-                    "Push-up",
-                    "Sit-up",
-                    "Walk",
-                    "Walk-backward",
-                    "Walk-circle",
-                    "Run",
-                    "Stair-up",
-                    "Stair-down",
-                    "Table-tennis",
-                ],
-                sensor_channels=[
-                    "acc_x",
-                    "acc_y",
-                    "acc_z",
-                    "gyro_x",
-                    "gyro_y",
-                    "gyro_z",
-                ],
-            ),
-            sliding_window=SlidingWindow(window_time=2.56, overlap=0.5),
-        ),
-        training=Training(
-            normalization=NormType.ROBUST_SCALE_GLOBALLY,
-            split=Split(
-                given_split=GivenSplit(
-                    train_subj_ids=list(range(0, 72)),
-                    test_subj_ids=list(range(72, 90)),
-                ),
-                subj_cross_val_split=SubjCrossValSplit(
-                    subj_id_groups=[
-                        [4, 24, 66, 49, 23, 25, 1, 27, 10, 60, 0, 75, 69, 35, 82],
-                        [2, 18, 72, 88, 20, 78, 7, 79, 36, 13, 26, 59, 73, 37, 16],
-                        [46, 70, 62, 40, 32, 8, 67, 39, 53, 55, 87, 68, 84, 44, 58],
-                        [14, 50, 52, 81, 65, 12, 89, 80, 21, 61, 56, 17, 6, 85, 47],
-                        [48, 28, 33, 43, 5, 83, 38, 34, 19, 86, 15, 11, 29, 9, 3],
-                        [42, 57, 41, 74, 30, 54, 64, 45, 77, 76, 22, 63, 71, 51, 31],
-                    ],
-                ),
-            ),
-        ),
-    ),
+    # Info fields + common
+    dataset_id="ku_har",
+    download_url="https://data.mendeley.com/public-files/datasets/45f952y38r/files/49c6120b-59fd-466c-97da-35d53a4be595/file_downloaded",
+    sampling_freq=100,
+    num_of_subjects=89,
+    num_of_activities=18,
+    num_of_channels=6,
+    datasets_dir="./datasets",
+    # Parsing fields
+    parse=parse_ku_har,
+    activity_id_col="activity_id",
+    # Preprocessing fields (flatten selections + sliding_window)
+    activity_names=[
+        "Stand",
+        "Sit",
+        "Talk-sit",
+        "Talk-stand",
+        "Stand-sit",
+        "Lay",
+        "Lay-stand",
+        "Pick",
+        "Jump",
+        "Push-up",
+        "Sit-up",
+        "Walk",
+        "Walk-backward",
+        "Walk-circle",
+        "Run",
+        "Stair-up",
+        "Stair-down",
+        "Table-tennis",
+    ],
+    sensor_channels=[
+        "acc_x",
+        "acc_y",
+        "acc_z",
+        "gyro_x",
+        "gyro_y",
+        "gyro_z",
+    ],
+    window_time=2.56,
+    window_overlap=0.5,
+    # Training fields (flattened splits)
+    normalization=NormType.ROBUST_SCALE_GLOBALLY,
+    given_train_subj_ids=list(range(0, 72)),
+    given_test_subj_ids=list(range(72, 90)),
+    subj_cross_val_split_groups=[
+        [4, 24, 66, 49, 23, 25, 1, 27, 10, 60, 0, 75, 69, 35, 82],
+        [2, 18, 72, 88, 20, 78, 7, 79, 36, 13, 26, 59, 73, 37, 16],
+        [46, 70, 62, 40, 32, 8, 67, 39, 53, 55, 87, 68, 84, 44, 58],
+        [14, 50, 52, 81, 65, 12, 89, 80, 21, 61, 56, 17, 6, 85, 47],
+        [48, 28, 33, 43, 5, 83, 38, 34, 19, 86, 15, 11, 29, 9, 3],
+        [42, 57, 41, 74, 30, 54, 64, 45, 77, 76, 22, 63, 71, 51, 31],
+    ],
 )

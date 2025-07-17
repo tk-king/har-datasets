@@ -1,17 +1,4 @@
-from whar_datasets.core.config import (
-    Common,
-    Dataset,
-    GivenSplit,
-    Parsing,
-    WHARConfig,
-    Info,
-    Preprocessing,
-    Selections,
-    SlidingWindow,
-    Split,
-    SubjCrossValSplit,
-    Training,
-)
+from whar_datasets.core.config import WHARConfig
 
 import os
 from typing import Dict, Tuple
@@ -134,63 +121,49 @@ def parse_har_sense(
 
 
 cfg_har_sense = WHARConfig(
-    common=Common(
-        datasets_dir="./datasets",
-    ),
-    dataset=Dataset(
-        info=Info(
-            id="har_sense",
-            download_url="https://www.kaggle.com/api/v1/datasets/download/nurulaminchoudhury/harsense-datatset",
-            sampling_freq=50,
-            num_of_subjects=12,
-            num_of_activities=7,
-            num_of_channels=16,
-        ),
-        parsing=Parsing(
-            parse=parse_har_sense,
-        ),
-        preprocessing=Preprocessing(
-            selections=Selections(
-                activity_names=[
-                    "Walking",
-                    "Standing",
-                    "Upstairs",
-                    "Downstairs",
-                    "Running",
-                    "Sitting",
-                    "Sleeping",
-                ],
-                sensor_channels=[
-                    "AG-X",
-                    "AG-Y",
-                    "AG-Z",
-                    "Acc-X",
-                    "Acc-Y",
-                    "Acc-Z",
-                    "Gravity-X",
-                    "Gravity-Y",
-                    "Gravity-Z",
-                    "RR-X",
-                    "RR-Y",
-                    "RR-Z",
-                    "RV-X",
-                    "RV-Y",
-                    "RV-Z",
-                    "cos",
-                ],
-            ),
-            sliding_window=SlidingWindow(window_time=2.56, overlap=0),
-        ),
-        training=Training(
-            split=Split(
-                given_split=GivenSplit(
-                    train_subj_ids=list(range(0, 10)),
-                    test_subj_ids=list(range(10, 12)),
-                ),
-                subj_cross_val_split=SubjCrossValSplit(
-                    subj_id_groups=[[0, 1], [2, 3], [4, 5], [6, 7], [8, 9], [10, 11]],
-                ),
-            ),
-        ),
-    ),
+    # Info fields + common
+    dataset_id="har_sense",
+    download_url="https://www.kaggle.com/api/v1/datasets/download/nurulaminchoudhury/harsense-datatset",
+    sampling_freq=50,
+    num_of_subjects=12,
+    num_of_activities=7,
+    num_of_channels=16,
+    datasets_dir="./datasets",
+    # Parsing fields
+    parse=parse_har_sense,
+    activity_id_col="activity_id",
+    # Preprocessing fields (flatten selections + sliding_window)
+    activity_names=[
+        "Walking",
+        "Standing",
+        "Upstairs",
+        "Downstairs",
+        "Running",
+        "Sitting",
+        "Sleeping",
+    ],
+    sensor_channels=[
+        "AG-X",
+        "AG-Y",
+        "AG-Z",
+        "Acc-X",
+        "Acc-Y",
+        "Acc-Z",
+        "Gravity-X",
+        "Gravity-Y",
+        "Gravity-Z",
+        "RR-X",
+        "RR-Y",
+        "RR-Z",
+        "RV-X",
+        "RV-Y",
+        "RV-Z",
+        "cos",
+    ],
+    window_time=2.56,
+    window_overlap=0.0,
+    # Training fields (flattened splits)
+    given_train_subj_ids=list(range(0, 10)),
+    given_test_subj_ids=list(range(10, 12)),
+    subj_cross_val_split_groups=[[0, 1], [2, 3], [4, 5], [6, 7], [8, 9], [10, 11]],
 )

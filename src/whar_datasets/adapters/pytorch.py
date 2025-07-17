@@ -29,7 +29,7 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
         print(f"subject_ids: {np.sort(self.session_metadata['subject_id'].unique())}")
         print(f"activity_ids: {np.sort(self.session_metadata['activity_id'].unique())}")
 
-        self.seed = cfg.dataset.training.seed
+        self.seed = cfg.seed
 
         torch.manual_seed(self.seed)
         random.seed(self.seed)

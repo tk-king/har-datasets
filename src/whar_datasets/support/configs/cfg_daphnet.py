@@ -1,17 +1,5 @@
-from whar_datasets.core.config import (
-    Common,
-    Dataset,
-    GivenSplit,
-    Parsing,
-    WHARConfig,
-    Info,
-    Preprocessing,
-    Selections,
-    SlidingWindow,
-    Split,
-    SubjCrossValSplit,
-    Training,
-)
+from whar_datasets.core.config import WHARConfig
+
 
 import os
 from typing import Dict, Tuple
@@ -153,52 +141,38 @@ def parse_daphnet(
 
 
 cfg_daphnet = WHARConfig(
-    common=Common(
-        datasets_dir="./datasets",
-    ),
-    dataset=Dataset(
-        info=Info(
-            id="daphnet",
-            download_url="https://archive.ics.uci.edu/static/public/245/daphnet+freezing+of+gait.zip",
-            sampling_freq=64,
-            num_of_subjects=10,
-            num_of_activities=3,
-            num_of_channels=9,
-        ),
-        parsing=Parsing(
-            parse=parse_daphnet,
-        ),
-        preprocessing=Preprocessing(
-            selections=Selections(
-                activity_names=[
-                    "Unknown",
-                    "No Freeze",
-                    "Freeze",
-                ],
-                sensor_channels=[
-                    "shank_acc_x",
-                    "shank_acc_y",
-                    "shank_acc_z",
-                    "thigh_acc_x",
-                    "thigh_acc_y",
-                    "thigh_acc_z",
-                    "trunk_acc_x",
-                    "trunk_acc_y",
-                    "trunk_acc_z",
-                ],
-            ),
-            sliding_window=SlidingWindow(window_time=1, overlap=0.5),
-        ),
-        training=Training(
-            split=Split(
-                given_split=GivenSplit(
-                    train_subj_ids=list(range(0, 8)),
-                    test_subj_ids=list(range(8, 10)),
-                ),
-                subj_cross_val_split=SubjCrossValSplit(
-                    subj_id_groups=[[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]],
-                ),
-            ),
-        ),
-    ),
+    # Info fields + common
+    dataset_id="daphnet",
+    download_url="https://archive.ics.uci.edu/static/public/245/daphnet+freezing+of+gait.zip",
+    sampling_freq=64,
+    num_of_subjects=10,
+    num_of_activities=3,
+    num_of_channels=9,
+    datasets_dir="./datasets",
+    # Parsing fields
+    parse=parse_daphnet,
+    activity_id_col="activity_id",
+    # Preprocessing fields (flatten selections + sliding_window)
+    activity_names=[
+        "Unknown",
+        "No Freeze",
+        "Freeze",
+    ],
+    sensor_channels=[
+        "shank_acc_x",
+        "shank_acc_y",
+        "shank_acc_z",
+        "thigh_acc_x",
+        "thigh_acc_y",
+        "thigh_acc_z",
+        "trunk_acc_x",
+        "trunk_acc_y",
+        "trunk_acc_z",
+    ],
+    window_time=1.0,
+    window_overlap=0.5,
+    # Training fields (flattened splits)
+    given_train_subj_ids=list(range(0, 8)),
+    given_test_subj_ids=list(range(8, 10)),
+    subj_cross_val_split_groups=[[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]],
 )

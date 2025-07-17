@@ -36,7 +36,7 @@ def get_window(
     # select or load window
     window = (
         windows[window_id]
-        if windows is not None and cfg.dataset.training.in_memory
+        if windows is not None and cfg.in_memory
         else load_window(windows_dir, window_id)
     )
 

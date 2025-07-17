@@ -48,6 +48,6 @@ def get_whar_cfg(
     cfg = har_dataset_dict[dataset_id]
 
     # override datasets dir
-    cfg.common.datasets_dir = datasets_dir
+    cfg.datasets_dir = datasets_dir
 
     return cfg

@@ -56,14 +56,14 @@ def validate_common_format(cfg: WHARConfig, cache_dir: str, sessions_dir: str) -
     if session_metadata["activity_id"].min() != 0:
         print("Minimum activity_id is not 0.")
         return False
-    if session_metadata["subject_id"].nunique() != cfg.dataset.info.num_of_subjects:
+    if session_metadata["subject_id"].nunique() != cfg.num_of_subjects:
         print(
-            f"In session_metadata, num of subject_ids {session_metadata['subject_id'].nunique()} does not match num of subjects {cfg.dataset.info.num_of_subjects}."
+            f"In session_metadata, num of subject_ids {session_metadata['subject_id'].nunique()} does not match num of subjects {cfg.num_of_subjects}."
         )
         return False
-    if session_metadata["activity_id"].nunique() != cfg.dataset.info.num_of_activities:
+    if session_metadata["activity_id"].nunique() != cfg.num_of_activities:
         print(
-            f"In session_metadata, number of activity_ids {session_metadata['activity_id'].nunique()} does not match number of activities {cfg.dataset.info.num_of_activities} ."
+            f"In session_metadata, number of activity_ids {session_metadata['activity_id'].nunique()} does not match number of activities {cfg.num_of_activities} ."
         )
         return False
 
@@ -77,13 +77,13 @@ def validate_common_format(cfg: WHARConfig, cache_dir: str, sessions_dir: str) -
     if activity_metadata["activity_id"].min() != 0:
         print("Minimum activity_id is not 0.")
         return False
-    if activity_metadata["activity_id"].nunique() != cfg.dataset.info.num_of_activities:
+    if activity_metadata["activity_id"].nunique() != cfg.num_of_activities:
         print("Number of activity_ids does not match number of activities.")
         return False
 
     validated = (
         validate_sessions_parallely(cfg, sessions_dir, session_metadata)
-        if cfg.dataset.preprocessing.in_parallel
+        if cfg.in_parallel
         else validate_sessions_sequentially(cfg, sessions_dir, session_metadata)
     )
 
@@ -142,13 +142,10 @@ def validate_session(cfg: WHARConfig, sessions_dir, session_id: int) -> bool:
         print(f"'timestamp' column in {session_path} is not datetime64 type.")
         return False
 
-    if (
-        len(session_df.columns.difference(["timestamp"]))
-        != cfg.dataset.info.num_of_channels
-    ):
+    if len(session_df.columns.difference(["timestamp"])) != cfg.num_of_channels:
         print(session_df.columns.difference(["timestamp"]))
         print(
-            f"Number of columns {len(session_df.columns.difference(['timestamp']))} in {session_path} does not match number of channel {cfg.dataset.info.num_of_channels}."
+            f"Number of columns {len(session_df.columns.difference(['timestamp']))} in {session_path} does not match number of channel {cfg.num_of_channels}."
         )
         return False
 

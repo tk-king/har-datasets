@@ -38,8 +38,8 @@ def preprocess(cfg: WHARConfig, override_cache: bool = False) -> Tuple[str, str,
     cfg_hash = create_cfg_hash(cfg)
 
     # define directories
-    datasets_dir = cfg.common.datasets_dir
-    dataset_dir = os.path.join(datasets_dir, cfg.dataset.info.id)
+    datasets_dir = cfg.datasets_dir
+    dataset_dir = os.path.join(datasets_dir, cfg.dataset_id)
     cache_dir = os.path.join(dataset_dir, "cache/")
     sessions_dir = os.path.join(cache_dir, "sessions/")
     windows_dir = os.path.join(cache_dir, "windows/")
@@ -47,14 +47,14 @@ def preprocess(cfg: WHARConfig, override_cache: bool = False) -> Tuple[str, str,
 
     # if not yet done, download and extract
     if not check_download(dataset_dir):
-        file_path = download(datasets_dir, dataset_dir, cfg.dataset.info.download_url)
+        file_path = download(datasets_dir, dataset_dir, cfg.download_url)
         extract(file_path, dataset_dir)
 
     # if not yet done, parse and cache common format
     if not check_sessions(cache_dir, sessions_dir) or override_cache:
         print("Parsing...")
-        activity_metadata, session_metadata, sessions = cfg.dataset.parsing.parse(
-            dataset_dir, cfg.dataset.parsing.activity_id_col
+        activity_metadata, session_metadata, sessions = cfg.parse(
+            dataset_dir, cfg.activity_id_col
         )
         cache_common_format(
             cache_dir, sessions_dir, activity_metadata, session_metadata, sessions
@@ -75,13 +75,13 @@ def preprocess(cfg: WHARConfig, override_cache: bool = False) -> Tuple[str, str,
         session_metadata = select_activities(
             session_metadata,
             activity_metadata,
-            cfg.dataset.preprocessing.selections.activity_names,
+            cfg.activity_names,
         )
 
         # generate windowing
         window_metadata, windows = (
             process_sessions_parallely(cfg, sessions_dir, session_metadata)
-            if cfg.dataset.preprocessing.in_parallel
+            if cfg.in_parallel
             else process_sessions_sequentially(cfg, sessions_dir, session_metadata)
         )
 
@@ -160,20 +160,18 @@ def process_session(
     session_df = pd.read_parquet(session_path)
 
     # apply selections
-    session_df = select_channels(
-        session_df, cfg.dataset.preprocessing.selections.sensor_channels
-    )
+    session_df = select_channels(session_df, cfg.sensor_channels)
 
     # resample
-    session_df = resample(session_df, cfg.dataset.info.sampling_freq)
+    session_df = resample(session_df, cfg.sampling_freq)
 
     # generate windowing
     window_metadata, windows = generate_windowing(
         session_id,
         session_df,
-        cfg.dataset.preprocessing.sliding_window.window_time,
-        cfg.dataset.preprocessing.sliding_window.overlap,
-        cfg.common.resampling_freq or cfg.dataset.info.sampling_freq,
+        cfg.window_time,
+        cfg.window_overlap,
+        cfg.sampling_freq,
     )
 
     if window_metadata is None or windows is None:
