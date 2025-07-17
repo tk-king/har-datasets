@@ -1,5 +1,6 @@
 from typing import Dict, Tuple
 import pandas as pd
+import shortuuid
 
 
 def generate_windowing(
@@ -39,7 +40,9 @@ def generate_windowing(
         window_df = window_df.drop(columns=["timestamp"]).reset_index(drop=True)
 
         # create unique window id
-        window_id = f"{session_id}_{int(current_start_time.timestamp())}"
+        window_id = shortuuid.uuid(
+            name=f"{session_id}_{current_start_time.isoformat()}"
+        )
 
         # add window to windows
         windows[window_id] = window_df
