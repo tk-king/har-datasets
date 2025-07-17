@@ -7,11 +7,12 @@ from tqdm import tqdm
 
 from whar_datasets.core.config import NormType, WHARConfig
 from whar_datasets.core.sampling import get_window
-from whar_datasets.core.utils.caching import cache_norm_params_hash, cache_windows
-from whar_datasets.core.utils.hashing import (
-    create_norm_params_hash,
-    load_norm_params_hash,
-)
+
+# from whar_datasets.core.utils.caching import cache_norm_params_hash, cache_windows
+# from whar_datasets.core.utils.hashing import (
+#     create_norm_params_hash,
+#     load_norm_params_hash,
+# )
 from whar_datasets.core.utils.loading import load_window, load_windows
 
 NormParams: TypeAlias = Tuple[Dict[str, float], Dict[str, float]]

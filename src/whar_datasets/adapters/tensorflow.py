@@ -1,14 +1,13 @@
 import random
-from typing import List, Tuple
-
+from typing import Tuple
 import numpy as np
 import tensorflow as tf
 
-from whar_datasets.core.normalization import get_norm_params, normalize_window
 from whar_datasets.core.preprocessing import preprocess
 from whar_datasets.core.sampling import get_label, get_window
 from whar_datasets.core.splitting import get_split
-from whar_datasets.core.utils.loading import load_session_metadata, load_windowing
+from whar_datasets.core.normalization import normalize_windows
+from whar_datasets.core.utils.loading import load_session_metadata, load_window_metadata
 from whar_datasets.core.weighting import compute_class_weights
 from whar_datasets.core.config import WHARConfig
 
@@ -17,13 +16,11 @@ class TensorflowAdapter:
     def __init__(self, cfg: WHARConfig, override_cache: bool = False):
         self.cfg = cfg
 
-        self.cache_dir, self.windows_dir, self.hashes_dir = preprocess(
-            cfg, override_cache
-        )
+        dirs = preprocess(cfg, override_cache)
+        self.cache_dir, self.windows_dir, self.hashes_dir = dirs
+
         self.session_metadata = load_session_metadata(self.cache_dir)
-        self.window_metadata, self.windows = load_windowing(
-            self.cache_dir, self.windows_dir, self.cfg
-        )
+        self.window_metadata = load_window_metadata(self.cache_dir)
 
         print(f"subject_ids: {np.sort(self.session_metadata['subject_id'].unique())}")
         print(f"activity_ids: {np.sort(self.session_metadata['activity_id'].unique())}")
@@ -34,44 +31,12 @@ class TensorflowAdapter:
         np.random.seed(self.seed)
         tf.random.set_seed(self.seed)
 
-        # For tracking indices used in each dataset
-        self.train_indices: List[int] = []
-        self.val_indices: List[int] = []
-        self.test_indices: List[int] = []
-
-    def get_tf_dataset(
-        self, indices: List[int], batch_size: int, shuffle: bool = False
-    ) -> tf.data.Dataset:
-        def generator():
-            for idx in indices:
-                label = get_label(idx, self.window_metadata, self.session_metadata)
-                window = get_window(
-                    idx, self.cfg, self.windows_dir, self.window_metadata, self.windows
-                )
-                window = normalize_window(self.cfg, self.norm_params, window)
-
-                yield (
-                    tf.convert_to_tensor(window.values, dtype=tf.float32),
-                    tf.convert_to_tensor(label, dtype=tf.int32),
-                )
-
-        dataset = tf.data.Dataset.from_generator(
-            generator,
-            output_signature=(
-                tf.TensorSpec(shape=(None, None), dtype=tf.float32),
-                tf.TensorSpec(shape=(), dtype=tf.int32),
-            ),
-        )
-
-        if shuffle:
-            dataset = dataset.shuffle(buffer_size=len(indices), seed=self.seed)
-
-        return dataset.batch(batch_size)
-
     def get_datasets(
         self,
         train_batch_size: int,
+        train_shuffle: bool = True,
         subj_cross_val_group_index: int | None = None,
+        override_cache: bool = False,
     ) -> Tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
         self.train_indices, self.val_indices, self.test_indices = get_split(
             self.cfg,
@@ -80,43 +45,59 @@ class TensorflowAdapter:
             subj_cross_val_group_index,
         )
 
-        # get normalization parameters from train indices
-        self.norm_params = get_norm_params(
+        # normalize windows
+        self.window_metadata, self.windows = normalize_windows(
             self.cfg,
             self.train_indices,
+            self.hashes_dir,
             self.windows_dir,
             self.window_metadata,
-            self.windows,
+            override_cache,
         )
+
+        # Prepare full dataset
+        full_dataset = [self._get_item(i) for i in range(len(self.window_metadata))]
+
+        # Split
+        def subset(indices):
+            subset_data = [full_dataset[i] for i in indices]
+            labels, features = zip(*subset_data)
+            ds = tf.data.Dataset.from_tensor_slices(
+                (tf.stack(features), tf.stack(labels))
+            )
+            return ds
+
+        train_ds = subset(self.train_indices)
+        val_ds = subset(self.val_indices)
+        test_ds = subset(self.test_indices)
+
+        if train_shuffle:
+            train_ds = train_ds.shuffle(
+                buffer_size=len(self.train_indices), seed=self.seed
+            )
+
+        train_ds = train_ds.batch(train_batch_size)
+        val_ds = val_ds.batch(len(self.val_indices))
+        test_ds = test_ds.batch(1)
 
         print(
             f"train: {len(self.train_indices)} | val: {len(self.val_indices)} | test: {len(self.test_indices)}"
         )
 
-        train_dataset = self.get_tf_dataset(
-            self.train_indices, batch_size=train_batch_size, shuffle=True
-        )
-        val_dataset = self.get_tf_dataset(
-            self.val_indices, batch_size=len(self.val_indices), shuffle=False
-        )
-        test_dataset = self.get_tf_dataset(
-            self.test_indices, batch_size=1, shuffle=False
-        )
+        return train_ds, val_ds, test_ds
 
-        return train_dataset, val_dataset, test_dataset
-
-    def get_class_weights(self, dataset: str = "train") -> dict:
-        if dataset == "train":
-            indices = self.train_indices
-        elif dataset == "val":
-            indices = self.val_indices
-        elif dataset == "test":
-            indices = self.test_indices
-        else:
-            raise ValueError(
-                f"Invalid dataset name: {dataset}. Use 'train', 'val', or 'test'."
-            )
-
+    def get_class_weights(self, indices: list[int]) -> dict:
         return compute_class_weights(
             self.session_metadata, self.window_metadata.iloc[indices]
         )
+
+    def _get_item(self, index: int) -> Tuple[tf.Tensor, tf.Tensor]:
+        label = get_label(index, self.window_metadata, self.session_metadata)
+        window = get_window(
+            index, self.cfg, self.windows_dir, self.window_metadata, self.windows
+        )
+
+        y = tf.convert_to_tensor(label, dtype=tf.int64)
+        x = tf.convert_to_tensor(window.values, dtype=tf.float32)
+
+        return y, x

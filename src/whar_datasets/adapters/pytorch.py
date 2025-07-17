@@ -9,11 +9,7 @@ from whar_datasets.core.preprocessing import preprocess
 from whar_datasets.core.sampling import get_label, get_window
 from whar_datasets.core.splitting import get_split
 from whar_datasets.core.normalization import normalize_windows
-from whar_datasets.core.utils.loading import (
-    load_session_metadata,
-    load_window_metadata,
-    load_windows,
-)
+from whar_datasets.core.utils.loading import load_session_metadata, load_window_metadata
 from whar_datasets.core.weighting import compute_class_weights
 from whar_datasets.core.config import WHARConfig
 
@@ -57,7 +53,7 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
             subj_cross_val_group_index,
         )
 
-        # normalize windows and cache them
+        # normalize windows
         self.window_metadata, self.windows = normalize_windows(
             self.cfg,
             self.train_indices,
