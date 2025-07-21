@@ -21,7 +21,7 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
         self.cfg = cfg
 
         dirs = preprocess(cfg, override_cache)
-        self.cache_dir, self.windows_dir, self.hashes_dir = dirs
+        self.cache_dir, self.windows_dir, self.normalized_dir, self.hashes_dir = dirs
 
         self.session_metadata = load_session_metadata(self.cache_dir)
         self.window_metadata = load_window_metadata(self.cache_dir)
@@ -57,8 +57,9 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
         self.window_metadata, self.windows = normalize_windows(
             self.cfg,
             self.train_indices,
-            self.hashes_dir,
             self.windows_dir,
+            self.normalized_dir,
+            self.hashes_dir,
             self.window_metadata,
             override_cache,
         )
@@ -111,7 +112,7 @@ class PytorchAdapter(Dataset[Tuple[Tensor, Tensor]]):
 
         # get window
         window = get_window(
-            index, self.cfg, self.windows_dir, self.window_metadata, self.windows
+            index, self.cfg, self.normalized_dir, self.window_metadata, self.windows
         )
 
         # convert to tensors

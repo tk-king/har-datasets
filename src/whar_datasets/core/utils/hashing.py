@@ -33,6 +33,7 @@ def create_cfg_hash(cfg: WHARConfig) -> str:
 
 
 def create_norm_params_hash(
+    cfg_hash: str,
     norm_params: Tuple[Dict[str, float], Dict[str, float]] | None,
 ) -> str:
     print("Creating normalization parameters hash...")
@@ -40,10 +41,8 @@ def create_norm_params_hash(
     # convert to json
     norm_params_json = json.dumps(norm_params, sort_keys=True)
 
-    # create hash from json
-    hash = hashlib.sha256(
-        norm_params_json.encode("utf-8") if norm_params_json else b""
-    ).hexdigest()
+    # create hash from json and cfg hash
+    hash = hashlib.sha256((cfg_hash + norm_params_json).encode("utf-8")).hexdigest()
 
     return hash
 
