@@ -11,7 +11,7 @@ This library provides data handling support for popular WHAR (Wearbale Human Act
 # How to Install
 
 ```
-pip install "git+https://github.com/maxbrzr/whar-datasets.git"
+pip install "git+https://github.com/teco-kit/whar-datasets.git"
 ```
 
 This installs the library into the active environment.
