@@ -51,7 +51,7 @@ Not yet natively supported WHAR datasets can be integrated via a custom configur
 | ⬜        | [MobiAct](https://bmi.hmu.gr/the-mobifall-and-mobiact-datasets-2/#) | 2016 | *The MobiAct dataset: recognition of activities of daily living using smartphones*         |
 | ⬜        | [ExtraSensory](http://extrasensory.ucsd.edu/)   | 2016 | *Recognizing Detailed Human Context In-the-Wild from Smartphones and Smartwatches*         |
 | ✅        | [HAPT](https://archive.ics.uci.edu/dataset/341/smartphone+based+recognition+of+human+activities+and+postural+transitions)           | 2016 | *Transition-aware human activity recognition using smartphones.*                           |
-| ⬜        | [RealWorld](https://www.uni-mannheim.de/dws/research/projects/activity-recognition/dataset/dataset-realworld/)      | 2016 | *On-body Localization of Wearable Devices: An Investigation of Position-Aware Activity*    |
+| ⬜        | [RealWorld](https://www.uni-mannheim.de/dws/research/projects/activity-recognition/dataset/dataset-realworld/)      | 2016 | *On-body Localization of Wearable Devices: An Investigation of Position-Aware Activity Recognition*    |
 | ⬜        | [UniMiB-SHAR](http://www.sal.disco.unimib.it/technologies/unimib-shar/) | 2017 | *Unimib shar: a dataset for human activity recognition using acceleration data from smartphones* |
 | ⬜        | [UMAFall](https://figshare.com/articles/dataset/UMA_ADL_FALL_Dataset_zip/4214283) | 2017 | *UMAFall: Fall Detection Dataset*                                                          |
 | ⬜        | [SHL](http://www.shl-dataset.org/dataset/)            | 2018 | *The University of Sussex-Huawei Locomotion and Transportation Dataset for Multimodal Analytics with Mobile Devices* |
