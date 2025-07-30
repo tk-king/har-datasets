@@ -38,10 +38,10 @@ def postprocess(
     # postprocess and cache if needed
     if override_cache or norm_params_hash != load_norm_params_hash(hashes_dir):
         normalized = normalize_windows_seq(cfg, norm_params, window_metadata, windows)
-        transformed = transform_windows_seq(cfg, window_metadata, windows)
+        transformed = transform_windows_seq(cfg, window_metadata, normalized)
 
         # combine normalized and transformed into samples
-        assert normalized.keys() == transformed.keys()
+        assert windows.keys() == normalized.keys() == transformed.keys()
         samples: Dict[str, List[np.ndarray]] = {
             window_id: [normalized[window_id], *transformed[window_id]]
             for window_id in normalized.keys()

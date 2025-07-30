@@ -7,7 +7,7 @@ from whar_datasets.support.configs.cfg_dsads import cfg_dsads
 from whar_datasets.support.configs.cfg_mhealth import cfg_mhealth
 from whar_datasets.support.configs.cfg_opportunity import cfg_opportunity
 from whar_datasets.support.configs.cfg_pamap2 import cfg_pamap2
-from whar_datasets.support.configs.cfg_wisdm_12 import cfg_wisdm_12
+from whar_datasets.support.configs.cfg_wisdm import cfg_wisdm
 from whar_datasets.support.configs.cfg_uci_har import cfg_uci_har
 from whar_datasets.support.configs.cfg_motion_sense import cfg_motion_sense
 from whar_datasets.support.configs.cfg_daphnet import cfg_daphnet
@@ -16,7 +16,7 @@ from whar_datasets.support.configs.cfg_har_sense import cfg_har_sense
 
 class WHARDatasetID(Enum):
     UCI_HAR = "uci_har"
-    WISDM_12 = "wisdm_12"
+    WISDM = "wisdm"
     PAMAP2 = "pamap2"
     MOTION_SENSE = "motion_sense"
     OPPORTUNITY = "opportunity"
@@ -29,7 +29,7 @@ class WHARDatasetID(Enum):
 
 har_dataset_dict: Dict[WHARDatasetID, WHARConfig] = {
     WHARDatasetID.UCI_HAR: (cfg_uci_har),
-    WHARDatasetID.WISDM_12: (cfg_wisdm_12),
+    WHARDatasetID.WISDM: (cfg_wisdm),
     WHARDatasetID.PAMAP2: (cfg_pamap2),
     WHARDatasetID.MOTION_SENSE: (cfg_motion_sense),
     WHARDatasetID.OPPORTUNITY: (cfg_opportunity),

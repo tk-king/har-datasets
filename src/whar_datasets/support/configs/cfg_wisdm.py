@@ -142,9 +142,9 @@ def parse_wisdm_12(
     return activity_metadata, session_metadata, sessions
 
 
-cfg_wisdm_12 = WHARConfig(
+cfg_wisdm = WHARConfig(
     # Info + common
-    dataset_id="wisdm_12",
+    dataset_id="wisdm",
     download_url="https://www.cis.fordham.edu/wisdm/includes/datasets/latest/WISDM_ar_latest.tar.gz",
     sampling_freq=20,
     num_of_subjects=36,

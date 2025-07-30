@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 from matplotlib import pyplot as plt
 import numpy as np
 import pywt  # type: ignore
@@ -28,7 +28,7 @@ def signal_to_dwt_grid(
     wavelet: str = "db4",
     mode: str = "periodization",
     level: int | None = None,
-) -> List[np.ndarray]:
+) -> Tuple[np.ndarray, List[List[int]]]:
     # (time_steps, sensor_channels)
 
     level = level or int(
@@ -59,7 +59,7 @@ def signal_to_dwt_grid(
     grid = np.stack(all_grids, axis=0)
     # (sensor_channels, levels+1, max_len)
 
-    return [grid, np.array(all_lengths)]
+    return grid, all_lengths
 
 
 def dtw_grid_to_signal(
