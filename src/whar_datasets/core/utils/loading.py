@@ -1,4 +1,3 @@
-import glob
 import os
 from typing import Dict, List
 import numpy as np
@@ -43,10 +42,8 @@ def load_windows(
 
 
 def load_sample(samples_dir: str, window_id: str) -> List[np.ndarray]:
-    sample_paths = sorted(
-        glob.glob(os.path.join(samples_dir, f"sample_{window_id}_*.npy"))
-    )
-    return [np.load(p) for p in sample_paths]
+    sample_path = os.path.join(samples_dir, f"sample_{window_id}.npy")
+    return np.load(sample_path, allow_pickle=True).tolist()
 
 
 def load_window(windows_dir: str, window_id: str) -> pd.DataFrame:

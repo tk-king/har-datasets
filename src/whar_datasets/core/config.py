@@ -50,7 +50,7 @@ class WHARConfig(BaseModel):
     val_percentage: float = 0.1
     normalization: Optional[NormType] = NormType.STD_GLOBALLY
     transform: Optional[TransformType] = TransformType.DWT
-    cache_postprocessing: bool = False
+    cache_postprocessing: bool = True
     in_memory: bool = True
 
     # training fields

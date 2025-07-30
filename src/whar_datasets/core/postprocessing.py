@@ -5,7 +5,6 @@ import pandas as pd
 from whar_datasets.core.config import WHARConfig
 from whar_datasets.core.utils.caching import cache_norm_params_hash, cache_samples
 from whar_datasets.core.utils.hashing import (
-    create_cfg_hash,
     create_norm_params_hash,
     load_cfg_hash,
     load_norm_params_hash,

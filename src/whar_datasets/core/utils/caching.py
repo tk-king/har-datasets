@@ -43,17 +43,8 @@ def cache_samples(
     # save samples
     for window_id in loop:
         assert isinstance(window_id, str)
-        sample = samples[window_id]
-
-        # create path for each entry in sample
-        sample_paths = [
-            os.path.join(samples_dir, f"sample_{window_id}_{i}.npy")
-            for i in range(len(sample))
-        ]
-
-        # save each sample entry
-        for i, sample_path in enumerate(sample_paths):
-            np.save(sample_path, sample[i])
+        sample_path = os.path.join(samples_dir, f"sample_{window_id}.npy")
+        np.save(sample_path, np.array(samples[window_id], dtype=object))
 
 
 def cache_windows(
