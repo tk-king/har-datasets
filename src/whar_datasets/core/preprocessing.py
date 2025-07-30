@@ -45,7 +45,7 @@ def preprocess(
     cache_dir = os.path.join(dataset_dir, "cache/")
     sessions_dir = os.path.join(cache_dir, "sessions/")
     windows_dir = os.path.join(cache_dir, "windows/")
-    normalized_dir = os.path.join(cache_dir, "normalized/")
+    samples_dir = os.path.join(cache_dir, "samples/")
     hashes_dir = os.path.join(cache_dir, "hashes/")
 
     # if not yet done, download and extract
@@ -93,7 +93,7 @@ def preprocess(
         cache_windows(windows_dir, window_metadata, windows)
         cache_cfg_hash(hashes_dir, cfg_hash)
 
-    return cache_dir, windows_dir, normalized_dir, hashes_dir
+    return cache_dir, windows_dir, samples_dir, hashes_dir
 
 
 def process_sessions_sequentially(

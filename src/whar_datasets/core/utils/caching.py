@@ -1,6 +1,7 @@
 import os
 import shutil
-from typing import Dict
+from typing import Dict, List
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
@@ -23,6 +24,38 @@ def cache_norm_params_hash(hashes_dir: str, cfg_hash: str) -> None:
         f.write(cfg_hash)
 
 
+def cache_samples(
+    samples_dir: str,
+    window_metadata: pd.DataFrame,
+    samples: Dict[str, List[np.ndarray]],
+) -> None:
+    # delete windowing directory if it exists
+    if os.path.exists(samples_dir):
+        shutil.rmtree(samples_dir)
+
+    # create samples directory if it does not exist
+    os.makedirs(samples_dir, exist_ok=True)
+
+    # loop over index of window index
+    loop = tqdm(window_metadata["window_id"])
+    loop.set_description("Caching samples")
+
+    # save samples
+    for window_id in loop:
+        assert isinstance(window_id, str)
+        sample = samples[window_id]
+
+        # create path for each entry in sample
+        sample_paths = [
+            os.path.join(samples_dir, f"sample_{window_id}_{i}.npy")
+            for i in range(len(sample))
+        ]
+
+        # save each sample entry
+        for i, sample_path in enumerate(sample_paths):
+            np.save(sample_path, sample[i])
+
+
 def cache_windows(
     windows_dir: str, window_metadata: pd.DataFrame, windows: Dict[str, pd.DataFrame]
 ) -> None:
@@ -40,8 +73,6 @@ def cache_windows(
     # save windows
     for window_id in loop:
         assert isinstance(window_id, str)
-
-        # save window
         window_path = os.path.join(windows_dir, f"window_{window_id}.parquet")
         windows[window_id].to_parquet(window_path, index=False)
 
@@ -84,9 +115,8 @@ def cache_common_format(
     loop = tqdm(session_metadata["session_id"])
     loop.set_description("Caching sessions")
 
+    # save sessions
     for session_id in loop:
         assert isinstance(session_id, int)
-
-        # get and save session
         session_path = os.path.join(sessions_dir, f"session_{session_id}.parquet")
         sessions[session_id].to_parquet(session_path, index=False)

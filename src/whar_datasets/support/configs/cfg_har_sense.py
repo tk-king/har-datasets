@@ -163,7 +163,6 @@ cfg_har_sense = WHARConfig(
     window_time=2.56,
     window_overlap=0.0,
     # Training fields (flattened splits)
-    given_train_subj_ids=list(range(0, 10)),
-    given_test_subj_ids=list(range(10, 12)),
+    given_train_test_subj_ids=(list(range(0, 10)), list(range(10, 12))),
     subj_cross_val_split_groups=[[0, 1], [2, 3], [4, 5], [6, 7], [8, 9], [10, 11]],
 )

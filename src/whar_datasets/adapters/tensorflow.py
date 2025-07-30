@@ -6,7 +6,7 @@ import tensorflow as tf
 from whar_datasets.core.preprocessing import preprocess
 from whar_datasets.core.sampling import get_label, get_window
 from whar_datasets.core.splitting import get_split
-from whar_datasets.core.normalization import normalize_windows
+from whar_datasets.core.utils.normalization import normalize_windows
 from whar_datasets.core.utils.loading import load_session_metadata, load_window_metadata
 from whar_datasets.core.weighting import compute_class_weights
 from whar_datasets.core.config import WHARConfig
@@ -46,7 +46,7 @@ class TensorflowAdapter:
         )
 
         # normalize windows
-        self.window_metadata, self.windows = normalize_windows(
+        self.windows = normalize_windows(
             self.cfg,
             self.train_indices,
             self.windows_dir,

@@ -1,7 +1,8 @@
-from typing import Dict
+from typing import Dict, List
+import numpy as np
 import pandas as pd
 from whar_datasets.core.config import WHARConfig
-from whar_datasets.core.utils.loading import load_window
+from whar_datasets.core.utils.loading import load_sample, load_window
 
 
 def get_label(
@@ -43,22 +44,22 @@ def get_window(
     return window
 
 
-# def get_spectrogram(
-#     index: int,
-#     cfg: WHARConfig,
-#     spectograms_dir: str,
-#     window_metadata: pd.DataFrame,
-#     spectograms: Dict[str, np.ndarray] | None,
-# ) -> np.ndarray:
-#     # get window_id
-#     window_id = window_metadata.at[index]["window_id"]
-#     assert isinstance(window_id, str)
+def get_sample(
+    index: int,
+    cfg: WHARConfig,
+    samples_dir: str,
+    window_metadata: pd.DataFrame,
+    samples: Dict[str, List[np.ndarray]] | None,
+) -> List[np.ndarray]:
+    # get window_id
+    window_id = window_metadata.at[index, "window_id"]
+    assert isinstance(window_id, str)
 
-#     # select or load spectogram
-#     spect = (
-#         spectograms[window_id]
-#         if spectograms is not None and cfg.dataset.training.in_memory
-#         else load_spectrogram(spectograms_dir, int(window_id))
-#     )
+    # select or load sample
+    sample = (
+        samples[window_id]
+        if samples is not None and cfg.in_memory
+        else load_sample(samples_dir, window_id)
+    )
 
-#     return spect
+    return sample

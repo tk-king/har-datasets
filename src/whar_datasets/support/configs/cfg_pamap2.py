@@ -272,7 +272,6 @@ cfg_pamap2 = WHARConfig(
     window_time=1.28,
     window_overlap=0.5,
     # Training (split info)
-    given_train_subj_ids=list(range(0, 7)),
-    given_test_subj_ids=list(range(7, 9)),
+    given_train_test_subj_ids=(list(range(0, 7)), list(range(7, 9))),
     subj_cross_val_split_groups=[[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]],
 )

@@ -17,8 +17,7 @@ def create_cfg_hash(cfg: WHARConfig) -> str:
     cfg.num_epochs = None  # type: ignore
     cfg.seed = None  # type: ignore
     cfg.in_memory = None  # type: ignore
-    cfg.given_train_subj_ids = None  # type: ignore
-    cfg.given_test_subj_ids = None  # type: ignore
+    cfg.given_train_test_subj_ids = None  # type: ignore
     cfg.subj_cross_val_split_groups = None  # type: ignore
     cfg.val_percentage = None  # type: ignore
     cfg.normalization = None  # type: ignore

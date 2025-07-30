@@ -549,7 +549,6 @@ cfg_opportunity = WHARConfig(
     window_time=1,
     window_overlap=0.5,
     # Training (split info)
-    given_train_subj_ids=list(range(1, 4)),
-    given_test_subj_ids=list(range(0, 1)),
+    given_train_test_subj_ids=(list(range(1, 4)), list(range(4, 7))),
     subj_cross_val_split_groups=[[0], [1], [2], [3]],
 )

@@ -13,13 +13,10 @@ def get_split(
 ) -> Tuple[List[int], List[int], List[int]]:
     # if no split group is specified, use given split
     if subj_cross_val_group_index is None:
-        assert (
-            cfg.given_test_subj_ids is not None and cfg.given_train_subj_ids is not None
-        )
+        assert cfg.given_train_test_subj_ids is not None
 
         # get subject_ids for each group
-        train_subj_ids = cfg.given_train_subj_ids
-        test_subj_ids = cfg.given_test_subj_ids
+        train_subj_ids, test_subj_ids = cfg.given_train_test_subj_ids
 
         # get window indices for each group
         train_indices = get_window_indices(
