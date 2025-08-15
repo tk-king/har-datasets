@@ -1,3 +1,4 @@
+import math
 import random
 from typing import List, Tuple
 
@@ -37,7 +38,7 @@ def get_split_train_test(
 def split_indices(
     cfg: WHARConfig, indices: List[int], percentages: Tuple[float, ...]
 ) -> Tuple[List[int], ...]:
-    assert sum(percentages) == 1.0
+    assert math.isclose(sum(percentages), 1.0)
 
     # shuffle so subjects are not in order
     random.seed(cfg.seed)
