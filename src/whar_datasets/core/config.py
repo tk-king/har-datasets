@@ -49,7 +49,7 @@ class WHARConfig(BaseModel):
     subj_cross_val_split_groups: Optional[List[List[int]]]
     val_percentage: float = 0.1
     normalization: Optional[NormType] = NormType.STD_GLOBALLY
-    transform: Optional[TransformType] = TransformType.DWT
+    transform: Optional[TransformType] = None
     cache_postprocessing: bool = True
     in_memory: bool = True
 

@@ -8,7 +8,7 @@ from torch.utils.data import Dataset, Subset, DataLoader
 from whar_datasets.core.postprocessing import postprocess
 from whar_datasets.core.preprocessing import preprocess
 from whar_datasets.core.sampling import get_label, get_sample
-from whar_datasets.core.splitting import get_split
+from whar_datasets.core.splitting import get_split_train_val_test
 from whar_datasets.core.utils.loading import load_session_metadata, load_window_metadata
 from whar_datasets.core.weighting import compute_class_weights
 from whar_datasets.core.config import WHARConfig
@@ -43,11 +43,13 @@ class PytorchAdapter(Dataset[Tuple[Tensor, ...]]):
         override_cache: bool = False,
     ) -> Tuple[DataLoader, DataLoader, DataLoader]:
         # get split indices from config
-        self.train_indices, self.val_indices, self.test_indices = get_split(
-            self.cfg,
-            self.session_metadata,
-            self.window_metadata,
-            scv_group_index,
+        self.train_indices, self.val_indices, self.test_indices = (
+            get_split_train_val_test(
+                self.cfg,
+                self.session_metadata,
+                self.window_metadata,
+                scv_group_index,
+            )
         )
 
         # specify split subsets
