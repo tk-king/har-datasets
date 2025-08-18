@@ -56,15 +56,28 @@ class WHARSampler:
             self.window_metadata.iloc[indices],
         )
 
-    def sample(
+    def filter_indices(
         self,
-        num_samples: int,
         indices: List[int],
+        subject_id: int | None = None,
         activity_id: int | None = None,
-        seed: int | None = None,
-    ) -> Tuple[Tensor, ...]:
+    ):
         assert indices is not None
-        assert num_samples > 0
+
+        if subject_id is not None:
+            subset = self.window_metadata.iloc[indices]
+
+            # Merge with session_metadata to get subject_id info
+            merged = subset.merge(
+                self.session_metadata[["session_id", "subject_id"]],
+                on="session_id",
+                how="left",
+            )
+
+            # Filter by subject_id
+            filtered = merged[merged["subject_id"] == subject_id]
+            print(filtered["subject_id"].value_counts())
+            indices = filtered.index.to_list()
 
         if activity_id is not None:
             subset = self.window_metadata.iloc[indices]
@@ -80,6 +93,21 @@ class WHARSampler:
             filtered = merged[merged["activity_id"] == activity_id]
             print(filtered["activity_id"].value_counts())
             indices = filtered.index.to_list()
+
+        return indices
+
+    def sample(
+        self,
+        num_samples: int,
+        indices: List[int],
+        subject_id: int | None = None,
+        activity_id: int | None = None,
+        seed: int | None = None,
+    ) -> Tuple[Tensor, ...]:
+        assert indices is not None
+        assert num_samples > 0
+
+        indices = self.filter_indices(indices, subject_id, activity_id)
 
         # if seed is set make reproducable
         # else seeding with None will be random
@@ -107,7 +135,7 @@ class WHARSampler:
         samples = list(zip(*samples))
         # (num_features, num_samples)
 
-        y = torch.stack([torch.tensor(l, dtype=torch.long) for l in labels])
+        y = torch.stack([torch.tensor(l, dtype=torch.long) for l in labels])  # noqa: E741
         x = [
             torch.stack([torch.tensor(s, dtype=torch.float32) for s in samples[i]])
             for i in range(len(samples))
