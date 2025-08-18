@@ -76,7 +76,6 @@ class WHARSampler:
 
             # Filter by subject_id
             filtered = merged[merged["subject_id"] == subject_id]
-            print(filtered["subject_id"].value_counts())
             indices = filtered.index.to_list()
 
         if activity_id is not None:
@@ -91,7 +90,6 @@ class WHARSampler:
 
             # Filter by activity_id
             filtered = merged[merged["activity_id"] == activity_id]
-            print(filtered["activity_id"].value_counts())
             indices = filtered.index.to_list()
 
         return indices
