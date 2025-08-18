@@ -1,5 +1,6 @@
 import random
 from typing import List, Tuple
+from matplotlib import pyplot as plt
 import numpy as np
 from torch import Tensor
 import torch
@@ -55,6 +56,34 @@ class WHARSampler:
             self.session_metadata,
             self.window_metadata.iloc[indices],
         )
+
+    def plot_indices_statistics(self, indices: List[int]) -> None:
+        subset = self.window_metadata.iloc[indices]
+        merged = subset.merge(
+            self.session_metadata[["session_id", "subject_id", "activity_id"]],
+            on="session_id",
+            how="left",
+        )
+        counts = (
+            merged.groupby(["subject_id", "activity_id"])
+            .size()
+            .reset_index(name="num_samples")
+        )
+
+        # pivot for easier plotting (subjects on x, activities as groups)
+        pivot_table = counts.pivot(
+            index="subject_id", columns="activity_id", values="num_samples"
+        ).fillna(0)
+
+        # plot
+        pivot_table.plot(kind="bar", stacked=False, figsize=(12, 4))
+
+        plt.title("number of samples per subject and activity")
+        plt.xlabel("subject_id")
+        plt.ylabel("number of samples")
+        plt.legend(title="activity_id")
+        plt.tight_layout()
+        plt.show()
 
     def filter_indices(
         self,
