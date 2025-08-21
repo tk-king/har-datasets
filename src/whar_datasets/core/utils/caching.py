@@ -29,22 +29,41 @@ def cache_samples(
     window_metadata: pd.DataFrame,
     samples: Dict[str, List[np.ndarray]],
 ) -> None:
-    # delete windowing directory if it exists
+    # delete samples directory if it exists
     if os.path.exists(samples_dir):
         shutil.rmtree(samples_dir)
 
     # create samples directory if it does not exist
     os.makedirs(samples_dir, exist_ok=True)
 
-    # loop over index of window index
+    # combine all samples into a single DataFrame
+    combined_samples = []
+    
     loop = tqdm(window_metadata["window_id"])
-    loop.set_description("Caching samples")
-
-    # save samples
+    loop.set_description("Combining samples")
+    
     for window_id in loop:
         assert isinstance(window_id, str)
-        sample_path = os.path.join(samples_dir, f"sample_{window_id}.npy")
-        np.save(sample_path, np.array(samples[window_id], dtype=object))
+        # convert list of numpy arrays to a single serialized format for parquet
+        sample_arrays = samples[window_id]
+        
+        # create a row for each array in the sample
+        for array_idx, array in enumerate(sample_arrays):
+            combined_samples.append({
+                'window_id': window_id,
+                'array_index': array_idx,
+                'array_data': array.tobytes(),  # serialize numpy array to bytes
+                'array_shape': array.shape,
+                'array_dtype': str(array.dtype)
+            })
+    
+    # create DataFrame and save to parquet
+    if combined_samples:
+        all_samples_df = pd.DataFrame(combined_samples)
+        
+        # save all samples to a single parquet file
+        samples_path = os.path.join(samples_dir, "all_samples.parquet")
+        all_samples_df.to_parquet(samples_path, index=False)
 
 
 def cache_windows(
@@ -57,15 +76,26 @@ def cache_windows(
     # create windowing directory if it does not exist
     os.makedirs(windows_dir, exist_ok=True)
 
-    # loop over index of window index
+    # combine all windows into a single DataFrame
+    combined_windows = []
+    
     loop = tqdm(window_metadata["window_id"])
-    loop.set_description("Caching windows")
-
-    # save windows
+    loop.set_description("Combining windows")
+    
     for window_id in loop:
         assert isinstance(window_id, str)
-        window_path = os.path.join(windows_dir, f"window_{window_id}.parquet")
-        windows[window_id].to_parquet(window_path, index=False)
+        window_df = windows[window_id].copy()
+        # add window_id column to identify which window each row belongs to
+        window_df['window_id'] = window_id
+        combined_windows.append(window_df)
+    
+    # concatenate all windows into a single DataFrame
+    if combined_windows:
+        all_windows_df = pd.concat(combined_windows, ignore_index=True)
+        
+        # save all windows to a single parquet file
+        windows_path = os.path.join(windows_dir, "all_windows.parquet")
+        all_windows_df.to_parquet(windows_path, index=False)
 
 
 def cache_window_metadata(cache_dir: str, window_metadata: pd.DataFrame) -> None:
