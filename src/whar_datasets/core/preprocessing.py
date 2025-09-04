@@ -31,9 +31,7 @@ from whar_datasets.core.utils.loading import (
 from whar_datasets.core.utils.logging import logger
 
 
-def preprocess(
-    cfg: WHARConfig, override_cache: bool = False
-) -> Tuple[str, str, str, str]:
+def preprocess(cfg: WHARConfig, override_cache: bool) -> Tuple[str, str, str, str]:
     if override_cache:
         logger.info("Overriding cache...")
 
@@ -43,7 +41,7 @@ def preprocess(
     # define directories
     datasets_dir = cfg.datasets_dir
     dataset_dir = os.path.join(datasets_dir, cfg.dataset_id)
-    cache_dir = os.path.join(dataset_dir, "cache/")
+    cache_dir = cfg.cache_dir or os.path.join(dataset_dir, "cache/")
     sessions_dir = os.path.join(cache_dir, "sessions/")
     windows_dir = os.path.join(cache_dir, "windows/")
     samples_dir = os.path.join(cache_dir, "samples/")

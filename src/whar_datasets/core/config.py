@@ -30,6 +30,7 @@ class WHARConfig(BaseModel):
     num_of_activities: int
     num_of_channels: int
     datasets_dir: str
+    cache_dir: Optional[str] = None
 
     # parsing fields
     parse: Parse
