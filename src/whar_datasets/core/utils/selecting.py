@@ -1,13 +1,15 @@
 from typing import List
 import pandas as pd
 
+from whar_datasets.core.utils.logging import logger
+
 
 def select_activities(
     session_metadata: pd.DataFrame,
     activity_metadata: pd.DataFrame,
     activity_names: List[str],
 ) -> pd.DataFrame:
-    print("Selecting activities...")
+    logger.info("Selecting activities...")
 
     # get activity ids corresponding to activity names
     activity_ids = activity_metadata[
@@ -21,7 +23,5 @@ def select_activities(
 
 
 def select_channels(session_df: pd.DataFrame, channels: List[str]) -> pd.DataFrame:
-    # print("Selecting channels...")
-
     # if channels is empty, return df
     return session_df[channels + ["timestamp"]] if len(channels) != 0 else session_df

@@ -15,6 +15,7 @@ from whar_datasets.core.utils.normalization import (
 )
 from whar_datasets.core.utils.loading import load_samples, load_windows
 from whar_datasets.core.utils.transform import transform_windows_seq
+from whar_datasets.core.utils.logging import logger
 
 
 def postprocess(
@@ -26,7 +27,7 @@ def postprocess(
     window_metadata: pd.DataFrame,
     override_cache: bool,
 ) -> Dict[str, List[np.ndarray]] | None:
-    print("Postprocessing...")
+    logger.info("Postprocessing...")
 
     windows = load_windows(window_metadata, windows_dir)
 

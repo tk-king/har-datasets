@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from scipy.signal import spectrogram  # type: ignore
 from tqdm import tqdm
+from whar_datasets.core.utils.logging import logger
 
 
 def generate_spectrograms(
@@ -12,7 +13,7 @@ def generate_spectrograms(
     overlap: int | None,
     mode: str,
 ) -> List[np.ndarray]:
-    print("Generating spectrograms...")
+    logger.info("Generating spectrograms...")
 
     spectrograms: List[np.ndarray] = []
 

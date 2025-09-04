@@ -2,6 +2,7 @@ import os
 import tarfile
 import zipfile
 import requests
+from whar_datasets.core.utils.logging import logger
 
 
 def download(datasets_dir: str, dataset_dir: str, dataset_url: str) -> str:
@@ -23,7 +24,7 @@ def download(datasets_dir: str, dataset_dir: str, dataset_url: str) -> str:
 
     # else download file from url
     else:
-        print(f"Downloading {dataset_url} to {datasets_dir}")
+        logger.info(f"Downloading {dataset_url} to {datasets_dir}")
         response = requests.get(dataset_url)
         with open(file_path, "wb") as f:
             f.write(response.content)
@@ -39,11 +40,11 @@ def extract(file_path: str, dataset_dir: str):
     # extract zip or tar file
     if tarfile.is_tarfile(file_path):
         with tarfile.open(file_path) as tar:
-            print(f"Extracting {file_path} to {dataset_dir}")
+            logger.info(f"Extracting {file_path} to {dataset_dir}")
             tar.extractall(dataset_dir)
     elif zipfile.is_zipfile(file_path):
         with zipfile.ZipFile(file_path) as zip:
-            print(f"Extracting {file_path} to {dataset_dir}")
+            logger.info(f"Extracting {file_path} to {dataset_dir}")
             zip.extractall(dataset_dir)
     else:
         return

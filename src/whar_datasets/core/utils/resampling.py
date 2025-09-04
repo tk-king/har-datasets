@@ -2,8 +2,6 @@ import pandas as pd
 
 
 def resample(session_df: pd.DataFrame, resampling_freq: float) -> pd.DataFrame:
-    # print("Resampling data...")
-
     # convert resampling freq to time delta in ms
     time_delta_ns = int(1e3 / resampling_freq)
 

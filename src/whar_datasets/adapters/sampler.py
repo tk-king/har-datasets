@@ -12,6 +12,7 @@ from whar_datasets.core.splitting import get_split_train_test
 from whar_datasets.core.utils.loading import load_session_metadata, load_window_metadata
 from whar_datasets.core.weighting import compute_class_weights
 from whar_datasets.core.config import WHARConfig
+from whar_datasets.core.utils.logging import logger
 
 
 class WHARSampler:
@@ -24,8 +25,12 @@ class WHARSampler:
         self.session_metadata = load_session_metadata(self.cache_dir)
         self.window_metadata = load_window_metadata(self.cache_dir)
 
-        print(f"subject_ids: {np.sort(self.session_metadata['subject_id'].unique())}")
-        print(f"activity_ids: {np.sort(self.session_metadata['activity_id'].unique())}")
+        logger.info(
+            f"subject_ids: {np.sort(self.session_metadata['subject_id'].unique())}"
+        )
+        logger.info(
+            f"activity_ids: {np.sort(self.session_metadata['activity_id'].unique())}"
+        )
 
         random.seed(cfg.seed)
         np.random.seed(cfg.seed)

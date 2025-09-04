@@ -14,7 +14,7 @@ import json
 dataset_ids = [
     WHARDatasetID.OPPORTUNITY,
     WHARDatasetID.UCI_HAR,
-    WHARDatasetID.WISDM_12,
+    WHARDatasetID.WISDM,
     WHARDatasetID.PAMAP2,
     WHARDatasetID.MOTION_SENSE,
     WHARDatasetID.MHEALTH,
@@ -26,7 +26,7 @@ dataset_ids = [
 
 parallel_times_dict: Dict[str, List[float]] = {
     WHARDatasetID.UCI_HAR.value: [],
-    WHARDatasetID.WISDM_12.value: [],
+    WHARDatasetID.WISDM.value: [],
     WHARDatasetID.PAMAP2.value: [],
     WHARDatasetID.MOTION_SENSE.value: [],
     WHARDatasetID.OPPORTUNITY.value: [],
@@ -39,7 +39,7 @@ parallel_times_dict: Dict[str, List[float]] = {
 
 sequential_times_dict: Dict[str, List[float]] = {
     WHARDatasetID.UCI_HAR.value: [],
-    WHARDatasetID.WISDM_12.value: [],
+    WHARDatasetID.WISDM.value: [],
     WHARDatasetID.PAMAP2.value: [],
     WHARDatasetID.MOTION_SENSE.value: [],
     WHARDatasetID.OPPORTUNITY.value: [],

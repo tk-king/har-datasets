@@ -324,11 +324,6 @@ def parse_opportunity(
         # add subject id
         sub_df.loc[:, "subject_id"] = subject_id
 
-        # print(
-        #     f"NaNs after interpolation (sensors): {sub_df[SENSOR_COLS].isna().sum().sum()}"
-        # )
-        # print(f"NaNs after bfill (labels): {sub_df[LABEL_COLS].isna().sum().sum()}")
-
         # append to list
         sub_dfs.append(sub_df)
 

@@ -28,13 +28,14 @@ from whar_datasets.core.utils.loading import (
     load_activity_metadata,
     load_session_metadata,
 )
+from whar_datasets.core.utils.logging import logger
 
 
 def preprocess(
     cfg: WHARConfig, override_cache: bool = False
 ) -> Tuple[str, str, str, str]:
     if override_cache:
-        print("Overriding cache...")
+        logger.info("Overriding cache...")
 
     # create config hash
     cfg_hash = create_cfg_hash(cfg)
@@ -55,7 +56,7 @@ def preprocess(
 
     # if not yet done, parse and cache common format
     if not check_sessions(cache_dir, sessions_dir) or override_cache:
-        print("Parsing...")
+        logger.info("Parsing...")
         activity_metadata, session_metadata, sessions = cfg.parse(
             dataset_dir, cfg.activity_id_col
         )

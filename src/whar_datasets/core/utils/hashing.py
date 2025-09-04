@@ -3,10 +3,11 @@ import json
 from typing import Dict, Tuple
 from whar_datasets.core.config import WHARConfig
 import os
+from whar_datasets.core.utils.logging import logger
 
 
 def create_cfg_hash(cfg: WHARConfig) -> str:
-    print("Creating config hash...")
+    logger.info("Creating config hash...")
 
     # copy config to not modify original
     cfg = cfg.model_copy(deep=True)
@@ -35,7 +36,7 @@ def create_norm_params_hash(
     cfg_hash: str,
     norm_params: Tuple[Dict[str, float], Dict[str, float]] | None,
 ) -> str:
-    print("Creating normalization parameters hash...")
+    logger.info("Creating normalization parameters hash...")
 
     # convert to json
     norm_params_json = json.dumps(norm_params, sort_keys=True)
@@ -47,7 +48,7 @@ def create_norm_params_hash(
 
 
 def load_cfg_hash(hashes_dir: str) -> str:
-    print("Loading config hash...")
+    logger.info("Loading config hash...")
 
     # define cfg hash file path
     hash_path = os.path.join(hashes_dir, "cfg_hash.txt")
@@ -61,7 +62,7 @@ def load_cfg_hash(hashes_dir: str) -> str:
 
 
 def load_norm_params_hash(hashes_dir: str) -> str:
-    print("Loading normalization parameters hash...")
+    logger.info("Loading normalization parameters hash...")
 
     # define cfg hash file path
     hash_path = os.path.join(hashes_dir, "norm_params_hash.txt")

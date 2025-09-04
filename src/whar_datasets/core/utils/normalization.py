@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from whar_datasets.core.config import NormType, WHARConfig
+from whar_datasets.core.utils.logging import logger
 
 NormParams: TypeAlias = Tuple[Dict[str, float], Dict[str, float]]
 
@@ -42,7 +43,7 @@ def get_norm_params(
     window_metadata: pd.DataFrame,
     windows: Dict[str, pd.DataFrame],
 ) -> NormParams | None:
-    print("Getting normalization parameters...")
+    logger.info("Getting normalization parameters...")
 
     # return None if per sample normalization
     if (

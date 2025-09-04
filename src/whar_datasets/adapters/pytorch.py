@@ -12,6 +12,7 @@ from whar_datasets.core.splitting import get_split_train_val_test
 from whar_datasets.core.utils.loading import load_session_metadata, load_window_metadata
 from whar_datasets.core.weighting import compute_class_weights
 from whar_datasets.core.config import WHARConfig
+from whar_datasets.core.utils.logging import logger
 
 
 class PytorchAdapter(Dataset[Tuple[Tensor, ...]]):
@@ -26,8 +27,12 @@ class PytorchAdapter(Dataset[Tuple[Tensor, ...]]):
         self.session_metadata = load_session_metadata(self.cache_dir)
         self.window_metadata = load_window_metadata(self.cache_dir)
 
-        print(f"subject_ids: {np.sort(self.session_metadata['subject_id'].unique())}")
-        print(f"activity_ids: {np.sort(self.session_metadata['activity_id'].unique())}")
+        logger.info(
+            f"subject_ids: {np.sort(self.session_metadata['subject_id'].unique())}"
+        )
+        logger.info(
+            f"activity_ids: {np.sort(self.session_metadata['activity_id'].unique())}"
+        )
 
         torch.manual_seed(cfg.seed)
         random.seed(cfg.seed)
@@ -56,7 +61,9 @@ class PytorchAdapter(Dataset[Tuple[Tensor, ...]]):
         train_set = Subset(self, self.train_indices)
         test_set = Subset(self, self.test_indices)
         val_set = Subset(self, self.val_indices)
-        print(f"train: {len(train_set)} | val: {len(val_set)} | test: {len(test_set)}")
+        logger.info(
+            f"train: {len(train_set)} | val: {len(val_set)} | test: {len(test_set)}"
+        )
 
         # create dataloaders from split
         train_loader = DataLoader(
