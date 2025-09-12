@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from whar_datasets.core.utils.hashing import load_cfg_hash
 from whar_datasets.core.utils.logging import logger
@@ -40,9 +41,7 @@ def check_sessions(cache_dir: str, sessions_dir: str) -> bool:
     return True
 
 
-def check_windowing(
-    cache_dir: str, windows_dir: str, hashes_dir: str, cfg_hash: str
-) -> bool:
+def check_windowing(cache_dir: Path, windows_dir: Path, hashes_dir: Path) -> bool:
     logger.info("Checking windowing...")
 
     if not os.path.exists(windows_dir):
@@ -57,12 +56,6 @@ def check_windowing(
 
     if not os.path.exists(window_metadata_path):
         logger.warning(f"Window index file not found at '{window_metadata_path}'.")
-        return False
-
-    current_hash = load_cfg_hash(hashes_dir)
-
-    if cfg_hash != current_hash:
-        logger.warning("Config hash mismatch.")
         return False
 
     logger.info("Windowing exists.")

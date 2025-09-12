@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Dict, List
 import numpy as np
 import pandas as pd
@@ -26,7 +27,7 @@ def get_label(
 def get_sample(
     index: int,
     cfg: WHARConfig,
-    samples_dir: str,
+    samples_dir: Path,
     window_metadata: pd.DataFrame,
     samples: Dict[str, List[np.ndarray]] | None,
 ) -> List[np.ndarray]:

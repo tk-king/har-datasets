@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import shutil
 from typing import Dict, List
 import numpy as np
@@ -25,7 +26,7 @@ def cache_norm_params_hash(hashes_dir: str, cfg_hash: str) -> None:
 
 
 def cache_samples(
-    samples_dir: str,
+    samples_dir: Path,
     window_metadata: pd.DataFrame,
     samples: Dict[str, List[np.ndarray]],
 ) -> None:
@@ -48,7 +49,7 @@ def cache_samples(
 
 
 def cache_windows(
-    windows_dir: str, window_metadata: pd.DataFrame, windows: Dict[str, pd.DataFrame]
+    windows_dir: Path, window_metadata: pd.DataFrame, windows: Dict[str, pd.DataFrame]
 ) -> None:
     # delete windowing directory if it exists
     if os.path.exists(windows_dir):
@@ -68,7 +69,7 @@ def cache_windows(
         windows[window_id].to_parquet(window_path, index=False)
 
 
-def cache_window_metadata(cache_dir: str, window_metadata: pd.DataFrame) -> None:
+def cache_window_metadata(cache_dir: Path, window_metadata: pd.DataFrame) -> None:
     # create directories if do not exist
     os.makedirs(cache_dir, exist_ok=True)
 

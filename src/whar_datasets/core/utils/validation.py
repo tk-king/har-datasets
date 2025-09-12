@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from dask.delayed import delayed
 from dask.base import compute
 from dask.diagnostics.progress import ProgressBar
@@ -9,7 +10,9 @@ from whar_datasets.core.config import WHARConfig
 from whar_datasets.core.utils.logging import logger
 
 
-def validate_common_format(cfg: WHARConfig, cache_dir: str, sessions_dir: str) -> bool:
+def validate_common_format(
+    cfg: WHARConfig, cache_dir: Path, sessions_dir: Path
+) -> bool:
     logger.info("Validating common format...")
 
     # define paths
@@ -96,7 +99,7 @@ def validate_common_format(cfg: WHARConfig, cache_dir: str, sessions_dir: str) -
 
 
 def validate_sessions_sequentially(
-    cfg: WHARConfig, sessions_dir: str, session_metadata: pd.DataFrame
+    cfg: WHARConfig, sessions_dir: Path, session_metadata: pd.DataFrame
 ) -> bool:
     loop = tqdm(session_metadata["session_id"])
     loop.set_description("Validating sessions")
@@ -109,7 +112,7 @@ def validate_sessions_sequentially(
 
 
 def validate_sessions_parallely(
-    cfg: WHARConfig, sessions_dir: str, session_metadata: pd.DataFrame
+    cfg: WHARConfig, sessions_dir: Path, session_metadata: pd.DataFrame
 ) -> bool:
     @delayed
     def validate_session_delayed(session_id: int) -> bool:
@@ -130,7 +133,7 @@ def validate_sessions_parallely(
     return all(results)
 
 
-def validate_session(cfg: WHARConfig, sessions_dir, session_id: int) -> bool:
+def validate_session(cfg: WHARConfig, sessions_dir: Path, session_id: int) -> bool:
     session_path = os.path.join(sessions_dir, f"session_{session_id}.parquet")
 
     if not os.path.exists(session_path):
