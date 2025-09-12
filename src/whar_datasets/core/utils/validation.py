@@ -16,19 +16,19 @@ def validate_common_format(
     logger.info("Validating common format...")
 
     # define paths
-    session_metadata_path = os.path.join(cache_dir, "session_metadata.parquet")
-    activity_metadata_path = os.path.join(cache_dir, "activity_metadata.parquet")
+    session_metadata_path = cache_dir / "session_metadata.parquet"
+    activity_metadata_path = cache_dir / "activity_metadata.parquet"
 
     # Check paths
-    if not os.path.exists(sessions_dir):
+    if not sessions_dir.exists():
         logger.error(f"sessions directory does not exist at {sessions_dir}")
         return False
 
-    if not os.path.exists(session_metadata_path):
+    if not session_metadata_path.exists():
         logger.error(f"session_metadata.parquet not found at {session_metadata_path}")
         return False
 
-    if not os.path.exists(activity_metadata_path):
+    if not activity_metadata_path.exists():
         logger.error(f"activity_metadata.parquet not found at {activity_metadata_path}")
         return False
 
@@ -134,9 +134,9 @@ def validate_sessions_parallely(
 
 
 def validate_session(cfg: WHARConfig, sessions_dir: Path, session_id: int) -> bool:
-    session_path = os.path.join(sessions_dir, f"session_{session_id}.parquet")
+    session_path = sessions_dir / f"session_{session_id}.parquet"
 
-    if not os.path.exists(session_path):
+    if not session_path.exists():
         logger.error(f"Session file not found: {session_path}")
         return False
 

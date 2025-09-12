@@ -11,6 +11,9 @@ from whar_datasets.core.utils.sessions import (
 from whar_datasets.core.processing.processing_step import ProcessingStep
 from whar_datasets.core.utils.caching import cache_window_metadata, cache_windows
 from whar_datasets.core.utils.loading import (
+    load_activity_metadata,
+    load_session_metadata,
+    load_sessions,
     load_window_metadata,
     load_windows,
 )
@@ -28,8 +31,9 @@ class WindowingStep(ProcessingStep):
         sessions_dir: Path,
         windows_dir: Path,
         dependent_on: List[ProcessingStep],
+        force_results: bool = True,
     ):
-        super().__init__(cfg, hash_dir, dependent_on)
+        super().__init__(cfg, hash_dir, dependent_on, force_results)
 
         self.cache_dir = cache_dir
         self.sessions_dir = sessions_dir
@@ -50,11 +54,16 @@ class WindowingStep(ProcessingStep):
         return validate_common_format(self.cfg, self.cache_dir, self.sessions_dir)
 
     def compute_results(
-        self, base: Any
+        self, base: Any | None
     ) -> Tuple[pd.DataFrame, pd.DataFrame, Dict[str, pd.DataFrame]]:
         logger.info("Windowing...")
 
-        activity_metadata, session_metadata, sessions = base
+        if base is None:
+            activity_metadata = load_activity_metadata(self.cache_dir)
+            session_metadata = load_session_metadata(self.cache_dir)
+            sessions = load_sessions(self.sessions_dir, session_metadata)
+        else:
+            activity_metadata, session_metadata, sessions = base
 
         # select activities
         session_metadata = select_activities(
@@ -81,13 +90,18 @@ class WindowingStep(ProcessingStep):
         cache_windows(self.windows_dir, window_metadata, windows)
 
     def load_results(
-        self, base: Any
-    ) -> Tuple[pd.DataFrame, pd.DataFrame, Dict[str, pd.DataFrame]]:
+        self,
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, Dict[str, pd.DataFrame]]:
         logger.info("Loading windowing...")
 
-        _, session_metadata, _ = base
-
+        activity_metadata = load_activity_metadata(self.cache_dir)
+        session_metadata = load_session_metadata(self.cache_dir)
         window_metadata = load_window_metadata(self.cache_dir)
         windows = load_windows(window_metadata, self.windows_dir)
 
-        return session_metadata, window_metadata, windows
+        df = activity_metadata["activity_id"]
+        logger.info(f"activity_ids from {df.min()} to {df.max()}")
+        df = session_metadata["subject_id"]
+        logger.info(f"subject_ids from {df.min()} to {df.max()}")
+
+        return activity_metadata, session_metadata, window_metadata, windows

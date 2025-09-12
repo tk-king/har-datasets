@@ -26,16 +26,13 @@ class PytorchAdapter(Dataset[Tuple[Tensor, ...]]):
         self.cfg = cfg
 
         self.pre_processing_pipeline = PreProcessingPipeline(cfg)
-        self.session_metadata, self.window_metadata, self.windows = (
-            self.pre_processing_pipeline.run(force_recompute)
-        )
 
-        logger.info(
-            f"subject_ids: {np.sort(self.session_metadata['subject_id'].unique())}"
-        )
-        logger.info(
-            f"activity_ids: {np.sort(self.session_metadata['activity_id'].unique())}"
-        )
+        (
+            self.activity_metadata,
+            self.session_metadata,
+            self.window_metadata,
+            self.windows,
+        ) = self.pre_processing_pipeline.run(force_recompute)
 
     def get_dataloaders(
         self,
@@ -54,10 +51,21 @@ class PytorchAdapter(Dataset[Tuple[Tensor, ...]]):
             )
         )
 
+        self.post_processing_pipeline = PostProcessingPipeline(
+            self.cfg,
+            self.pre_processing_pipeline,
+            self.window_metadata,
+            self.train_indices,
+            scv_group_index,
+        )
+
+        self.samples = self.post_processing_pipeline.run(force_recompute)
+
         # specify split subsets
         train_set = Subset(self, self.train_indices)
         test_set = Subset(self, self.test_indices)
         val_set = Subset(self, self.val_indices)
+
         logger.info(
             f"train: {len(train_set)} | val: {len(val_set)} | test: {len(test_set)}"
         )
@@ -83,15 +91,6 @@ class PytorchAdapter(Dataset[Tuple[Tensor, ...]]):
             shuffle=False,
             generator=self.generator,
         )
-
-        self.post_processing_pipeline = PostProcessingPipeline(
-            self.cfg,
-            self.pre_processing_pipeline,
-            self.window_metadata,
-            self.train_indices,
-            scv_group_index,
-        )
-        self.samples = self.post_processing_pipeline.run(force_recompute)
 
         return train_loader, val_loader, test_loader
 

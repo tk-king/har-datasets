@@ -41,7 +41,7 @@ class ParsingStep(ProcessingStep):
     def check_initial_format(self, base: None) -> bool:
         logger.info("Checking download...")
 
-        if not os.path.exists(self.dataset_dir):
+        if not self.dataset_dir.exists():
             logger.warning(f"Dataset directory not found at '{self.dataset_dir}'.")
             return False
 
@@ -65,17 +65,15 @@ class ParsingStep(ProcessingStep):
         activity_metadata, session_metadata, sessions = results
 
         # delete sessions directory if it exists
-        if os.path.exists(self.sessions_dir):
+        if self.sessions_dir.exists():
             shutil.rmtree(self.sessions_dir)
 
         # create directories if do not exist
         os.makedirs(self.sessions_dir, exist_ok=True)
 
         # define paths
-        activity_metadata_path = os.path.join(
-            self.cache_dir, "activity_metadata.parquet"
-        )
-        session_metadata_path = os.path.join(self.cache_dir, "session_metadata.parquet")
+        activity_metadata_path = self.cache_dir / "activity_metadata.parquet"
+        session_metadata_path = self.cache_dir / "session_metadata.parquet"
 
         # save activity and session index
         activity_metadata.to_parquet(activity_metadata_path, index=True)
@@ -88,13 +86,11 @@ class ParsingStep(ProcessingStep):
         # save sessions
         for session_id in loop:
             assert isinstance(session_id, int)
-            session_path = os.path.join(
-                self.sessions_dir, f"session_{session_id}.parquet"
-            )
+            session_path = self.sessions_dir / f"session_{session_id}.parquet"
             sessions[session_id].to_parquet(session_path, index=False)
 
     def load_results(
-        self, base: None
+        self,
     ) -> Tuple[pd.DataFrame, pd.DataFrame, Dict[int, pd.DataFrame]]:
         logger.info("Loading common format...")
 

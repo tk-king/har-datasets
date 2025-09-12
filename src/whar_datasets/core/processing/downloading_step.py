@@ -36,8 +36,8 @@ class DownloadingStep(ProcessingStep):
         os.makedirs(self.dataset_dir, exist_ok=True)
 
         # Create gitignore file if it doesn't exist
-        gitignore_path = os.path.join(self.datasets_dir, ".gitignore")
-        if not os.path.exists(gitignore_path):
+        gitignore_path = self.datasets_dir / ".gitignore"
+        if not gitignore_path.exists():
             with open(gitignore_path, "w") as f:
                 f.write("*")
 
@@ -91,5 +91,5 @@ class DownloadingStep(ProcessingStep):
 
         extract_dir(file_path, self.dataset_dir)
 
-    def load_results(self, base: None) -> Any | None:
+    def load_results(self) -> Any | None:
         return None

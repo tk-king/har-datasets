@@ -65,9 +65,11 @@ class PreProcessingPipeline(ProcessingPipeline):
 
     def run(
         self, force_recompute: bool
-    ) -> Tuple[pd.DataFrame, pd.DataFrame, Dict[str, pd.DataFrame]]:
-        session_metadata, window_metadata, windows = super().run(force_recompute)
-        return session_metadata, window_metadata, windows
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, Dict[str, pd.DataFrame]]:
+        activity_metadata, session_metadata, window_metadata, windows = super().run(
+            force_recompute
+        )
+        return activity_metadata, session_metadata, window_metadata, windows
 
 
 class PostProcessingPipeline(ProcessingPipeline):

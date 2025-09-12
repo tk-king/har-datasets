@@ -14,6 +14,7 @@ class ProcessingStep(ABC):
         cfg: WHARConfig,
         hash_dir: Path,
         dependent_on: List["ProcessingStep"] = [],
+        force_results: bool = False,
     ):
         self.cfg = cfg
         self.hash_dir = hash_dir
@@ -21,6 +22,7 @@ class ProcessingStep(ABC):
         self.relevant_cfg_keys: Set[str] = set()
         self.relevant_values: List[str] = []
         self.dependent_on = dependent_on
+        self.force_results = force_results
 
     def compute_hash(self) -> str:
         # hash based on relevant part of own config
@@ -66,7 +68,7 @@ class ProcessingStep(ABC):
         if self.check_hash_uptodate() and not force_recompute:
             logger.info("Hash is up to date")
 
-            return self.load_results(base)
+            return self.load_results() if self.force_results else None
 
         if not self.check_initial_format(base):
             raise ValueError("Initial format check failed")
@@ -92,5 +94,5 @@ class ProcessingStep(ABC):
         pass
 
     @abstractmethod
-    def load_results(self, base: Any | None) -> Any:
+    def load_results(self) -> Any:
         pass
