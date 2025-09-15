@@ -69,17 +69,15 @@ class ProcessingStep(ABC):
 
         return check
 
-    def run(self, base: base_type | None, force_recompute: bool) -> result_type | None:
+    def run(self, force_recompute: bool) -> None:
         logger.info(f"Running {self.__class__.__name__}")
-
-        return_results = not self.cfg.use_cache or self.force_results
 
         # check wether an update is needed
         if self.check_hash() and not force_recompute:
-            return self.load_results() if return_results else None
+            return None
 
         # pass or load base
-        base = self.get_base(base)
+        base = self.get_base()
 
         # check initial format for processing
         if not self.check_initial_format(base):
@@ -87,16 +85,14 @@ class ProcessingStep(ABC):
 
         # compute (and cache) results
         results = self.compute_results(base)
-        self.save_results(results) if self.cfg.use_cache else None
+        self.save_results(results)
 
         # compute and save hash
         hash = self.compute_hash()
         self.save_hash(hash)
 
-        return results if return_results else None
-
     @abstractmethod
-    def get_base(self, base: base_type | None) -> base_type:
+    def get_base(self) -> base_type:
         pass
 
     @abstractmethod

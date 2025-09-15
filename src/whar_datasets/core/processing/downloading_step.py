@@ -34,7 +34,7 @@ class DownloadingStep(ProcessingStep):
             "download_url",
         }
 
-    def get_base(self, base: base_type | None) -> base_type:
+    def get_base(self) -> base_type:
         return None
 
     def check_initial_format(self, base: base_type) -> bool:
@@ -56,7 +56,7 @@ class DownloadingStep(ProcessingStep):
         extract_dir(file_path, self.download_dir)
 
     def save_results(self, results: result_type) -> None:
-        pass
+        return None
 
     def load_results(self) -> result_type:
-        pass
+        return None

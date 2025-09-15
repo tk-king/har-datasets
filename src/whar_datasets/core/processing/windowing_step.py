@@ -14,7 +14,6 @@ from whar_datasets.core.utils.loading import (
     load_session_metadata,
     load_sessions,
     load_window_metadata,
-    load_windows,
 )
 from whar_datasets.core.utils.logging import logger
 from whar_datasets.core.utils.selecting import select_activities
@@ -60,14 +59,10 @@ class WindowingStep(ProcessingStep):
             "cache_preprocessing",
         }
 
-    def get_base(self, base: base_type | None) -> base_type:
-        if base is None:
-            activity_metadata = load_activity_metadata(self.metadata_dir)
-            session_metadata = load_session_metadata(self.metadata_dir)
-            sessions = load_sessions(self.sessions_dir, session_metadata)
-        else:
-            activity_metadata, session_metadata, sessions = base
-
+    def get_base(self) -> base_type:
+        activity_metadata = load_activity_metadata(self.metadata_dir)
+        session_metadata = load_session_metadata(self.metadata_dir)
+        sessions = load_sessions(self.sessions_dir, session_metadata)
         return activity_metadata, session_metadata, sessions
 
     def check_initial_format(self, base: base_type) -> bool:
@@ -112,7 +107,6 @@ class WindowingStep(ProcessingStep):
         activity_metadata = load_activity_metadata(self.metadata_dir)
         session_metadata = load_session_metadata(self.metadata_dir)
         window_metadata = load_window_metadata(self.metadata_dir)
-        windows = load_windows(window_metadata, self.windows_dir)
 
         df = activity_metadata["activity_id"]
         logger.info(f"activity_ids from {df.min()} to {df.max()}")
@@ -120,4 +114,4 @@ class WindowingStep(ProcessingStep):
         df = session_metadata["subject_id"]
         logger.info(f"subject_ids from {df.min()} to {df.max()}")
 
-        return activity_metadata, session_metadata, window_metadata, windows
+        return activity_metadata, session_metadata, window_metadata, {}

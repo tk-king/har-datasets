@@ -53,12 +53,8 @@ class SamplingStep(ProcessingStep):
         }
         self.relevant_values = [str(i) for i in self.indices]
 
-    def get_base(self, base: base_type | None) -> base_type:
-        windows = (
-            base
-            if base is not None
-            else load_windows(self.window_metadata, self.windows_dir)
-        )
+    def get_base(self) -> base_type:
+        windows = load_windows(self.window_metadata, self.windows_dir)
         return windows
 
     def check_initial_format(self, base: base_type) -> bool:

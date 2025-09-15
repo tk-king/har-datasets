@@ -33,8 +33,6 @@ class WHARConfig(BaseModel):
 
     # flow fields
     datasets_dir: str
-    cache_dir: Optional[str] = None
-    use_cache: bool = True
     in_memory: bool = True
     parallelize: bool = False
 

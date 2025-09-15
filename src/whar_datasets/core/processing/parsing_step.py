@@ -45,7 +45,7 @@ class ParsingStep(ProcessingStep):
             "use_cache",
         }
 
-    def get_base(self, base: base_type | None) -> base_type:
+    def get_base(self) -> base_type:
         return None
 
     def check_initial_format(self, base: base_type) -> bool:

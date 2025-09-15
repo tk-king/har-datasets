@@ -21,11 +21,8 @@ class ProcessingPipeline:
         if force_recompute:
             logger.info("Forcing recompute...")
 
-        results: Any = None
         for step in self.steps:
-            results = step.run(results, force_recompute)
-
-        return results
+            step.run(force_recompute)
 
 
 class PreProcessingPipeline(ProcessingPipeline):
@@ -77,9 +74,12 @@ class PreProcessingPipeline(ProcessingPipeline):
     def run(
         self, force_recompute: bool
     ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-        activity_metadata, session_metadata, window_metadata, _ = super().run(
-            force_recompute
+        super().run(force_recompute)
+
+        activity_metadata, session_metadata, window_metadata, _ = (
+            self.windowing_step.load_results()
         )
+
         return activity_metadata, session_metadata, window_metadata
 
 
@@ -91,6 +91,7 @@ class PostProcessingPipeline(ProcessingPipeline):
         window_metadata: pd.DataFrame,
         indices: List[int],
     ):
+        self.cfg = cfg
         self.samples_dir = pre_processing_pipeline.dataset_dir / "samples"
         self.metadata_dir = pre_processing_pipeline.metadata_dir
         self.windows_dir = pre_processing_pipeline.windows_dir
@@ -108,5 +109,6 @@ class PostProcessingPipeline(ProcessingPipeline):
         super().__init__([self.featuring_step])
 
     def run(self, force_recompute: bool) -> Dict[str, List[np.ndarray]] | None:
-        samples = super().run(force_recompute)
+        super().run(force_recompute)
+        samples = self.featuring_step.load_results() if self.cfg.in_memory else None
         return samples
