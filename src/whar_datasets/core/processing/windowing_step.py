@@ -1,6 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, List, Set, Tuple
-
+from typing import Dict, List, Set, Tuple, TypeAlias
 import pandas as pd
 
 from whar_datasets.core.config import WHARConfig
@@ -21,21 +20,32 @@ from whar_datasets.core.utils.logging import logger
 from whar_datasets.core.utils.selecting import select_activities
 from whar_datasets.core.utils.validation import validate_common_format
 
+base_type: TypeAlias = Tuple[
+    pd.DataFrame,
+    pd.DataFrame,
+    Dict[int, pd.DataFrame],
+]
+result_type: TypeAlias = Tuple[
+    pd.DataFrame,
+    pd.DataFrame,
+    pd.DataFrame,
+    Dict[str, pd.DataFrame],
+]
+
 
 class WindowingStep(ProcessingStep):
     def __init__(
         self,
         cfg: WHARConfig,
-        hash_dir: Path,
-        cache_dir: Path,
+        metadata_dir: Path,
         sessions_dir: Path,
         windows_dir: Path,
         dependent_on: List[ProcessingStep],
         force_results: bool = True,
     ):
-        super().__init__(cfg, hash_dir, dependent_on, force_results)
+        super().__init__(cfg, windows_dir, dependent_on, force_results)
 
-        self.cache_dir = cache_dir
+        self.metadata_dir = metadata_dir
         self.sessions_dir = sessions_dir
         self.windows_dir = windows_dir
 
@@ -50,20 +60,27 @@ class WindowingStep(ProcessingStep):
             "cache_preprocessing",
         }
 
-    def check_initial_format(self, base: Any) -> bool:
-        return validate_common_format(self.cfg, self.cache_dir, self.sessions_dir)
-
-    def compute_results(
-        self, base: Any | None
-    ) -> Tuple[pd.DataFrame, pd.DataFrame, Dict[str, pd.DataFrame]]:
-        logger.info("Windowing...")
-
+    def get_base(self, base: base_type | None) -> base_type:
         if base is None:
-            activity_metadata = load_activity_metadata(self.cache_dir)
-            session_metadata = load_session_metadata(self.cache_dir)
+            activity_metadata = load_activity_metadata(self.metadata_dir)
+            session_metadata = load_session_metadata(self.metadata_dir)
             sessions = load_sessions(self.sessions_dir, session_metadata)
         else:
             activity_metadata, session_metadata, sessions = base
+
+        return activity_metadata, session_metadata, sessions
+
+    def check_initial_format(self, base: base_type) -> bool:
+        activity_metadata, session_metadata, sessions = base
+
+        return validate_common_format(
+            self.cfg, activity_metadata, session_metadata, sessions
+        )
+
+    def compute_results(self, base: base_type) -> result_type:
+        activity_metadata, session_metadata, sessions = base
+
+        logger.info("Compute windowing")
 
         # select activities
         session_metadata = select_activities(
@@ -75,32 +92,31 @@ class WindowingStep(ProcessingStep):
         # generate windowing
         window_metadata, windows = (
             process_sessions_parallely(self.cfg, session_metadata, sessions)
-            if self.cfg.in_parallel
+            if self.cfg.parallelize
             else process_sessions_sequentially(self.cfg, session_metadata, sessions)
         )
 
-        return session_metadata, window_metadata, windows
+        return activity_metadata, session_metadata, window_metadata, windows
 
-    def save_results(self, results: Any) -> None:
-        logger.info("Saving windowing...")
+    def save_results(self, results: result_type) -> None:
+        logger.info("Saving windowing")
 
-        _, window_metadata, windows = results
+        _, _, window_metadata, windows = results
 
-        cache_window_metadata(self.cache_dir, window_metadata)
+        cache_window_metadata(self.metadata_dir, window_metadata)
         cache_windows(self.windows_dir, window_metadata, windows)
 
-    def load_results(
-        self,
-    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, Dict[str, pd.DataFrame]]:
-        logger.info("Loading windowing...")
+    def load_results(self) -> result_type:
+        logger.info("Loading windowing")
 
-        activity_metadata = load_activity_metadata(self.cache_dir)
-        session_metadata = load_session_metadata(self.cache_dir)
-        window_metadata = load_window_metadata(self.cache_dir)
+        activity_metadata = load_activity_metadata(self.metadata_dir)
+        session_metadata = load_session_metadata(self.metadata_dir)
+        window_metadata = load_window_metadata(self.metadata_dir)
         windows = load_windows(window_metadata, self.windows_dir)
 
         df = activity_metadata["activity_id"]
         logger.info(f"activity_ids from {df.min()} to {df.max()}")
+
         df = session_metadata["subject_id"]
         logger.info(f"subject_ids from {df.min()} to {df.max()}")
 

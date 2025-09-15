@@ -26,37 +26,30 @@ class PytorchAdapter(Dataset[Tuple[Tensor, ...]]):
         self.cfg = cfg
 
         self.pre_processing_pipeline = PreProcessingPipeline(cfg)
-
-        (
-            self.activity_metadata,
-            self.session_metadata,
-            self.window_metadata,
-            self.windows,
-        ) = self.pre_processing_pipeline.run(force_recompute)
+        results = self.pre_processing_pipeline.run(force_recompute)
+        self.activity_metadata, self.session_metadata, self.window_metadata = results
 
     def get_dataloaders(
         self,
-        train_batch_size: int,
-        train_shuffle: bool = True,
+        batch_size: int,
         scv_group_index: int | None = None,
         force_recompute: bool = False,
     ) -> Tuple[DataLoader, DataLoader, DataLoader]:
         # get split indices from config
-        self.train_indices, self.val_indices, self.test_indices = (
-            get_split_train_val_test(
-                self.cfg,
-                self.session_metadata,
-                self.window_metadata,
-                scv_group_index,
-            )
+        split = get_split_train_val_test(
+            self.cfg,
+            self.session_metadata,
+            self.window_metadata,
+            scv_group_index,
         )
+
+        self.train_indices, self.val_indices, self.test_indices = split
 
         self.post_processing_pipeline = PostProcessingPipeline(
             self.cfg,
             self.pre_processing_pipeline,
             self.window_metadata,
             self.train_indices,
-            scv_group_index,
         )
 
         self.samples = self.post_processing_pipeline.run(force_recompute)
@@ -66,30 +59,13 @@ class PytorchAdapter(Dataset[Tuple[Tensor, ...]]):
         test_set = Subset(self, self.test_indices)
         val_set = Subset(self, self.val_indices)
 
+        # create dataloaders from split
+        train_loader = DataLoader(train_set, batch_size, True, generator=self.generator)
+        val_loader = DataLoader(val_set, len(val_set), False, generator=self.generator)
+        test_loader = DataLoader(test_set, 1, False, generator=self.generator)
+
         logger.info(
             f"train: {len(train_set)} | val: {len(val_set)} | test: {len(test_set)}"
-        )
-
-        # create dataloaders from split
-        train_loader = DataLoader(
-            dataset=train_set,
-            batch_size=train_batch_size,
-            shuffle=train_shuffle,
-            generator=self.generator,
-        )
-
-        val_loader = DataLoader(
-            dataset=val_set,
-            batch_size=len(val_set),
-            shuffle=False,
-            generator=self.generator,
-        )
-
-        test_loader = DataLoader(
-            dataset=test_set,
-            batch_size=1,
-            shuffle=False,
-            generator=self.generator,
         )
 
         return train_loader, val_loader, test_loader

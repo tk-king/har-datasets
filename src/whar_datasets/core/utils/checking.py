@@ -4,7 +4,7 @@ from pathlib import Path
 from whar_datasets.core.utils.logging import logger
 
 
-def check_windowing(cache_dir: Path, windows_dir: Path, hashes_dir: Path) -> bool:
+def check_windowing(cache_dir: Path, windows_dir: Path) -> bool:
     logger.info("Checking windowing...")
 
     if not windows_dir.exists():

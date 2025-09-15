@@ -2,10 +2,13 @@ from abc import ABC, abstractmethod
 import hashlib
 import os
 from pathlib import Path
-from typing import Any, List, Set
+from typing import Any, List, Set, TypeAlias
 
 from whar_datasets.core.config import WHARConfig
 from whar_datasets.core.utils.logging import logger
+
+base_type: TypeAlias = Any
+result_type: TypeAlias = Any
 
 
 class ProcessingStep(ABC):
@@ -38,7 +41,7 @@ class ProcessingStep(ABC):
 
         return final_hash
 
-    def save_hash(self, hash: str):
+    def save_hash(self, hash: str) -> None:
         os.makedirs(self.hash_dir, exist_ok=True)
 
         hash_path = self.hash_dir / f"{self.hash_name}.txt"
@@ -54,45 +57,60 @@ class ProcessingStep(ABC):
         with open(hash_path, "r") as f:
             return f.read().strip()
 
-    def check_hash_uptodate(self) -> bool:
+    def check_hash(self) -> bool:
         logger.info(f"Checking hash for {self.__class__.__name__}")
 
-        old_hash = self.load_hash()
-        new_hash = self.compute_hash()
+        check = self.load_hash() == self.compute_hash()
 
-        return old_hash == new_hash
+        if check:
+            logger.info("Hash is up to date")
+        else:
+            logger.info("Hash is not up to date")
 
-    def run(self, base: Any | None, force_recompute: bool) -> Any | None:
+        return check
+
+    def run(self, base: base_type | None, force_recompute: bool) -> result_type | None:
         logger.info(f"Running {self.__class__.__name__}")
 
-        if self.check_hash_uptodate() and not force_recompute:
-            logger.info("Hash is up to date")
+        return_results = not self.cfg.use_cache or self.force_results
 
-            return self.load_results() if self.force_results else None
+        # check wether an update is needed
+        if self.check_hash() and not force_recompute:
+            return self.load_results() if return_results else None
 
+        # pass or load base
+        base = self.get_base(base)
+
+        # check initial format for processing
         if not self.check_initial_format(base):
             raise ValueError("Initial format check failed")
 
+        # compute (and cache) results
         results = self.compute_results(base)
-        self.save_results(results)
+        self.save_results(results) if self.cfg.use_cache else None
 
+        # compute and save hash
         hash = self.compute_hash()
         self.save_hash(hash)
 
-        return results
+        return results if return_results else None
 
     @abstractmethod
-    def check_initial_format(self, base: Any | None) -> bool:
+    def get_base(self, base: base_type | None) -> base_type:
         pass
 
     @abstractmethod
-    def compute_results(self, base: Any | None) -> Any:
+    def check_initial_format(self, base: base_type) -> bool:
         pass
 
     @abstractmethod
-    def save_results(self, results: Any) -> None:
+    def compute_results(self, base: base_type) -> result_type:
         pass
 
     @abstractmethod
-    def load_results(self) -> Any:
+    def save_results(self, results: result_type) -> None:
+        pass
+
+    @abstractmethod
+    def load_results(self) -> result_type:
         pass
