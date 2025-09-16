@@ -16,7 +16,7 @@ def validate_common_format(
     activity_metadata: pd.DataFrame,
     session_metadata: pd.DataFrame,
 ) -> bool:
-    logger.info("Validating common format...")
+    logger.info("Validating common format")
 
     # Check session_metadata
     if not pd.api.types.is_integer_dtype(session_metadata["session_id"]):

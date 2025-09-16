@@ -13,7 +13,7 @@ def generate_spectrograms(
     overlap: int | None,
     mode: str,
 ) -> List[np.ndarray]:
-    logger.info("Generating spectrograms...")
+    logger.info("Generating spectrograms")
 
     spectrograms: List[np.ndarray] = []
 
