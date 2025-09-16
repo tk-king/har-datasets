@@ -4,8 +4,8 @@ import pandas as pd
 
 from whar_datasets.core.config import WHARConfig
 from whar_datasets.core.utils.sessions import (
-    process_sessions_parallely,
-    process_sessions_sequentially,
+    process_sessions_para,
+    process_sessions_seq,
 )
 from whar_datasets.core.processing.processing_step import ProcessingStep
 from whar_datasets.core.utils.caching import cache_window_metadata, cache_windows
@@ -80,9 +80,7 @@ class WindowingStep(ProcessingStep):
 
         # generate windowing
         process_sessions = (
-            process_sessions_parallely
-            if self.cfg.parallelize
-            else process_sessions_sequentially
+            process_sessions_para if self.cfg.parallelize else process_sessions_seq
         )
 
         window_metadata, windows = process_sessions(

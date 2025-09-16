@@ -1,12 +1,6 @@
 from functools import partial
-from pathlib import Path
 from typing import Callable, Dict, List, Tuple, TypeAlias
-import numpy as np
 import pandas as pd
-from tqdm import tqdm
-from dask.delayed import delayed
-from dask.base import compute
-from dask.diagnostics.progress import ProgressBar
 from whar_datasets.core.config import NormType, WHARConfig
 from whar_datasets.core.utils.loading import load_window
 from whar_datasets.core.utils.logging import logger
@@ -14,61 +8,9 @@ from whar_datasets.core.utils.logging import logger
 NormParams: TypeAlias = Tuple[Dict[str, float], Dict[str, float]]
 
 
-def normalize_windows_seq(
-    cfg: WHARConfig,
-    norm_params: NormParams | None,
-    window_metadata: pd.DataFrame,
-    windows_dir: Path,
-) -> Dict[str, np.ndarray]:
-    normalize = get_normalize(cfg, norm_params)
-
-    loop = tqdm(window_metadata["window_id"])
-    loop.set_description("Normalizing windows")
-
-    normalized = {
-        window_id: normalize(windows_dir, window_id).values for window_id in loop
-    }
-
-    return normalized
-
-
-def normalize_windows_parallely(
-    cfg: WHARConfig,
-    norm_params: NormParams | None,
-    window_metadata: pd.DataFrame,
-    windows_dir: Path,
-    # windows: Dict[str, pd.DataFrame],
-) -> Dict[str, np.ndarray]:
-    normalize = get_normalize(cfg, norm_params)
-
-    @delayed
-    def normalize_delayed(
-        window_id: str,
-    ) -> Tuple[str, np.ndarray]:
-        return window_id, normalize(windows_dir, window_id).values
-
-    # define processing tasks
-    tasks = [
-        normalize_delayed(window_id)
-        for window_id in [str(x) for x in window_metadata["window_id"]]
-    ]
-
-    # execute tasks in parallel
-    pbar = ProgressBar()
-    pbar.register()
-    pairs = list(compute(*tasks, scheduler="processes"))
-    pbar.unregister()
-
-    normalized: Dict[str, np.ndarray] = {
-        window_id: values for window_id, values in pairs
-    }
-
-    return normalized
-
-
 def get_normalize(
     cfg: WHARConfig, norm_params: NormParams | None
-) -> Callable[[Path, str], pd.DataFrame]:
+) -> Callable[[pd.DataFrame], pd.DataFrame]:
     match cfg.normalization:
         case NormType.MIN_MAX_PER_SAMPLE:
             normalize = partial(min_max, norm_params=None)
@@ -168,13 +110,8 @@ def get_robust_scale_params(
 
 
 def min_max(
-    windows_dir: Path,
-    window_id: str,  # df: pd.DataFrame,
-    norm_params: NormParams | None,
-    exclude_columns: List[str] = [],
+    df: pd.DataFrame, norm_params: NormParams | None, exclude_columns: List[str] = []
 ) -> pd.DataFrame:
-    df = load_window(windows_dir, window_id)
-
     norm_params = (
         get_min_max_params(df, exclude_columns) if norm_params is None else norm_params
     )
@@ -189,13 +126,8 @@ def min_max(
 
 
 def standardize(
-    windows_dir: Path,
-    window_id: str,  # df: pd.DataFrame,
-    norm_params: NormParams | None,
-    exclude_columns: List[str] = [],
+    df: pd.DataFrame, norm_params: NormParams | None, exclude_columns: List[str] = []
 ) -> pd.DataFrame:
-    df = load_window(windows_dir, window_id)
-
     norm_params = (
         get_standardize_params(df, exclude_columns)
         if norm_params is None
@@ -212,13 +144,8 @@ def standardize(
 
 
 def robust_scale(
-    windows_dir: Path,
-    window_id: str,  # df: pd.DataFrame,
-    norm_params: NormParams | None,
-    exclude_columns: List[str] = [],
+    df: pd.DataFrame, norm_params: NormParams | None, exclude_columns: List[str] = []
 ) -> pd.DataFrame:
-    df = load_window(windows_dir, window_id)
-
     norm_params = (
         get_robust_scale_params(df, exclude_columns)
         if norm_params is None
