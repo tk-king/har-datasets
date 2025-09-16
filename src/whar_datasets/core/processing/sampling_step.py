@@ -62,7 +62,7 @@ class SamplingStep(ProcessingStep):
     def compute_results(self, base: base_type) -> result_type:
         windows = base
 
-        logger.info("Computing samples...")
+        logger.info("Computing samples")
 
         norm_params = get_norm_params(
             self.cfg, self.indices, self.window_metadata, windows

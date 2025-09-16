@@ -4,7 +4,7 @@ from whar_datasets.core.utils.logging import logger
 
 
 def check_windowing(cache_dir: Path, windows_dir: Path) -> bool:
-    logger.info("Checking windowing...")
+    logger.info("Checking windowing")
 
     if not windows_dir.exists():
         logger.warning(f"Windows directory not found at '{windows_dir}'.")

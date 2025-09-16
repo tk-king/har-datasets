@@ -12,7 +12,7 @@ from whar_datasets.core.weighting import compute_class_weights
 from whar_datasets.core.config import WHARConfig
 
 
-class PytorchAdapter(Dataset[Tuple[Tensor, ...]]):
+class TorchAdapter(Dataset[Tuple[Tensor, ...]]):
     def __init__(
         self,
         cfg: WHARConfig,

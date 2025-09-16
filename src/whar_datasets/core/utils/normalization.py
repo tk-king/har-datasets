@@ -35,7 +35,7 @@ def get_norm_params(
     window_metadata: pd.DataFrame,
     windows: Dict[str, pd.DataFrame],
 ) -> NormParams | None:
-    logger.info("Getting normalization parameters...")
+    logger.info("Getting normalization parameters")
 
     # return None if per sample normalization
     if (

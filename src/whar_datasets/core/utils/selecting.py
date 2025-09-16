@@ -9,7 +9,7 @@ def select_activities(
     activity_metadata: pd.DataFrame,
     activity_names: List[str],
 ) -> pd.DataFrame:
-    logger.info("Selecting activities...")
+    logger.info("Selecting activities")
 
     # get activity ids corresponding to activity names
     activity_ids = activity_metadata[
