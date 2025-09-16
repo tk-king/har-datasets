@@ -42,15 +42,12 @@ har_dataset_dict: Dict[WHARDatasetID, WHARConfig] = {
 
 
 def get_whar_cfg(
-    dataset_id: WHARDatasetID,
-    datasets_dir: str = "./datasets",
-    cache_dir: str | None = None,
+    dataset_id: WHARDatasetID, datasets_dir: str = "./datasets"
 ) -> WHARConfig:
     # load dataset-specific config and parser
     cfg = har_dataset_dict[dataset_id]
 
     # override datasets dir
     cfg.datasets_dir = datasets_dir
-    cfg.cache_dir = cache_dir
 
     return cfg

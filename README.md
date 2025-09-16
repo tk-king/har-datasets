@@ -19,13 +19,13 @@ This installs the library into the active environment.
 # How To Use
 
 ```python
-from whar_datasets.adapters.pytorch import PytorchAdapter
+from whar_datasets.adapters.torch_adapter import TorchAdapter
 from whar_datasets.support.getter import WHARDatasetID, get_whar_cfg
 
 cfg = get_whar_cfg(WHARDatasetID.UCI_HAR)
-dataset = PytorchAdapter(cfg, override_cache=False)
+dataset = TorchAdapter(cfg)
 
-train_loader, val_loader, test_loader = dataset.get_dataloaders(train_batch_size=32)
+train_loader, val_loader, test_loader = dataset.get_dataloaders(batch_size=32)
 ```
 
 Not yet natively supported WHAR datasets can be integrated via a custom configuration (with parser).

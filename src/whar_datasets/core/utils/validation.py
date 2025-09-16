@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from dask.delayed import delayed
 from dask.base import compute
 from dask.diagnostics.progress import ProgressBar
@@ -6,32 +6,17 @@ import pandas as pd
 from tqdm import tqdm
 
 from whar_datasets.core.config import WHARConfig
+from whar_datasets.core.utils.loading import load_session
 from whar_datasets.core.utils.logging import logger
 
 
-def validate_common_format(cfg: WHARConfig, cache_dir: str, sessions_dir: str) -> bool:
-    logger.info("Validating common format...")
-
-    # define paths
-    session_metadata_path = os.path.join(cache_dir, "session_metadata.parquet")
-    activity_metadata_path = os.path.join(cache_dir, "activity_metadata.parquet")
-
-    # Check paths
-    if not os.path.exists(sessions_dir):
-        logger.error(f"sessions directory does not exist at {sessions_dir}")
-        return False
-
-    if not os.path.exists(session_metadata_path):
-        logger.error(f"session_metadata.parquet not found at {session_metadata_path}")
-        return False
-
-    if not os.path.exists(activity_metadata_path):
-        logger.error(f"activity_metadata.parquet not found at {activity_metadata_path}")
-        return False
-
-    # load session and activity index
-    session_metadata = pd.read_parquet(session_metadata_path)
-    activity_metadata = pd.read_parquet(activity_metadata_path)
+def validate_common_format(
+    cfg: WHARConfig,
+    sessions_dir: Path,
+    activity_metadata: pd.DataFrame,
+    session_metadata: pd.DataFrame,
+) -> bool:
+    logger.info("Validating common format")
 
     # Check session_metadata
     if not pd.api.types.is_integer_dtype(session_metadata["session_id"]):
@@ -42,11 +27,6 @@ def validate_common_format(cfg: WHARConfig, cache_dir: str, sessions_dir: str) -
         return False
     if not pd.api.types.is_integer_dtype(session_metadata["activity_id"]):
         logger.error("'activity_id' column is not integer type.")
-        return False
-    if session_metadata["session_id"].nunique() != len(os.listdir(sessions_dir)):
-        logger.error(
-            f"Number of session_ids {session_metadata['session_id'].nunique()} does not match number of session files {len(os.listdir(sessions_dir))}."
-        )
         return False
     if session_metadata["session_id"].min() != 0:
         logger.error("Minimum session_id is not 0.")
@@ -84,7 +64,7 @@ def validate_common_format(cfg: WHARConfig, cache_dir: str, sessions_dir: str) -
 
     validated = (
         validate_sessions_parallely(cfg, sessions_dir, session_metadata)
-        if cfg.in_parallel
+        if cfg.parallelize
         else validate_sessions_sequentially(cfg, sessions_dir, session_metadata)
     )
 
@@ -96,7 +76,7 @@ def validate_common_format(cfg: WHARConfig, cache_dir: str, sessions_dir: str) -
 
 
 def validate_sessions_sequentially(
-    cfg: WHARConfig, sessions_dir: str, session_metadata: pd.DataFrame
+    cfg: WHARConfig, sessions_dir: Path, session_metadata: pd.DataFrame
 ) -> bool:
     loop = tqdm(session_metadata["session_id"])
     loop.set_description("Validating sessions")
@@ -109,7 +89,7 @@ def validate_sessions_sequentially(
 
 
 def validate_sessions_parallely(
-    cfg: WHARConfig, sessions_dir: str, session_metadata: pd.DataFrame
+    cfg: WHARConfig, sessions_dir: Path, session_metadata: pd.DataFrame
 ) -> bool:
     @delayed
     def validate_session_delayed(session_id: int) -> bool:
@@ -130,33 +110,27 @@ def validate_sessions_parallely(
     return all(results)
 
 
-def validate_session(cfg: WHARConfig, sessions_dir, session_id: int) -> bool:
-    session_path = os.path.join(sessions_dir, f"session_{session_id}.parquet")
+def validate_session(cfg: WHARConfig, sessions_dir: Path, session_id: int) -> bool:
+    session = load_session(sessions_dir, session_id)
 
-    if not os.path.exists(session_path):
-        logger.error(f"Session file not found: {session_path}")
+    if not pd.api.types.is_datetime64_dtype(session["timestamp"]):
+        logger.error(f"'timestamp' column in {session_id} is not datetime64 type.")
         return False
 
-    session_df = pd.read_parquet(session_path)
-
-    if not pd.api.types.is_datetime64_dtype(session_df["timestamp"]):
-        logger.error(f"'timestamp' column in {session_path} is not datetime64 type.")
-        return False
-
-    if len(session_df.columns.difference(["timestamp"])) != cfg.num_of_channels:
-        logger.error(session_df.columns.difference(["timestamp"]))
+    if len(session.columns.difference(["timestamp"])) != cfg.num_of_channels:
+        logger.error(session.columns.difference(["timestamp"]))
         logger.error(
-            f"Number of columns {len(session_df.columns.difference(['timestamp']))} in {session_path} does not match number of channel {cfg.num_of_channels}."
+            f"Number of columns {len(session.columns.difference(['timestamp']))} in {session_id} does not match number of channel {cfg.num_of_channels}."
         )
         return False
 
-    for col in session_df.columns.difference(["timestamp"]):
-        if not pd.api.types.is_float_dtype(session_df[col]):
-            logger.error(f"Column '{col}' in {session_path} is not float type.")
+    for col in session.columns.difference(["timestamp"]):
+        if not pd.api.types.is_float_dtype(session[col]):
+            logger.error(f"Column '{col}' in {session_id} is not float type.")
             return False
 
-    if session_df.isna().any().any():
-        logger.error(f"Session file {session_path} contains NaN values.")
+    if session.isna().any().any():
+        logger.error(f"Session file {session_id} contains NaN values.")
         return False
 
     return True

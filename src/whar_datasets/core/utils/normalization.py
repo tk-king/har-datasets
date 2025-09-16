@@ -1,23 +1,16 @@
 from functools import partial
-from typing import Dict, List, Tuple, TypeAlias
-import numpy as np
+from typing import Callable, Dict, List, Tuple, TypeAlias
 import pandas as pd
-from tqdm import tqdm
 from whar_datasets.core.config import NormType, WHARConfig
+from whar_datasets.core.utils.loading import load_window
 from whar_datasets.core.utils.logging import logger
 
 NormParams: TypeAlias = Tuple[Dict[str, float], Dict[str, float]]
 
 
-def normalize_windows_seq(
-    cfg: WHARConfig,
-    norm_params: NormParams | None,
-    window_metadata: pd.DataFrame,
-    windows: Dict[str, pd.DataFrame],
-) -> Dict[str, np.ndarray]:
-    loop = tqdm(window_metadata["window_id"])
-    loop.set_description("Normalizing windows")
-
+def get_normalize(
+    cfg: WHARConfig, norm_params: NormParams | None
+) -> Callable[[pd.DataFrame], pd.DataFrame]:
     match cfg.normalization:
         case NormType.MIN_MAX_PER_SAMPLE:
             normalize = partial(min_max, norm_params=None)
@@ -32,9 +25,8 @@ def normalize_windows_seq(
         case NormType.ROBUST_SCALE_GLOBALLY:
             normalize = partial(robust_scale, norm_params=norm_params)
         case _:
-            normalize = partial(lambda x: x)
-
-    return {window_id: normalize(windows[window_id]).values for window_id in loop}
+            normalize = partial(load_window)
+    return normalize
 
 
 def get_norm_params(
@@ -43,7 +35,7 @@ def get_norm_params(
     window_metadata: pd.DataFrame,
     windows: Dict[str, pd.DataFrame],
 ) -> NormParams | None:
-    logger.info("Getting normalization parameters...")
+    logger.info("Getting normalization parameters")
 
     # return None if per sample normalization
     if (
@@ -118,9 +110,7 @@ def get_robust_scale_params(
 
 
 def min_max(
-    df: pd.DataFrame,
-    norm_params: NormParams | None,
-    exclude_columns: List[str] = [],
+    df: pd.DataFrame, norm_params: NormParams | None, exclude_columns: List[str] = []
 ) -> pd.DataFrame:
     norm_params = (
         get_min_max_params(df, exclude_columns) if norm_params is None else norm_params
@@ -136,9 +126,7 @@ def min_max(
 
 
 def standardize(
-    df: pd.DataFrame,
-    norm_params: NormParams | None,
-    exclude_columns: List[str] = [],
+    df: pd.DataFrame, norm_params: NormParams | None, exclude_columns: List[str] = []
 ) -> pd.DataFrame:
     norm_params = (
         get_standardize_params(df, exclude_columns)
@@ -156,9 +144,7 @@ def standardize(
 
 
 def robust_scale(
-    df: pd.DataFrame,
-    norm_params: NormParams | None,
-    exclude_columns: List[str] = [],
+    df: pd.DataFrame, norm_params: NormParams | None, exclude_columns: List[str] = []
 ) -> pd.DataFrame:
     norm_params = (
         get_robust_scale_params(df, exclude_columns)

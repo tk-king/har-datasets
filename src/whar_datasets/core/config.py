@@ -19,6 +19,7 @@ class NormType(str, Enum):
 
 class TransformType(Enum):
     DWT = "dwt"
+    STFT = "stft"
 
 
 class WHARConfig(BaseModel):
@@ -29,8 +30,11 @@ class WHARConfig(BaseModel):
     num_of_subjects: int
     num_of_activities: int
     num_of_channels: int
+
+    # flow fields
     datasets_dir: str
-    cache_dir: Optional[str] = None
+    in_memory: bool = True
+    parallelize: bool = False
 
     # parsing fields
     parse: Parse
@@ -41,9 +45,7 @@ class WHARConfig(BaseModel):
     sensor_channels: List[str]
     window_time: float  # in seconds
     window_overlap: float  # in [0,1]
-    in_parallel: bool = True
     resampling_freq: Optional[int] = None
-    cache_preprocessing: bool = True
 
     # postprocessing fields
     given_train_test_subj_ids: Optional[Tuple[List[int], List[int]]]
@@ -51,8 +53,6 @@ class WHARConfig(BaseModel):
     val_percentage: float = 0.1
     normalization: Optional[NormType] = NormType.STD_GLOBALLY
     transform: Optional[TransformType] = None
-    cache_postprocessing: bool = True
-    in_memory: bool = True
 
     # training fields
     batch_size: int = 64
