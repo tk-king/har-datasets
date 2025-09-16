@@ -10,7 +10,6 @@ from whar_datasets.core.sampling import get_label, get_sample
 from whar_datasets.core.splitting import get_split_train_val_test
 from whar_datasets.core.weighting import compute_class_weights
 from whar_datasets.core.config import WHARConfig
-from whar_datasets.core.utils.logging import logger
 
 
 class PytorchAdapter(Dataset[Tuple[Tensor, ...]]):
@@ -21,14 +20,16 @@ class PytorchAdapter(Dataset[Tuple[Tensor, ...]]):
     ):
         super().__init__()
 
+        self.cfg = cfg
+
+        # ensure correct seeding
         torch.manual_seed(cfg.seed)
         random.seed(cfg.seed)
         np.random.seed(cfg.seed)
         self.generator = torch.Generator()
         self.generator.manual_seed(cfg.seed)
 
-        self.cfg = cfg
-
+        # preform preprocessing
         self.pre_processing_pipeline = PreProcessingPipeline(cfg)
         results = self.pre_processing_pipeline.run(force_recompute)
         self.activity_metadata, self.session_metadata, self.window_metadata = results
@@ -39,16 +40,17 @@ class PytorchAdapter(Dataset[Tuple[Tensor, ...]]):
         scv_group_index: int | None = None,
         force_recompute: bool | List[bool] | None = False,
     ) -> Tuple[DataLoader, DataLoader, DataLoader]:
-        # get split indices from config
-        split = get_split_train_val_test(
-            self.cfg,
-            self.session_metadata,
-            self.window_metadata,
-            scv_group_index,
+        # compute splitting
+        self.train_indices, self.val_indices, self.test_indices = (
+            get_split_train_val_test(
+                self.cfg,
+                self.session_metadata,
+                self.window_metadata,
+                scv_group_index,
+            )
         )
 
-        self.train_indices, self.val_indices, self.test_indices = split
-
+        # define postprocessing pipeline
         self.post_processing_pipeline = PostProcessingPipeline(
             self.cfg,
             self.pre_processing_pipeline,
@@ -56,6 +58,7 @@ class PytorchAdapter(Dataset[Tuple[Tensor, ...]]):
             self.train_indices,
         )
 
+        # perform postprocessing
         self.samples = self.post_processing_pipeline.run(force_recompute)
 
         # specify split subsets
@@ -67,10 +70,6 @@ class PytorchAdapter(Dataset[Tuple[Tensor, ...]]):
         train_loader = DataLoader(train_set, batch_size, True, generator=self.generator)
         val_loader = DataLoader(val_set, len(val_set), False, generator=self.generator)
         test_loader = DataLoader(test_set, 1, False, generator=self.generator)
-
-        logger.info(
-            f"train: {len(train_set)} | val: {len(val_set)} | test: {len(test_set)}"
-        )
 
         return train_loader, val_loader, test_loader
 

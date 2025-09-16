@@ -4,6 +4,7 @@ from typing import List, Tuple
 
 import pandas as pd
 from whar_datasets.core.config import WHARConfig
+from whar_datasets.core.utils.logging import logger
 
 
 def get_split_train_test(
@@ -116,6 +117,10 @@ def get_split_train_val_test(
         train_indices, val_indices = split_indices(
             cfg, train_indices, (1 - cfg.val_percentage, cfg.val_percentage)
         )
+
+    logger.info(
+        f"train: {len(train_indices)} | val: {len(val_indices)} | test: {len(test_indices)}"
+    )
 
     return train_indices, val_indices, test_indices
 
