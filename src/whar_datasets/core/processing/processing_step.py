@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 import hashlib
-import os
 from pathlib import Path
 from typing import Any, List, Set, TypeAlias
 
@@ -37,7 +36,7 @@ class ProcessingStep(ABC):
         return final_hash
 
     def save_hash(self, hash: str) -> None:
-        os.makedirs(self.hash_dir, exist_ok=True)
+        self.hash_dir.mkdir(parents=True, exist_ok=True)
 
         hash_path = self.hash_dir / f"{self.hash_name}.txt"
         with open(hash_path, "w") as f:

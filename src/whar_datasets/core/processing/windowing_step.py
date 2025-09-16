@@ -62,6 +62,7 @@ class WindowingStep(ProcessingStep):
         activity_metadata = load_activity_metadata(self.metadata_dir)
         session_metadata = load_session_metadata(self.metadata_dir)
         sessions = load_sessions(self.sessions_dir, session_metadata)
+
         return activity_metadata, session_metadata, sessions
 
     def check_initial_format(self, base: base_type) -> bool:

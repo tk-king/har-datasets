@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 import shutil
 from typing import Dict, List
@@ -17,7 +16,7 @@ def cache_samples(
         shutil.rmtree(samples_dir)
 
     # create samples directory if it does not exist
-    os.makedirs(samples_dir, exist_ok=True)
+    samples_dir.mkdir(parents=True, exist_ok=True)
 
     # loop over index of window index
     loop = tqdm(window_metadata["window_id"])
@@ -38,7 +37,7 @@ def cache_windows(
         shutil.rmtree(windows_dir)
 
     # create windowing directory if it does not exist
-    os.makedirs(windows_dir, exist_ok=True)
+    windows_dir.mkdir(parents=True, exist_ok=True)
 
     # loop over index of window index
     loop = tqdm(window_metadata["window_id"])
@@ -51,19 +50,19 @@ def cache_windows(
         windows[window_id].to_parquet(window_path, index=False)
 
 
-def cache_window_metadata(cache_dir: Path, window_metadata: pd.DataFrame) -> None:
+def cache_window_metadata(metadata_dir: Path, window_metadata: pd.DataFrame) -> None:
     # create directories if do not exist
-    os.makedirs(cache_dir, exist_ok=True)
+    metadata_dir.mkdir(parents=True, exist_ok=True)
 
     # define window index path
-    window_metadata_path = cache_dir / "window_metadata.parquet"
+    window_metadata_path = metadata_dir / "window_metadata.parquet"
 
     # save window index
     window_metadata.to_parquet(window_metadata_path, index=True)
 
 
 def cache_common_format(
-    cache_dir: Path,
+    metadata_dir: Path,
     sessions_dir: Path,
     activity_metadata: pd.DataFrame,
     session_metadata: pd.DataFrame,
@@ -74,12 +73,12 @@ def cache_common_format(
         shutil.rmtree(sessions_dir)
 
     # create directories if do not exist
-    os.makedirs(cache_dir, exist_ok=True)
-    os.makedirs(sessions_dir, exist_ok=True)
+    metadata_dir.mkdir(parents=True, exist_ok=True)
+    sessions_dir.mkdir(parents=True, exist_ok=True)
 
     # define paths
-    activity_metadata_path = cache_dir / "activity_metadata.parquet"
-    session_metadata_path = cache_dir / "session_metadata.parquet"
+    activity_metadata_path = metadata_dir / "activity_metadata.parquet"
+    session_metadata_path = metadata_dir / "session_metadata.parquet"
 
     # save activity and session index
     activity_metadata.to_parquet(activity_metadata_path, index=True)

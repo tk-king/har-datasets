@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from whar_datasets.core.utils.logging import logger
@@ -11,7 +10,7 @@ def check_windowing(cache_dir: Path, windows_dir: Path) -> bool:
         logger.warning(f"Windows directory not found at '{windows_dir}'.")
         return False
 
-    if len(os.listdir(windows_dir)) == 0:
+    if len(list(windows_dir.iterdir())) == 0:
         logger.warning(f"Windows directory '{windows_dir}' is empty.")
         return False
 

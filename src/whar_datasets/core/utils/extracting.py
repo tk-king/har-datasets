@@ -24,4 +24,4 @@ def extract_dir(inner_file_path: Path, inner_extract_dir: Path) -> None:
             if tarfile.is_tarfile(nested_path) or zipfile.is_zipfile(nested_path):
                 nested_extract_dir = nested_path.with_suffix("")  # remove extension
                 extract_dir(nested_path, nested_extract_dir)
-                os.remove(nested_path)  # cleanup after extraction
+                nested_path.unlink()  # cleanup after extraction

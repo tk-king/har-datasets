@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 import shutil
 from typing import Any, Dict, List, Set, Tuple, TypeAlias
@@ -77,7 +76,7 @@ class ParsingStep(ProcessingStep):
             shutil.rmtree(self.sessions_dir)
 
         # create directories if do not exist
-        os.makedirs(self.sessions_dir, exist_ok=True)
+        self.sessions_dir.mkdir(parents=True, exist_ok=True)
 
         # define paths
         activity_metadata_path = self.metadata_dir / "activity_metadata.parquet"
