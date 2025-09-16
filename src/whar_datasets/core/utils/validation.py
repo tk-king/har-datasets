@@ -1,4 +1,4 @@
-from typing import Dict, List
+from pathlib import Path
 from dask.delayed import delayed
 from dask.base import compute
 from dask.diagnostics.progress import ProgressBar
@@ -6,14 +6,15 @@ import pandas as pd
 from tqdm import tqdm
 
 from whar_datasets.core.config import WHARConfig
+from whar_datasets.core.utils.loading import load_session
 from whar_datasets.core.utils.logging import logger
 
 
 def validate_common_format(
     cfg: WHARConfig,
+    sessions_dir: Path,
     activity_metadata: pd.DataFrame,
     session_metadata: pd.DataFrame,
-    sessions: Dict[int, pd.DataFrame],
 ) -> bool:
     logger.info("Validating common format...")
 
@@ -62,9 +63,9 @@ def validate_common_format(
         return False
 
     validated = (
-        validate_sessions_parallely(cfg, session_metadata, sessions)
+        validate_sessions_parallely(cfg, sessions_dir, session_metadata)
         if cfg.parallelize
-        else validate_sessions_sequentially(cfg, session_metadata, sessions)
+        else validate_sessions_sequentially(cfg, sessions_dir, session_metadata)
     )
 
     if not validated:
@@ -75,24 +76,24 @@ def validate_common_format(
 
 
 def validate_sessions_sequentially(
-    cfg: WHARConfig, session_metadata: pd.DataFrame, sessions: Dict[int, pd.DataFrame]
+    cfg: WHARConfig, sessions_dir: Path, session_metadata: pd.DataFrame
 ) -> bool:
     loop = tqdm(session_metadata["session_id"])
     loop.set_description("Validating sessions")
 
     for session_id in loop:
-        if not validate_session(cfg, session_id, sessions[session_id]):
+        if not validate_session(cfg, sessions_dir, session_id):
             return False
 
     return True
 
 
 def validate_sessions_parallely(
-    cfg: WHARConfig, session_metadata: pd.DataFrame, sessions: Dict[int, pd.DataFrame]
+    cfg: WHARConfig, sessions_dir: Path, session_metadata: pd.DataFrame
 ) -> bool:
     @delayed
     def validate_session_delayed(session_id: int) -> bool:
-        return validate_session(cfg, session_id, sessions[session_id])
+        return validate_session(cfg, sessions_dir, session_id)
 
     # define processing tasks
     tasks = [
@@ -109,7 +110,9 @@ def validate_sessions_parallely(
     return all(results)
 
 
-def validate_session(cfg: WHARConfig, session_id: int, session: pd.DataFrame) -> bool:
+def validate_session(cfg: WHARConfig, sessions_dir: Path, session_id: int) -> bool:
+    session = load_session(sessions_dir, session_id)
+
     if not pd.api.types.is_datetime64_dtype(session["timestamp"]):
         logger.error(f"'timestamp' column in {session_id} is not datetime64 type.")
         return False

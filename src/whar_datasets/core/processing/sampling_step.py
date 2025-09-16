@@ -14,6 +14,7 @@ from whar_datasets.core.utils.loading import (
 from whar_datasets.core.utils.logging import logger
 from whar_datasets.core.utils.normalization import (
     get_norm_params,
+    normalize_windows_parallely,
     normalize_windows_seq,
 )
 from whar_datasets.core.utils.transform import transform_windows_seq
@@ -69,8 +70,14 @@ class SamplingStep(ProcessingStep):
             self.cfg, self.indices, self.window_metadata, windows
         )
 
-        normalized = normalize_windows_seq(
-            self.cfg, norm_params, self.window_metadata, windows
+        normalize_windows = (
+            normalize_windows_parallely
+            if self.cfg.parallelize
+            else normalize_windows_seq
+        )
+
+        normalized = normalize_windows(
+            self.cfg, norm_params, self.window_metadata, self.windows_dir
         )
 
         transformed = transform_windows_seq(self.cfg, self.window_metadata, normalized)

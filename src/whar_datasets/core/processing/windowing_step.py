@@ -12,18 +12,13 @@ from whar_datasets.core.utils.caching import cache_window_metadata, cache_window
 from whar_datasets.core.utils.loading import (
     load_activity_metadata,
     load_session_metadata,
-    load_sessions,
     load_window_metadata,
 )
 from whar_datasets.core.utils.logging import logger
 from whar_datasets.core.utils.selecting import select_activities
 from whar_datasets.core.utils.validation import validate_common_format
 
-base_type: TypeAlias = Tuple[
-    pd.DataFrame,
-    pd.DataFrame,
-    Dict[int, pd.DataFrame],
-]
+base_type: TypeAlias = Tuple[pd.DataFrame, pd.DataFrame]
 result_type: TypeAlias = Tuple[
     pd.DataFrame,
     pd.DataFrame,
@@ -61,19 +56,18 @@ class WindowingStep(ProcessingStep):
     def get_base(self) -> base_type:
         activity_metadata = load_activity_metadata(self.metadata_dir)
         session_metadata = load_session_metadata(self.metadata_dir)
-        sessions = load_sessions(self.sessions_dir, session_metadata)
 
-        return activity_metadata, session_metadata, sessions
+        return activity_metadata, session_metadata
 
     def check_initial_format(self, base: base_type) -> bool:
-        activity_metadata, session_metadata, sessions = base
+        activity_metadata, session_metadata = base
 
         return validate_common_format(
-            self.cfg, activity_metadata, session_metadata, sessions
+            self.cfg, self.sessions_dir, activity_metadata, session_metadata
         )
 
     def compute_results(self, base: base_type) -> result_type:
-        activity_metadata, session_metadata, sessions = base
+        activity_metadata, session_metadata = base
 
         logger.info("Compute windowing")
 
@@ -85,10 +79,14 @@ class WindowingStep(ProcessingStep):
         )
 
         # generate windowing
-        window_metadata, windows = (
-            process_sessions_parallely(self.cfg, session_metadata, sessions)
+        process_sessions = (
+            process_sessions_parallely
             if self.cfg.parallelize
-            else process_sessions_sequentially(self.cfg, session_metadata, sessions)
+            else process_sessions_sequentially
+        )
+
+        window_metadata, windows = process_sessions(
+            self.cfg, self.sessions_dir, session_metadata
         )
 
         return activity_metadata, session_metadata, window_metadata, windows

@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Dict, Tuple
 import pandas as pd
 from dask.delayed import delayed
@@ -6,18 +7,18 @@ from tqdm import tqdm
 from dask.diagnostics.progress import ProgressBar
 
 from whar_datasets.core.config import WHARConfig
+from whar_datasets.core.utils.loading import load_session
 from whar_datasets.core.utils.resampling import resample
 from whar_datasets.core.utils.selecting import select_channels
 from whar_datasets.core.utils.windowing import generate_windowing
 
 
 def process_session(
-    cfg: WHARConfig, session_id, session: pd.DataFrame
+    cfg: WHARConfig, sessions_dir: Path, session_id: int
 ) -> Tuple[pd.DataFrame | None, Dict[str, pd.DataFrame] | None]:
-    # apply selections
+    # laod and process session
+    session = load_session(sessions_dir, session_id)
     session = select_channels(session, cfg.sensor_channels)
-
-    # resample
     session = resample(session, cfg.sampling_freq)
 
     # generate windowing
@@ -36,15 +37,13 @@ def process_session(
 
 
 def process_sessions_sequentially(
-    cfg: WHARConfig, session_metadata: pd.DataFrame, sessions: Dict[int, pd.DataFrame]
+    cfg: WHARConfig, sessions_dir: Path, session_metadata: pd.DataFrame
 ) -> Tuple[pd.DataFrame, Dict[str, pd.DataFrame]]:
     # loop over sessions
     loop = tqdm([int(x) for x in session_metadata["session_id"].unique()])
     loop.set_description("Processing sessions")
 
-    pairs = [
-        process_session(cfg, session_id, sessions[session_id]) for session_id in loop
-    ]
+    pairs = [process_session(cfg, sessions_dir, session_id) for session_id in loop]
     window_metadatas, window_dicts = zip(*pairs)
 
     # compute global window metadata and windows
@@ -59,13 +58,13 @@ def process_sessions_sequentially(
 
 
 def process_sessions_parallely(
-    cfg: WHARConfig, session_metadata: pd.DataFrame, sessions: Dict[int, pd.DataFrame]
+    cfg: WHARConfig, sessions_dir: Path, session_metadata: pd.DataFrame
 ) -> Tuple[pd.DataFrame, Dict[str, pd.DataFrame]]:
     @delayed
     def process_session_delayed(
         session_id: int,
     ) -> Tuple[pd.DataFrame | None, Dict[str, pd.DataFrame] | None]:
-        return process_session(cfg, session_id, sessions[session_id])
+        return process_session(cfg, sessions_dir, session_id)
 
     # define processing tasks
     tasks = [
