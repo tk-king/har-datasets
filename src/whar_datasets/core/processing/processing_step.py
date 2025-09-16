@@ -13,11 +13,7 @@ result_type: TypeAlias = Any
 
 class ProcessingStep(ABC):
     def __init__(
-        self,
-        cfg: WHARConfig,
-        hash_dir: Path,
-        dependent_on: List["ProcessingStep"] = [],
-        force_results: bool = False,
+        self, cfg: WHARConfig, hash_dir: Path, dependent_on: List["ProcessingStep"] = []
     ):
         self.cfg = cfg
         self.hash_dir = hash_dir
@@ -25,7 +21,6 @@ class ProcessingStep(ABC):
         self.relevant_cfg_keys: Set[str] = set()
         self.relevant_values: List[str] = []
         self.dependent_on = dependent_on
-        self.force_results = force_results
 
     def compute_hash(self) -> str:
         # hash based on relevant part of own config
@@ -70,6 +65,7 @@ class ProcessingStep(ABC):
         return check
 
     def run(self, force_recompute: bool) -> None:
+        logger.info("Forcing recompute") if force_recompute else None
         logger.info(f"Running {self.__class__.__name__}")
 
         # check wether an update is needed

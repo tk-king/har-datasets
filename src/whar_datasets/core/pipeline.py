@@ -10,19 +10,20 @@ from whar_datasets.core.processing.sampling_step import SamplingStep
 from whar_datasets.core.processing.parsing_step import ParsingStep
 from whar_datasets.core.processing.processing_step import ProcessingStep
 from whar_datasets.core.processing.windowing_step import WindowingStep
-from whar_datasets.core.utils.logging import logger
 
 
 class ProcessingPipeline:
     def __init__(self, steps: List[ProcessingStep]):
         self.steps = steps
 
-    def run(self, force_recompute: bool) -> Any:
-        if force_recompute:
-            logger.info("Forcing recompute...")
-
-        for step in self.steps:
-            step.run(force_recompute)
+    def run(self, force_recompute: bool | List[bool] | None = None) -> Any:
+        if isinstance(force_recompute, list):
+            assert len(self.steps) == len(force_recompute)
+            for step, fr in zip(self.steps, force_recompute):
+                step.run(fr)
+        elif isinstance(force_recompute, bool):
+            for step in self.steps:
+                step.run(force_recompute)
 
 
 class PreProcessingPipeline(ProcessingPipeline):
@@ -72,7 +73,7 @@ class PreProcessingPipeline(ProcessingPipeline):
         )
 
     def run(
-        self, force_recompute: bool
+        self, force_recompute: bool | List[bool] | None = None
     ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         super().run(force_recompute)
 
@@ -108,7 +109,9 @@ class PostProcessingPipeline(ProcessingPipeline):
 
         super().__init__([self.featuring_step])
 
-    def run(self, force_recompute: bool) -> Dict[str, List[np.ndarray]] | None:
+    def run(
+        self, force_recompute: bool | List[bool] | None = None
+    ) -> Dict[str, List[np.ndarray]] | None:
         super().run(force_recompute)
         samples = self.featuring_step.load_results() if self.cfg.in_memory else None
         return samples

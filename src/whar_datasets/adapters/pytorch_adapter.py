@@ -1,5 +1,5 @@
 import random
-from typing import Tuple
+from typing import List, Tuple
 import numpy as np
 from torch import Tensor
 import torch
@@ -14,7 +14,11 @@ from whar_datasets.core.utils.logging import logger
 
 
 class PytorchAdapter(Dataset[Tuple[Tensor, ...]]):
-    def __init__(self, cfg: WHARConfig, force_recompute: bool = False):
+    def __init__(
+        self,
+        cfg: WHARConfig,
+        force_recompute: bool | List[bool] | None = False,
+    ):
         super().__init__()
 
         torch.manual_seed(cfg.seed)
@@ -33,7 +37,7 @@ class PytorchAdapter(Dataset[Tuple[Tensor, ...]]):
         self,
         batch_size: int,
         scv_group_index: int | None = None,
-        force_recompute: bool = False,
+        force_recompute: bool | List[bool] | None = False,
     ) -> Tuple[DataLoader, DataLoader, DataLoader]:
         # get split indices from config
         split = get_split_train_val_test(

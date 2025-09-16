@@ -40,9 +40,8 @@ class WindowingStep(ProcessingStep):
         sessions_dir: Path,
         windows_dir: Path,
         dependent_on: List[ProcessingStep],
-        force_results: bool = True,
     ):
-        super().__init__(cfg, windows_dir, dependent_on, force_results)
+        super().__init__(cfg, windows_dir, dependent_on)
 
         self.metadata_dir = metadata_dir
         self.sessions_dir = sessions_dir
