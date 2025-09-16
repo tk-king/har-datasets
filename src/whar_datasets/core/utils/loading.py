@@ -5,6 +5,21 @@ import pandas as pd
 from tqdm import tqdm
 
 
+def load_window_metadata(cache_dir: Path) -> pd.DataFrame:
+    window_metadata_path = cache_dir / "window_metadata.parquet"
+    return pd.read_parquet(window_metadata_path)
+
+
+def load_session_metadata(cache_dir: Path) -> pd.DataFrame:
+    session_metadata_path = cache_dir / "session_metadata.parquet"
+    return pd.read_parquet(session_metadata_path)
+
+
+def load_activity_metadata(cache_dir: Path) -> pd.DataFrame:
+    activity_metadata_path = cache_dir / "activity_metadata.parquet"
+    return pd.read_parquet(activity_metadata_path)
+
+
 def load_samples(
     window_metadata: pd.DataFrame, samples_dir: Path
 ) -> Dict[str, List[np.ndarray]]:
@@ -55,30 +70,15 @@ def load_sessions(
 
 
 def load_sample(samples_dir: Path, window_id: str) -> List[np.ndarray]:
-    sample_path = Path(samples_dir) / Path(f"sample_{window_id}.npy")
+    sample_path = Path(samples_dir) / f"sample_{window_id}.npy"
     return np.load(sample_path, allow_pickle=True).tolist()
 
 
 def load_window(windows_dir: Path, window_id: str) -> pd.DataFrame:
-    window_path = windows_dir / Path(f"window_{window_id}.parquet")
+    window_path = windows_dir / f"window_{window_id}.parquet"
     return pd.read_parquet(window_path)
 
 
 def load_session(sessions_dir: Path, session_id: int) -> pd.DataFrame:
-    session_path = sessions_dir / Path(f"session_{session_id}.parquet")
+    session_path = sessions_dir / f"session_{session_id}.parquet"
     return pd.read_parquet(session_path)
-
-
-def load_window_metadata(cache_dir: Path) -> pd.DataFrame:
-    window_metadata_path = cache_dir / Path("window_metadata.parquet")
-    return pd.read_parquet(window_metadata_path)
-
-
-def load_session_metadata(cache_dir: Path) -> pd.DataFrame:
-    session_metadata_path = cache_dir / Path("session_metadata.parquet")
-    return pd.read_parquet(session_metadata_path)
-
-
-def load_activity_metadata(cache_dir: Path) -> pd.DataFrame:
-    activity_metadata_path = cache_dir / Path("activity_metadata.parquet")
-    return pd.read_parquet(activity_metadata_path)
