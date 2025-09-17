@@ -30,8 +30,9 @@ def get_split_train_test(
     train_indices = get_window_indices(
         session_metadata, window_metadata, train_subj_ids
     )
-
     test_indices = get_window_indices(session_metadata, window_metadata, test_subj_ids)
+
+    logger.info(f"train: {len(train_indices)} | test: {len(test_indices)}")
 
     return train_indices, test_indices
 

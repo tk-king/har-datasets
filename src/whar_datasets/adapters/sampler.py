@@ -5,39 +5,33 @@ import numpy as np
 from torch import Tensor
 import torch
 
-from whar_datasets.core.postprocessing import postprocess
-from whar_datasets.core.preprocessing import preprocess
+from whar_datasets.core.pipeline import PostProcessingPipeline, PreProcessingPipeline
 from whar_datasets.core.sampling import get_label, get_sample
 from whar_datasets.core.splitting import get_split_train_test
-from whar_datasets.core.utils.loading import load_session_metadata, load_window_metadata
 from whar_datasets.core.weighting import compute_class_weights
 from whar_datasets.core.config import WHARConfig
-from whar_datasets.core.utils.logging import logger
 
 
-class WHARSampler:
-    def __init__(self, cfg: WHARConfig, override_cache: bool = False) -> None:
+class Sampler:
+    def __init__(
+        self, cfg: WHARConfig, force_recompute: bool | List[bool] | None = False
+    ) -> None:
         self.cfg = cfg
 
-        dirs = preprocess(cfg, override_cache)
-        self.cache_dir, self.windows_dir, self.samples_dir, self.hashes_dir = dirs
-
-        self.session_metadata = load_session_metadata(self.cache_dir)
-        self.window_metadata = load_window_metadata(self.cache_dir)
-
-        logger.info(
-            f"subject_ids: {np.sort(self.session_metadata['subject_id'].unique())}"
-        )
-        logger.info(
-            f"activity_ids: {np.sort(self.session_metadata['activity_id'].unique())}"
-        )
-
+        # ensure correct seeding
+        torch.manual_seed(cfg.seed)
         random.seed(cfg.seed)
         np.random.seed(cfg.seed)
-        torch.manual_seed(cfg.seed)
+        self.generator = torch.Generator()
+        self.generator.manual_seed(cfg.seed)
 
-    def prepare(self, scv_group_index: int, override_cache: bool = False) -> None:
-        # get split indices from config
+        # preform preprocessing
+        self.pre_processing_pipeline = PreProcessingPipeline(cfg)
+        results = self.pre_processing_pipeline.run(force_recompute)
+        self.activity_metadata, self.session_metadata, self.window_metadata = results
+
+    def prepare(self, scv_group_index: int, force_recompute: bool = False) -> None:
+        # compute splitting
         self.train_indices, self.test_indices = get_split_train_test(
             self.cfg,
             self.session_metadata,
@@ -45,16 +39,16 @@ class WHARSampler:
             scv_group_index,
         )
 
-        # normalize and transform windows
-        self.samples = postprocess(
+        # define postprocessing pipeline
+        self.post_processing_pipeline = PostProcessingPipeline(
             self.cfg,
-            self.train_indices,
-            self.hashes_dir,
-            self.samples_dir,
-            self.windows_dir,
+            self.pre_processing_pipeline,
             self.window_metadata,
-            override_cache,
+            self.train_indices,
         )
+
+        # perform postprocessing
+        self.samples = self.post_processing_pipeline.run(force_recompute)
 
     def get_class_weights(self, indices: List[int]) -> dict:
         return compute_class_weights(
@@ -157,7 +151,7 @@ class WHARSampler:
             get_sample(
                 i,
                 self.cfg,
-                self.samples_dir,
+                self.post_processing_pipeline.samples_dir,
                 self.window_metadata,
                 self.samples,
             )
