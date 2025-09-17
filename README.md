@@ -42,7 +42,8 @@ Not yet natively supported WHAR datasets can be integrated via a custom configur
 | ✅        | [PAMAP2](https://archive.ics.uci.edu/dataset/231/pamap2+physical+activity+monitoring)         | 2012 | *Introducing a New Benchmarked Dataset for Activity Monitoring*                            |
 | ⬜        | DA | 2012 | *Recognizing Human Activities User-independently on Smartphones Based on Accelerometer Data* |
 | ✅        | [UCI-HAR](https://archive.ics.uci.edu/dataset/240/human+activity+recognition+using+smartphones)        | 2013 | *A Public Domain Dataset for Human Activity Recognition using Smartphones*                  |
-| ⬜        | [PARDUSS](https://www.utwente.nl/en/eemcs/ps/research/dataset/) | 2013 | *Towards physical activity recognition using smartphone sensors*                           |
+| ⬜        | [PARDUSS](https://www.utwente.nl/en/eemcs/ps/research/dataset/) | 2013 | *Towards physical activity recognition using smartphone sensors*     
+| ⬜        | [REALDISP](https://archive.ics.uci.edu/dataset/305/realdisp+activity+recognition+dataset) | 2014 | *Dealing with the Effects of Sensor Displacement in Wearable Activity Recognition*                        |
 | ⬜        | [MobiFall](https://bmi.hmu.gr/the-mobifall-and-mobiact-datasets-2/#) | 2014 | *The MobiFall Dataset: Fall Detection and Classification with a Smartphone*                |
 | ✅        | [MHEALTH](https://archive.ics.uci.edu/dataset/319/mhealth+dataset)        | 2014 | *mHealthDroid: A Novel Framework for Agile Development of Mobile Health Applications*      |
 | ⬜        | [SWELL-KW](https://www.kaggle.com/datasets/qiriro/swell-heart-rate-variability-hrv)          | 2014 | *The SWELL Knowledge Work Dataset for Stress and User Modeling Research*                   |
