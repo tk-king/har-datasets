@@ -23,7 +23,7 @@ class TransformType(Enum):
 
 
 class WHARConfig(BaseModel):
-    # info fields
+    # metadata fields
     dataset_id: str
     download_url: str
     sampling_freq: int
