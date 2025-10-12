@@ -102,7 +102,7 @@ class PostProcessingPipeline(ProcessingPipeline):
         self.metadata_dir = pre_processing_pipeline.metadata_dir
         self.windows_dir = pre_processing_pipeline.windows_dir
 
-        self.featuring_step = SamplingStep(
+        self.sampling_step = SamplingStep(
             cfg=cfg,
             metadata_dir=self.metadata_dir,
             samples_dir=self.samples_dir,
@@ -112,13 +112,13 @@ class PostProcessingPipeline(ProcessingPipeline):
             dependent_on=[pre_processing_pipeline.windowing_step],
         )
 
-        super().__init__(steps=[self.featuring_step])
+        super().__init__(steps=[self.sampling_step])
 
     def run(
         self, force_recompute: bool | List[bool] | None = None
     ) -> Dict[str, List[np.ndarray]] | None:
         super().run(force_recompute)
 
-        samples = self.featuring_step.load_results() if self.cfg.in_memory else None
+        samples = self.sampling_step.load_results() if self.cfg.in_memory else None
 
         return samples

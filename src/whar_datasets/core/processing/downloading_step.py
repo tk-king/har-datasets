@@ -28,11 +28,7 @@ class DownloadingStep(ProcessingStep):
         self.download_dir = raw_dir
 
         self.hash_name: str = "download_hash"
-        self.relevant_cfg_keys: Set[str] = {
-            "dataset_id",
-            "datasets_dir",
-            "download_url",
-        }
+        self.relevant_cfg_keys: Set[str] = {"dataset_id", "download_url"}
 
     def get_base(self) -> base_type:
         return None

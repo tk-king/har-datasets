@@ -43,12 +43,11 @@ class SamplingStep(ProcessingStep):
 
         self.hash_name: str = "sampling_hash"
         self.relevant_cfg_keys: Set[str] = {
-            "given_train_test_subj_ids",
-            "subj_cross_val_split_groups",
+            "given_fold",
+            "fold_groups",
             "val_percentage",
             "normalization",
             "transform",
-            "cache_postprocessing",
         }
         self.relevant_values = [str(i) for i in self.indices]
 

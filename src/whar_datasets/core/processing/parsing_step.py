@@ -38,11 +38,7 @@ class ParsingStep(ProcessingStep):
         self.sessions_dir = sessions_dir
 
         self.hash_name: str = "parsing_hash"
-        self.relevant_cfg_keys: Set[str] = {
-            "dataset_id",
-            "activity_id_col",
-            "use_cache",
-        }
+        self.relevant_cfg_keys: Set[str] = {"dataset_id", "activity_id_col"}
 
     def get_base(self) -> base_type:
         return None

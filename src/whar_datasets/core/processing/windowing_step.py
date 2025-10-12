@@ -50,7 +50,6 @@ class WindowingStep(ProcessingStep):
             "window_time",
             "window_overlap",
             "resampling_freq",
-            "cache_preprocessing",
         }
 
     def get_base(self) -> base_type:
