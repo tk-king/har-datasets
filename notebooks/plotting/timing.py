@@ -7,7 +7,7 @@ from whar_datasets.core.preprocessing import (
     process_sessions_sequentially,
 )
 from whar_datasets.core.utils.loading import load_session_metadata
-from whar_datasets.support.getter import WHARDatasetID, get_whar_cfg
+from whar_datasets.support.getter import WHARDatasetID, get_dataset_cfg
 import json
 
 
@@ -54,7 +54,7 @@ num_samples = 3
 
 if __name__ == "__main__":
     for dataset_id in dataset_ids:
-        cfg = get_whar_cfg(dataset_id, datasets_dir="./notebooks/datasets/")
+        cfg = get_dataset_cfg(dataset_id, datasets_dir="./notebooks/datasets/")
         datasets_dir = cfg.datasets_dir
         dataset_dir = os.path.join(datasets_dir, cfg.dataset_id)
         cache_dir = os.path.join(dataset_dir, "cache/")
@@ -76,7 +76,7 @@ if __name__ == "__main__":
         del session_metadata
 
     for dataset_id in dataset_ids:
-        cfg = get_whar_cfg(dataset_id, datasets_dir="./notebooks/datasets/")
+        cfg = get_dataset_cfg(dataset_id, datasets_dir="./notebooks/datasets/")
         datasets_dir = cfg.datasets_dir
         dataset_dir = os.path.join(datasets_dir, cfg.dataset_id)
         cache_dir = os.path.join(dataset_dir, "cache/")

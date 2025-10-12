@@ -28,12 +28,12 @@ class TensorflowAdapter:
 
     def postprocess(
         self,
-        scv_group_index: int | None = None,
+        split_index: int | None = None,
         force_recompute: bool | List[bool] | None = False,
     ):
         self.train_indices, self.val_indices, self.test_indices = (
             get_split_train_val_test(
-                self.cfg, self.session_meta, self.window_meta, scv_group_index
+                self.cfg, self.session_meta, self.window_meta, split_index
             )
         )
         self.post_pipeline = PostProcessingPipeline(

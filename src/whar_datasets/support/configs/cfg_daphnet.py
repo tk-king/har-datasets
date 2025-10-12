@@ -172,6 +172,6 @@ cfg_daphnet = WHARConfig(
     window_time=1.0,
     window_overlap=0.5,
     # Training fields (flattened splits)
-    given_fold=(list(range(0, 8)), list(range(8, 10))),
-    fold_groups=[[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]],
+    given_split=(list(range(0, 8)), list(range(8, 10))),
+    split_groups=[[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]],
 )

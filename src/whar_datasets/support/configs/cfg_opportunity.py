@@ -544,6 +544,6 @@ cfg_opportunity = WHARConfig(
     window_time=1,
     window_overlap=0.5,
     # Training (split info)
-    given_fold=(list(range(1, 4)), list(range(4, 7))),
-    fold_groups=[[0], [1], [2], [3]],
+    given_split=(list(range(1, 4)), list(range(4, 7))),
+    split_groups=[[0], [1], [2], [3]],
 )

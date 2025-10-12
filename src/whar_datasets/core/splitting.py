@@ -11,18 +11,18 @@ def get_split_train_test(
     cfg: WHARConfig,
     session_metadata: pd.DataFrame,
     window_metadata: pd.DataFrame,
-    fold_index: int,
+    split_group_index: int,
 ) -> Tuple[List[int], List[int]]:
-    groups = cfg.fold_groups
+    groups = cfg.split_groups
     assert groups is not None
-    assert fold_index < len(groups)
+    assert split_group_index < len(groups)
 
     # get subject_ids for both groups
-    test_subj_ids = groups[fold_index]
+    test_subj_ids = groups[split_group_index]
     train_subj_ids = [
         subj_id
         for i, group in enumerate(groups)
-        if i != fold_index
+        if i != split_group_index
         for subj_id in group
     ]
 
@@ -67,14 +67,14 @@ def get_split_train_val_test(
     cfg: WHARConfig,
     session_metadata: pd.DataFrame,
     window_metadata: pd.DataFrame,
-    fold_index: int | None = None,
+    split_group_index: int | None = None,
 ) -> Tuple[List[int], List[int], List[int]]:
     # if no split group is specified, use given split
-    if fold_index is None:
-        assert cfg.given_fold is not None
+    if split_group_index is None:
+        assert cfg.given_split is not None
 
         # get subject_ids for each group
-        train_subj_ids, test_subj_ids = cfg.given_fold
+        train_subj_ids, test_subj_ids = cfg.given_split
 
         # get window indices for each group
         train_indices = get_window_indices(
@@ -92,16 +92,16 @@ def get_split_train_val_test(
 
     # if split group is specified, use subject cross validation
     else:
-        groups = cfg.fold_groups
+        groups = cfg.split_groups
         assert groups is not None
-        assert fold_index < len(groups)
+        assert split_group_index < len(groups)
 
         # get subject_ids for both groups
-        test_subj_ids = groups[fold_index]
+        test_subj_ids = groups[split_group_index]
         train_subj_ids = [
             subj_id
             for i, group in enumerate(groups)
-            if i != fold_index
+            if i != split_group_index
             for subj_id in group
         ]
 

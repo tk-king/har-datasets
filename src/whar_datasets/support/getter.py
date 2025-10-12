@@ -41,7 +41,7 @@ har_dataset_dict: Dict[WHARDatasetID, WHARConfig] = {
 }
 
 
-def get_whar_cfg(
+def get_dataset_cfg(
     dataset_id: WHARDatasetID, datasets_dir: str = "./datasets"
 ) -> WHARConfig:
     # load dataset-specific config and parser

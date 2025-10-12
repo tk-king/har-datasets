@@ -5,7 +5,7 @@ from typing import Dict, List
 import pandas as pd
 from tqdm import tqdm
 from whar_datasets.core.utils.loading import load_session_metadata
-from whar_datasets.support.getter import WHARDatasetID, get_whar_cfg
+from whar_datasets.support.getter import WHARDatasetID, get_dataset_cfg
 import json
 
 
@@ -36,7 +36,7 @@ dict: Dict[str, List[float]] = {
 }
 
 for dataset_id in dataset_ids:
-    cfg = get_whar_cfg(dataset_id, datasets_dir="./notebooks/datasets/")
+    cfg = get_dataset_cfg(dataset_id, datasets_dir="./notebooks/datasets/")
     datasets_dir = cfg.common.datasets_dir
     dataset_dir = os.path.join(datasets_dir, cfg.dataset.info.id)
     cache_dir = os.path.join(dataset_dir, "cache/")

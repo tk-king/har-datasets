@@ -50,11 +50,11 @@ class TorchAdapter(Dataset):
 
     def postprocess(
         self,
-        fold_index: int | None = None,
+        split_group_index: int | None = None,
         force_recompute: bool | List[bool] | None = False,
     ):
         self.train_indices, self.val_indices, self.indices = get_split_train_val_test(
-            self.cfg, self.session_meta, self.window_meta, fold_index
+            self.cfg, self.session_meta, self.window_meta, split_group_index
         )
         self.post_pipeline = PostProcessingPipeline(
             self.cfg, self.pre_pipeline, self.window_meta, self.train_indices

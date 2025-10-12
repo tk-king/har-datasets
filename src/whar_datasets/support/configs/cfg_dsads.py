@@ -297,6 +297,6 @@ cfg_dsads = WHARConfig(
     window_time=5.0,
     window_overlap=0.5,
     # Training fields (flattened splits)
-    given_fold=(list(range(0, 6)), list(range(6, 8))),
-    fold_groups=[[0, 1], [2, 3], [4, 5], [6, 7]],
+    given_split=(list(range(0, 6)), list(range(6, 8))),
+    split_groups=[[0, 1], [2, 3], [4, 5], [6, 7]],
 )
