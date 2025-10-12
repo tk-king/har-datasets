@@ -5,7 +5,7 @@ import requests
 
 from whar_datasets.core.config import WHARConfig
 from whar_datasets.core.processing.processing_step import ProcessingStep
-from whar_datasets.core.utils.extracting import extract_dir
+from whar_datasets.core.utils.extracting import extract
 from whar_datasets.core.utils.logging import logger
 
 
@@ -19,13 +19,13 @@ class DownloadingStep(ProcessingStep):
         cfg: WHARConfig,
         datasets_dir: Path,
         dataset_dir: Path,
-        download_dir: Path,
+        raw_dir: Path,
     ):
-        super().__init__(cfg, download_dir)
+        super().__init__(cfg, raw_dir)
 
         self.datasets_dir = datasets_dir
         self.dataset_dir = dataset_dir
-        self.download_dir = download_dir
+        self.download_dir = raw_dir
 
         self.hash_name: str = "download_hash"
         self.relevant_cfg_keys: Set[str] = {
@@ -53,7 +53,7 @@ class DownloadingStep(ProcessingStep):
 
         # extract file
         logger.info(f"Extracting {self.cfg.dataset_id}")
-        extract_dir(file_path, self.download_dir)
+        extract(file_path, self.download_dir)
 
     def save_results(self, results: result_type) -> None:
         return None

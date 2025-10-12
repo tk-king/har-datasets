@@ -26,14 +26,14 @@ class ParsingStep(ProcessingStep):
     def __init__(
         self,
         cfg: WHARConfig,
-        download_dir: Path,
+        raw_dir: Path,
         metadata_dir: Path,
         sessions_dir: Path,
         dependent_on: List[ProcessingStep],
     ):
         super().__init__(cfg, sessions_dir, dependent_on)
 
-        self.download_dir = download_dir
+        self.download_dir = raw_dir
         self.metadata_dir = metadata_dir
         self.sessions_dir = sessions_dir
 

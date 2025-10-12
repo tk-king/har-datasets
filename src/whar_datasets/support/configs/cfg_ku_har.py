@@ -36,7 +36,7 @@ def parse_ku_har(
     session_metadata_dict = defaultdict(list)
     session_dfs = []
 
-    activity_dirs = [d for d in os.listdir(dir) if d != "cache"]
+    activity_dirs = [d for d in os.listdir(dir) if d != "download_hash.txt"]
 
     for activity_dir in activity_dirs:
         # get activity from dirname

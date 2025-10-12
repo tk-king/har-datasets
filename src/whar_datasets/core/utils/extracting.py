@@ -4,24 +4,24 @@ import tarfile
 import zipfile
 
 
-def extract_dir(inner_file_path: Path, inner_extract_dir: Path) -> None:
-    # extract inner file
-    if tarfile.is_tarfile(inner_file_path):
-        with tarfile.open(inner_file_path) as tar:
-            inner_extract_dir.mkdir(parents=True, exist_ok=True)
-            tar.extractall(inner_extract_dir)
-    elif zipfile.is_zipfile(inner_file_path):
-        with zipfile.ZipFile(inner_file_path) as zip:
-            inner_extract_dir.mkdir(parents=True, exist_ok=True)
-            zip.extractall(inner_extract_dir)
-    else:
-        return None
+def extract(file_path: Path, extract_dir: Path) -> None:
+    # extract depending on file type
+    if tarfile.is_tarfile(file_path):
+        with tarfile.open(file_path) as tar:
+            extract_dir.mkdir(parents=True, exist_ok=True)
+            tar.extractall(extract_dir)
+    elif zipfile.is_zipfile(file_path):
+        with zipfile.ZipFile(file_path) as zipf:
+            extract_dir.mkdir(parents=True, exist_ok=True)
+            zipf.extractall(extract_dir)
 
-    # recursively check extracted files
-    for root, _, files in os.walk(inner_extract_dir):
+    # clean up
+    file_path.unlink()
+
+    # recursively extract nested archives
+    for root, _, files in os.walk(extract_dir):
         for file in files:
             nested_path = Path(root) / file
             if tarfile.is_tarfile(nested_path) or zipfile.is_zipfile(nested_path):
-                nested_extract_dir = nested_path.with_suffix("")  # remove extension
-                extract_dir(nested_path, nested_extract_dir)
-                nested_path.unlink()  # cleanup after extraction
+                nested_extract_dir = nested_path.with_suffix("")
+                extract(nested_path, nested_extract_dir)

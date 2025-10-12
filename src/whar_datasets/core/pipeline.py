@@ -31,14 +31,14 @@ class PreProcessingPipeline(ProcessingPipeline):
         # define directories
         self.datasets_dir = Path(cfg.datasets_dir)
         self.dataset_dir = self.datasets_dir / cfg.dataset_id
-        self.download_dir = self.dataset_dir / "download"
+        self.raw_dir = self.dataset_dir / "data"
         self.metadata_dir = self.dataset_dir / "metadata"
         self.sessions_dir = self.dataset_dir / "sessions"
         self.windows_dir = self.dataset_dir / "windows"
 
         # create directories
         self.dataset_dir.mkdir(parents=True, exist_ok=True)
-        self.download_dir.mkdir(parents=True, exist_ok=True)
+        self.raw_dir.mkdir(parents=True, exist_ok=True)
         self.metadata_dir.mkdir(parents=True, exist_ok=True)
         self.sessions_dir.mkdir(parents=True, exist_ok=True)
         self.windows_dir.mkdir(parents=True, exist_ok=True)
@@ -51,25 +51,30 @@ class PreProcessingPipeline(ProcessingPipeline):
 
         # define steos
         self.downloading_step = DownloadingStep(
-            cfg, self.datasets_dir, self.dataset_dir, self.download_dir
+            cfg=cfg,
+            datasets_dir=self.datasets_dir,
+            dataset_dir=self.dataset_dir,
+            raw_dir=self.raw_dir,
         )
+
         self.parsing_step = ParsingStep(
-            cfg,
-            self.download_dir,
-            self.metadata_dir,
-            self.sessions_dir,
-            [self.downloading_step],
+            cfg=cfg,
+            raw_dir=self.raw_dir,
+            metadata_dir=self.metadata_dir,
+            sessions_dir=self.sessions_dir,
+            dependent_on=[self.downloading_step],
         )
+
         self.windowing_step = WindowingStep(
-            cfg,
-            self.metadata_dir,
-            self.sessions_dir,
-            self.windows_dir,
-            [self.parsing_step],
+            cfg=cfg,
+            metadata_dir=self.metadata_dir,
+            sessions_dir=self.sessions_dir,
+            windows_dir=self.windows_dir,
+            dependent_on=[self.parsing_step],
         )
 
         super().__init__(
-            [self.downloading_step, self.parsing_step, self.windowing_step]
+            steps=[self.downloading_step, self.parsing_step, self.windowing_step]
         )
 
     def run(
@@ -98,20 +103,22 @@ class PostProcessingPipeline(ProcessingPipeline):
         self.windows_dir = pre_processing_pipeline.windows_dir
 
         self.featuring_step = SamplingStep(
-            cfg,
-            self.metadata_dir,
-            self.samples_dir,
-            self.windows_dir,
-            window_metadata,
-            indices,
-            [pre_processing_pipeline.windowing_step],
+            cfg=cfg,
+            metadata_dir=self.metadata_dir,
+            samples_dir=self.samples_dir,
+            windows_dir=self.windows_dir,
+            window_metadata=window_metadata,
+            indices=indices,
+            dependent_on=[pre_processing_pipeline.windowing_step],
         )
 
-        super().__init__([self.featuring_step])
+        super().__init__(steps=[self.featuring_step])
 
     def run(
         self, force_recompute: bool | List[bool] | None = None
     ) -> Dict[str, List[np.ndarray]] | None:
         super().run(force_recompute)
+
         samples = self.featuring_step.load_results() if self.cfg.in_memory else None
+
         return samples
