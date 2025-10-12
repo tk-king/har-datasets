@@ -67,9 +67,11 @@ class SamplingStep(ProcessingStep):
             self.cfg, self.indices, self.window_metadata, windows
         )
 
-        prepare_windows = (
-            prepare_windows_para if self.cfg.parallelize else prepare_windows_seq
-        )
+        # prepare_windows = (
+        #     prepare_windows_para if self.cfg.parallelize else prepare_windows_seq
+        # )
+
+        prepare_windows = prepare_windows_seq
 
         samples = prepare_windows(
             self.cfg, norm_params, self.window_metadata, self.windows_dir
