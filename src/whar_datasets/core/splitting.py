@@ -11,18 +11,18 @@ def get_split_train_test(
     cfg: WHARConfig,
     session_metadata: pd.DataFrame,
     window_metadata: pd.DataFrame,
-    subj_cross_val_group_index: int,
+    fold_index: int,
 ) -> Tuple[List[int], List[int]]:
-    groups = cfg.subj_cross_val_split_groups
+    groups = cfg.fold_groups
     assert groups is not None
-    assert subj_cross_val_group_index < len(groups)
+    assert fold_index < len(groups)
 
     # get subject_ids for both groups
-    test_subj_ids = groups[subj_cross_val_group_index]
+    test_subj_ids = groups[fold_index]
     train_subj_ids = [
         subj_id
         for i, group in enumerate(groups)
-        if i != subj_cross_val_group_index
+        if i != fold_index
         for subj_id in group
     ]
 
@@ -67,14 +67,14 @@ def get_split_train_val_test(
     cfg: WHARConfig,
     session_metadata: pd.DataFrame,
     window_metadata: pd.DataFrame,
-    subj_cross_val_group_index: int | None = None,
+    fold_index: int | None = None,
 ) -> Tuple[List[int], List[int], List[int]]:
     # if no split group is specified, use given split
-    if subj_cross_val_group_index is None:
-        assert cfg.given_train_test_subj_ids is not None
+    if fold_index is None:
+        assert cfg.given_fold is not None
 
         # get subject_ids for each group
-        train_subj_ids, test_subj_ids = cfg.given_train_test_subj_ids
+        train_subj_ids, test_subj_ids = cfg.given_fold
 
         # get window indices for each group
         train_indices = get_window_indices(
@@ -92,16 +92,16 @@ def get_split_train_val_test(
 
     # if split group is specified, use subject cross validation
     else:
-        groups = cfg.subj_cross_val_split_groups
+        groups = cfg.fold_groups
         assert groups is not None
-        assert subj_cross_val_group_index < len(groups)
+        assert fold_index < len(groups)
 
         # get subject_ids for both groups
-        test_subj_ids = groups[subj_cross_val_group_index]
+        test_subj_ids = groups[fold_index]
         train_subj_ids = [
             subj_id
             for i, group in enumerate(groups)
-            if i != subj_cross_val_group_index
+            if i != fold_index
             for subj_id in group
         ]
 

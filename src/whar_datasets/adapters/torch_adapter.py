@@ -12,91 +12,68 @@ from whar_datasets.core.weighting import compute_class_weights
 from whar_datasets.core.config import WHARConfig
 
 
-class TorchAdapter(Dataset[Tuple[Tensor, ...]]):
-    def __init__(
-        self,
-        cfg: WHARConfig,
-        force_recompute: bool | List[bool] | None = False,
-    ):
-        super().__init__()
-
+class TorchAdapter(Dataset):
+    def __init__(self, cfg: WHARConfig):
         self.cfg = cfg
-
-        # ensure correct seeding
-        torch.manual_seed(cfg.seed)
-        random.seed(cfg.seed)
-        np.random.seed(cfg.seed)
-        self.generator = torch.Generator()
-        self.generator.manual_seed(cfg.seed)
-
-        # preform preprocessing
-        self.pre_processing_pipeline = PreProcessingPipeline(cfg)
-        results = self.pre_processing_pipeline.run(force_recompute)
-        self.activity_metadata, self.session_metadata, self.window_metadata = results
-
-    def get_dataloaders(
-        self,
-        batch_size: int,
-        scv_group_index: int | None = None,
-        force_recompute: bool | List[bool] | None = False,
-    ) -> Tuple[DataLoader, DataLoader, DataLoader]:
-        # compute splitting
-        self.train_indices, self.val_indices, self.test_indices = (
-            get_split_train_val_test(
-                self.cfg,
-                self.session_metadata,
-                self.window_metadata,
-                scv_group_index,
-            )
-        )
-
-        # define postprocessing pipeline
-        self.post_processing_pipeline = PostProcessingPipeline(
-            self.cfg,
-            self.pre_processing_pipeline,
-            self.window_metadata,
-            self.train_indices,
-        )
-
-        # perform postprocessing
-        self.samples = self.post_processing_pipeline.run(force_recompute)
-
-        # specify split subsets
-        train_set = Subset(self, self.train_indices)
-        test_set = Subset(self, self.test_indices)
-        val_set = Subset(self, self.val_indices)
-
-        # create dataloaders from split
-        train_loader = DataLoader(train_set, batch_size, True, generator=self.generator)
-        val_loader = DataLoader(val_set, len(val_set), False, generator=self.generator)
-        test_loader = DataLoader(test_set, 1, False, generator=self.generator)
-
-        return train_loader, val_loader, test_loader
-
-    def get_class_weights(self, dataloader: DataLoader) -> dict:
-        return compute_class_weights(
-            self.session_metadata,
-            self.window_metadata.iloc[dataloader.dataset.indices],  # type: ignore
-        )
+        self._set_seed()
+        self.pre_pipeline = PreProcessingPipeline(cfg)
 
     def __len__(self) -> int:
-        return len(self.window_metadata)
+        return len(self.window_meta)
 
     def __getitem__(self, index: int) -> Tuple[Tensor, ...]:
-        # get label
-        label = get_label(index, self.window_metadata, self.session_metadata)
-
-        # get sample
+        label = get_label(index, self.window_meta, self.session_meta)
         sample = get_sample(
             index,
             self.cfg,
-            self.post_processing_pipeline.samples_dir,
-            self.window_metadata,
+            self.post_pipeline.samples_dir,
+            self.window_meta,
             self.samples,
         )
 
-        # convert to tensors
         y = torch.tensor(label, dtype=torch.long)
         x = [torch.tensor(s, dtype=torch.float32) for s in sample]
 
         return (y, *x)
+
+    def _set_seed(self):
+        torch.manual_seed(self.cfg.seed)
+        np.random.seed(self.cfg.seed)
+        random.seed(self.cfg.seed)
+        self.generator = torch.Generator()
+        self.generator.manual_seed(self.cfg.seed)
+
+    def preprocess(self, force_recompute: bool | List[bool] | None = False):
+        self.activity_meta, self.session_meta, self.window_meta = self.pre_pipeline.run(
+            force_recompute
+        )
+
+    def postprocess(
+        self,
+        fold_index: int | None = None,
+        force_recompute: bool | List[bool] | None = False,
+    ):
+        self.train_indices, self.val_indices, self.indices = get_split_train_val_test(
+            self.cfg, self.session_meta, self.window_meta, fold_index
+        )
+        self.post_pipeline = PostProcessingPipeline(
+            self.cfg, self.pre_pipeline, self.window_meta, self.train_indices
+        )
+        self.samples = self.post_pipeline.run(force_recompute)
+
+    def get_dataloaders(self, batch_size: int) -> dict[str, DataLoader]:
+        train_set = Subset(self, self.train_indices)
+        test_set = Subset(self, self.val_indices)
+        val_set = Subset(self, self.indices)
+
+        train_loader = DataLoader(train_set, batch_size, True, generator=self.generator)
+        val_loader = DataLoader(val_set, len(val_set), False, generator=self.generator)
+        test_loader = DataLoader(test_set, 1, False, generator=self.generator)
+
+        return {"train": train_loader, "val": val_loader, "test": test_loader}
+
+    def get_class_weights(self, dataloader: DataLoader) -> dict:
+        return compute_class_weights(
+            self.session_meta,
+            self.window_meta.iloc[dataloader.dataset.indices],  # type: ignore
+        )

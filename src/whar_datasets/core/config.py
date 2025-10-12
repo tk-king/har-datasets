@@ -48,8 +48,8 @@ class WHARConfig(BaseModel):
     resampling_freq: Optional[int] = None
 
     # postprocessing fields
-    given_train_test_subj_ids: Optional[Tuple[List[int], List[int]]]
-    subj_cross_val_split_groups: Optional[List[List[int]]]
+    given_fold: Optional[Tuple[List[int], List[int]]]  # train, test subject ids
+    fold_groups: Optional[List[List[int]]]  # groups of subject ids
     val_percentage: float = 0.1
     normalization: Optional[NormType] = NormType.STD_GLOBALLY
     transform: Optional[TransformType] = None

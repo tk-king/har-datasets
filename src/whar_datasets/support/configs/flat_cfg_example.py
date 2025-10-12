@@ -18,8 +18,8 @@ my_dataset_cfg = WHARConfig(
     window_overlap=0.5,  # in [0,1]
     resampling_freq=None,
     # postprocessing
-    given_train_test_subj_ids=([0, 1, 2, 3], [4, 5]),
-    subj_cross_val_split_groups=[[0, 1], [2, 3], [4, 5]],
+    given_fold=([0, 1, 2, 3], [4, 5]),
+    fold_groups=[[0, 1], [2, 3], [4, 5]],
     val_percentage=0.1,  # in [0,1]
     normalization=NormType.STD_GLOBALLY,
     transform=None,

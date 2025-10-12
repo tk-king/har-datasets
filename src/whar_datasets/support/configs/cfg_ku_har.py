@@ -194,8 +194,8 @@ cfg_ku_har = WHARConfig(
     window_overlap=0.5,
     # Training fields (flattened splits)
     normalization=NormType.ROBUST_SCALE_GLOBALLY,
-    given_train_test_subj_ids=(list(range(0, 72)), list(range(72, 90))),
-    subj_cross_val_split_groups=[
+    given_fold=(list(range(0, 72)), list(range(72, 90))),
+    fold_groups=[
         [4, 24, 66, 49, 23, 25, 1, 27, 10, 60, 0, 75, 69, 35, 82],
         [2, 18, 72, 88, 20, 78, 7, 79, 36, 13, 26, 59, 73, 37, 16],
         [46, 70, 62, 40, 32, 8, 67, 39, 53, 55, 87, 68, 84, 44, 58],

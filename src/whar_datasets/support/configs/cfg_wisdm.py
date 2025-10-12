@@ -170,8 +170,8 @@ cfg_wisdm = WHARConfig(
     window_time=5,
     window_overlap=0.5,
     # Training (split info)
-    given_train_test_subj_ids=(list(range(0, 29)), list(range(29, 36))),
-    subj_cross_val_split_groups=[
+    given_fold=(list(range(0, 29)), list(range(29, 36))),
+    fold_groups=[
         [0, 1, 2, 3, 4, 5],
         [6, 7, 8, 9, 10, 11],
         [12, 13, 14, 15, 16, 17],
