@@ -22,15 +22,15 @@ This installs the library into the active environment.
 from whar_datasets.adapters.torch_adapter import TorchAdapter
 from whar_datasets.support.getter import WHARDatasetID, get_dataset_cfg
 
-# initialize config and dataset given a dataset id
+# initialize dataset config given a dataset id
 cfg = get_dataset_cfg(dataset_id=WHARDatasetID.WISDM)
+
+# initialize dataset and preprocess
 dataset = TorchAdapter(cfg=cfg)
-
-# preprocess and postprocess for a given fold
 dataset.preprocess()
-dataset.postprocess(split_group_index=0)
 
-# get dataloaders for a given batch size
+# postprocess for a given split and get dataloaders
+dataset.postprocess(split_group_index=0)
 dataloaders = dataset.get_dataloaders(batch_size=32)
 ```
 
