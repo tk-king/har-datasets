@@ -93,7 +93,8 @@ class Sampler:
         assert indices is not None
 
         if subject_id is not None:
-            subset = self.window_metadata.iloc[indices]
+            subset = self.window_metadata.iloc[indices].copy()
+            subset["orig_index"] = subset.index
 
             # Merge with session_metadata to get subject_id info
             merged = subset.merge(
@@ -104,10 +105,11 @@ class Sampler:
 
             # Filter by subject_id
             filtered = merged[merged["subject_id"] == subject_id]
-            indices = filtered.index.to_list()
+            indices = filtered["orig_index"].to_list()
 
         if activity_id is not None:
-            subset = self.window_metadata.iloc[indices]
+            subset = self.window_metadata.iloc[indices].copy()
+            subset["orig_index"] = subset.index
 
             # Merge with session_metadata to get activity_id info
             merged = subset.merge(
@@ -118,7 +120,7 @@ class Sampler:
 
             # Filter by activity_id
             filtered = merged[merged["activity_id"] == activity_id]
-            indices = filtered.index.to_list()
+            indices = filtered["orig_index"].to_list()
 
         return indices
 
