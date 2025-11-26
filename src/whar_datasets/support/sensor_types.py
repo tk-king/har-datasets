@@ -11,6 +11,37 @@ class SensorLocation(Enum):
     LEFT_ARM = 6
 
 
+# class SensorType(Enum):
+#     ACC_X = 0
+#     ACC_Y = 1
+#     ACC_Z = 2
+#     GYRO_X = 3
+#     GYRO_Y = 4
+#     GYRO_Z = 5
+#     MAG_X = 6
+#     MAG_Y = 7
+#     MAG_Z = 8
+#     ECG = 9
+#     BODY_ACC_X = 10
+#     BODY_ACC_Y = 11
+#     BODY_ACC_Z = 12
+#     BODY_GYRO_X = 13
+#     BODY_GYRO_Y = 14
+#     BODY_GYRO_Z = 15
+#     ATTITUE_ROLL = 16
+#     ATTITUE_PITCH = 17
+#     ATTITUE_YAW = 18
+#     GRAVITY_X = 19
+#     GRAVITY_Y = 20
+#     GRAVITY_Z = 21
+#     ROTATION_RATE_X = 22
+#     ROTATION_RATE_Y = 23
+#     ROTATION_RATE_Z = 24
+#     USERACCLERATION_X = 25
+#     USERACCLERATION_Y = 26
+#     USERACCLERATION_Z = 27
+
+
 class SensorType(Enum):
     ACC_X = 0
     ACC_Y = 1
@@ -22,24 +53,24 @@ class SensorType(Enum):
     MAG_Y = 7
     MAG_Z = 8
     ECG = 9
-    BODY_ACC_X = 10
-    BODY_ACC_Y = 11
-    BODY_ACC_Z = 12
-    BODY_GYRO_X = 13
-    BODY_GYRO_Y = 14
-    BODY_GYRO_Z = 15
+    BODY_ACC_X = 0
+    BODY_ACC_Y = 1
+    BODY_ACC_Z = 2
+    BODY_GYRO_X = 3
+    BODY_GYRO_Y = 4
+    BODY_GYRO_Z = 5
     ATTITUE_ROLL = 16
     ATTITUE_PITCH = 17
     ATTITUE_YAW = 18
     GRAVITY_X = 19
     GRAVITY_Y = 20
     GRAVITY_Z = 21
-    ROTATION_RATE_X = 22
-    ROTATION_RATE_Y = 23
-    ROTATION_RATE_Z = 24
-    USERACCLERATION_X = 25
-    USERACCLERATION_Y = 26
-    USERACCLERATION_Z = 27
+    ROTATION_RATE_X = 3
+    ROTATION_RATE_Y = 4
+    ROTATION_RATE_Z = 5
+    USERACCLERATION_X = 0
+    USERACCLERATION_Y = 1
+    USERACCLERATION_Z = 2
 
 
 UCI_HAR_SENSOR_TYPES = [
