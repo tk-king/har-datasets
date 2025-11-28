@@ -8,7 +8,7 @@ from whar_datasets.core.preprocessing import preprocess
 from whar_datasets.core.sampling import get_label, get_sample
 from whar_datasets.core.splitting import get_split_train_val_test
 from whar_datasets.core.utils.loading import load_session_metadata, load_window_metadata
-from whar_datasets.support.sensor_types import get_sensor_types
+from whar_datasets.support.sensor_types import get_sensor_types, get_imu_groups
 
 
 class NumpyLocationAdapter:
@@ -34,11 +34,35 @@ class NumpyLocationAdapter:
         self.sensor_locations = sensor_locations
         self.sensor_types = sensor_types
         self.num_channels = len(sensor_locations)
-        self.unique_locations = list(dict.fromkeys(sensor_locations))
-        self.location_channel_indices: Dict[int, List[int]] = {
-            loc: [idx for idx, loc_value in enumerate(sensor_locations) if loc_value == loc]
-            for loc in self.unique_locations
-        }
+
+        imu_groups = get_imu_groups(cfg.dataset_id)
+        if imu_groups:
+            # Explicit IMU groups override the implicit per-location grouping and
+            # allow datasets such as PAMAP2 to expose multiple views per window.
+            self.unique_locations = []
+            self.location_channel_indices = {}
+            self.location_descriptors: Dict[int, object] = {}
+            for group_key, indices in imu_groups.items():
+                normalized_loc = (
+                    group_key.value if hasattr(group_key, "value") else group_key
+                )
+                self.unique_locations.append(normalized_loc)
+                self.location_channel_indices[normalized_loc] = sorted(indices)
+                self.location_descriptors[normalized_loc] = group_key
+            descriptor_list = [self.location_descriptors[loc] for loc in self.unique_locations]
+            print(f"Using IMU groups: {descriptor_list}")
+        else:
+            self.unique_locations = list(dict.fromkeys(sensor_locations))
+            self.location_channel_indices: Dict[int, List[int]] = {
+                loc: [
+                    idx
+                    for idx, loc_value in enumerate(sensor_locations)
+                    if loc_value == loc
+                ]
+                for loc in self.unique_locations
+            }
+            self.location_descriptors = {loc: loc for loc in self.unique_locations}
+            print(f"Unique sensor locations: {self.unique_locations}")
 
         (
             train_window_indices,
@@ -111,7 +135,8 @@ class NumpyLocationAdapter:
 
                 labels.append(label)
                 samples.append(sliced_sample)
-                locations.append(location)
+                descriptor = self.location_descriptors.get(location, location)
+                locations.append(getattr(descriptor, "value", descriptor))
                 participants.append(participant_id)
                 index_map.append((idx, location))
 

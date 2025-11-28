@@ -5,10 +5,11 @@ class SensorLocation(Enum):
     HIP = 0
     HAND = 1
     CHEST = 2
+    ANKLE = 3
     LEFT_ANKLE = 3
-    RIGHT_ANKLE = 4
-    RIGHT_ARM = 5
-    LEFT_ARM = 6
+    RIGHT_ANKLE = 3
+    RIGHT_ARM = 4
+    LEFT_ARM = 4
 
 
 # class SensorType(Enum):
@@ -110,12 +111,41 @@ PAMAP2_SENSOR_TYPES = [
     (SensorLocation.HAND, SensorType.ACC_X),
     (SensorLocation.HAND, SensorType.ACC_Y),
     (SensorLocation.HAND, SensorType.ACC_Z),
+    (SensorLocation.HAND, SensorType.ACC_X),
+    (SensorLocation.HAND, SensorType.ACC_Y),
+    (SensorLocation.HAND, SensorType.ACC_Z),
     (SensorLocation.HAND, SensorType.GYRO_X),
     (SensorLocation.HAND, SensorType.GYRO_Y),
     (SensorLocation.HAND, SensorType.GYRO_Z),
     (SensorLocation.HAND, SensorType.MAG_X),
     (SensorLocation.HAND, SensorType.MAG_Y),
-    (SensorLocation.HAND, SensorType.MAG_Z)
+    (SensorLocation.HAND, SensorType.MAG_Z),
+
+    (SensorLocation.CHEST, SensorType.ACC_X),
+    (SensorLocation.CHEST, SensorType.ACC_Y),
+    (SensorLocation.CHEST, SensorType.ACC_Z),
+    (SensorLocation.CHEST, SensorType.ACC_X),
+    (SensorLocation.CHEST, SensorType.ACC_Y),
+    (SensorLocation.CHEST, SensorType.ACC_Z),
+    (SensorLocation.CHEST, SensorType.GYRO_X),
+    (SensorLocation.CHEST, SensorType.GYRO_Y),
+    (SensorLocation.CHEST, SensorType.GYRO_Z),
+    (SensorLocation.CHEST, SensorType.MAG_X),
+    (SensorLocation.CHEST, SensorType.MAG_Y),
+    (SensorLocation.CHEST, SensorType.MAG_Z),
+
+    (SensorLocation.LEFT_ANKLE, SensorType.ACC_X),
+    (SensorLocation.LEFT_ANKLE, SensorType.ACC_Y),
+    (SensorLocation.LEFT_ANKLE, SensorType.ACC_Z),
+    (SensorLocation.LEFT_ANKLE, SensorType.ACC_X),
+    (SensorLocation.LEFT_ANKLE, SensorType.ACC_Y),
+    (SensorLocation.LEFT_ANKLE, SensorType.ACC_Z),
+    (SensorLocation.LEFT_ANKLE, SensorType.GYRO_X),
+    (SensorLocation.LEFT_ANKLE, SensorType.GYRO_Y),
+    (SensorLocation.LEFT_ANKLE, SensorType.GYRO_Z),
+    (SensorLocation.LEFT_ANKLE, SensorType.MAG_X),
+    (SensorLocation.LEFT_ANKLE, SensorType.MAG_Y),
+    (SensorLocation.LEFT_ANKLE, SensorType.MAG_Z)
 ]
 
 OPPORTUNITY_SENSOR_TYPES = [
@@ -234,3 +264,35 @@ def get_sensor_types(dataset_id: WHARDatasetID):
     sensor_locations = list(x[0].value for x in selected_dataset)
     sensor_types = list(x[1].value for x in selected_dataset)
     return sensor_locations, sensor_types
+
+
+
+
+
+PAMAP2_IMU_GROUPS = {
+    SensorLocation.HAND: [0, 1, 2, 6, 7, 8, 9, 10, 11],      # Hand IMU
+    SensorLocation.CHEST: [12, 13, 14, 18, 19, 20, 21, 22, 23],  # Chest IMU
+    SensorLocation.ANKLE: [24, 25, 26, 30, 31, 32, 33, 34, 35],  # Ankle IMU
+}
+
+
+DSADS_IMU_GROUPS = {
+    SensorLocation.CHEST: list(range(0, 9)),        # Chest IMU
+    SensorLocation.RIGHT_ARM: list(range(9, 18)),   # Right Arm IMU
+    SensorLocation.LEFT_ARM: list(range(18, 27)),    # Left Arm IMU
+    SensorLocation.RIGHT_ANKLE: list(range(27, 36)),  # Right Ankle IMU
+    SensorLocation.LEFT_ANKLE: list(range(36, 45)),   # Left Ankle IMU
+}
+
+
+datasets_to_imu_groups = {
+    WHARDatasetID.PAMAP2: PAMAP2_IMU_GROUPS,
+    WHARDatasetID.DSADS: DSADS_IMU_GROUPS,
+}
+
+
+
+def get_imu_groups(dataset_id: WHARDatasetID):
+    if type(dataset_id) is str:
+        dataset_id = WHARDatasetID(dataset_id)
+    return datasets_to_imu_groups.get(dataset_id, {})
