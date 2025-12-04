@@ -267,7 +267,9 @@ def get_sensor_types(dataset_id: WHARDatasetID):
 
 
 
-
+UCIHAR_IMU_GROUPS = {
+    SensorLocation.HIP: list(range(0, 9)),  # Hip IMU
+}
 
 PAMAP2_IMU_GROUPS = {
     SensorLocation.HAND: [0, 1, 2, 6, 7, 8, 9, 10, 11],      # Hand IMU
@@ -284,12 +286,18 @@ DSADS_IMU_GROUPS = {
     SensorLocation.LEFT_ANKLE: list(range(36, 45)),   # Left Ankle IMU
 }
 
+MHEALTH_IMU_GROUPS = {
+    SensorLocation.ANKLE: list(range(5, 14)),
+    SensorLocation.RIGHT_ARM: list(range(14, 23)),
+}
+
 
 datasets_to_imu_groups = {
     WHARDatasetID.PAMAP2: PAMAP2_IMU_GROUPS,
     WHARDatasetID.DSADS: DSADS_IMU_GROUPS,
+    WHARDatasetID.UCI_HAR: UCIHAR_IMU_GROUPS,
+    WHARDatasetID.MHEALTH: MHEALTH_IMU_GROUPS,
 }
-
 
 
 def get_imu_groups(dataset_id: WHARDatasetID):

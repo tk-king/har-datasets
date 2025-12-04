@@ -14,6 +14,7 @@ from whar_datasets.support.sensor_types import get_sensor_types, get_imu_groups
 class NumpyLocationAdapter:
     def __init__(self, cfg: WHARConfig, override_cache: bool = False):
         self.cfg = cfg
+        
         self.override_cache = override_cache
 
         dirs = preprocess(cfg, override_cache)
@@ -52,17 +53,18 @@ class NumpyLocationAdapter:
             descriptor_list = [self.location_descriptors[loc] for loc in self.unique_locations]
             print(f"Using IMU groups: {descriptor_list}")
         else:
-            self.unique_locations = list(dict.fromkeys(sensor_locations))
-            self.location_channel_indices: Dict[int, List[int]] = {
-                loc: [
-                    idx
-                    for idx, loc_value in enumerate(sensor_locations)
-                    if loc_value == loc
-                ]
-                for loc in self.unique_locations
-            }
-            self.location_descriptors = {loc: loc for loc in self.unique_locations}
-            print(f"Unique sensor locations: {self.unique_locations}")
+            # self.unique_locations = list(dict.fromkeys(sensor_locations))
+            # self.location_channel_indices: Dict[int, List[int]] = {
+            #     loc: [
+            #         idx
+            #         for idx, loc_value in enumerate(sensor_locations)
+            #         if loc_value == loc
+            #     ]
+            #     for loc in self.unique_locations
+            # }
+            # self.location_descriptors = {loc: loc for loc in self.unique_locations}
+            # print(f"Unique sensor locations: {self.unique_locations}")
+            raise ValueError("Location-based grouping is required but no IMU groups found.")
 
         (
             train_window_indices,
