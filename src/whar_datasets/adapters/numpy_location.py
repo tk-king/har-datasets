@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 
@@ -9,13 +9,33 @@ from whar_datasets.core.sampling import get_label, get_sample
 from whar_datasets.core.splitting import get_split_train_val_test
 from whar_datasets.core.utils.loading import load_session_metadata, load_window_metadata
 from whar_datasets.support.sensor_types import get_sensor_types, get_imu_groups
+from whar_datasets.support.dataset_activities import ActivityLabelSpace, get_class_names, build_activity_label_space
+from whar_datasets.support.getter import WHARDatasetID
 
 
 class NumpyLocationAdapter:
-    def __init__(self, cfg: WHARConfig, override_cache: bool = False):
+    def __init__(
+        self,
+        cfg: WHARConfig,
+        override_cache: bool = False,
+        *,
+        label_space: ActivityLabelSpace | None = None,
+    ):
         self.cfg = cfg
-        
         self.override_cache = override_cache
+        self.label_space = label_space
+        if self.label_space is None:
+            self.label_space = build_activity_label_space()
+
+
+        self._dataset_enum: WHARDatasetID | None
+        try:
+            self._dataset_enum = WHARDatasetID(cfg.dataset_id)
+        except ValueError:
+            self._dataset_enum = None
+        self._label_space_dataset_id: Union[str, WHARDatasetID] = (
+            self._dataset_enum if self._dataset_enum is not None else self.cfg.dataset_id
+        )
 
         dirs = preprocess(cfg, override_cache)
 
@@ -24,7 +44,7 @@ class NumpyLocationAdapter:
         self.session_metadata = load_session_metadata(self.cache_dir)
         self.window_metadata = load_window_metadata(self.cache_dir)
 
-        self.num_classes = len(self.session_metadata["activity_id"].unique())
+        base_num_classes = len(self.session_metadata["activity_id"].unique())
 
         print(f"subject_ids: {np.sort(self.session_metadata['subject_id'].unique())}")
         print(f"activity_ids: {np.sort(self.session_metadata['activity_id'].unique())}")
@@ -35,6 +55,27 @@ class NumpyLocationAdapter:
         self.sensor_locations = sensor_locations
         self.sensor_types = sensor_types
         self.num_channels = len(sensor_locations)
+
+        self._label_mapping: np.ndarray | None = None
+        if self.label_space is not None:
+            self._label_mapping = self.label_space.mapping_for(
+                self._label_space_dataset_id
+            )
+            self.class_names = list(self.label_space.canonical_classes)
+            self.num_classes = self.label_space.num_classes
+            print(
+                "Applying unified activity space:",
+                self.class_names,
+            )
+        else:
+            if self._dataset_enum is not None:
+                try:
+                    self.class_names = get_class_names(self._dataset_enum)
+                except KeyError:
+                    self.class_names = list(self.cfg.activity_names)
+            else:
+                self.class_names = list(self.cfg.activity_names)
+            self.num_classes = base_num_classes
 
         imu_groups = get_imu_groups(cfg.dataset_id)
         if imu_groups:
@@ -94,12 +135,27 @@ class NumpyLocationAdapter:
         participants: List[int] = []
         index_map: List[Tuple[int, int]] = []
 
+        label_mapping = self._label_mapping
+        filtered_windows = 0
+
         for idx in range(len(self.window_metadata)):
             label = get_label(
                 idx,
                 self.window_metadata,
                 self.session_metadata,
             )
+            if label_mapping is not None:
+                if label < 0 or label >= label_mapping.shape[0]:
+                    raise ValueError(
+                        f"Encountered activity id {label} outside the mapping "
+                        f"bounds for dataset '{self.cfg.dataset_id}'."
+                    )
+                remapped = int(label_mapping[label])
+                if remapped < 0:
+                    filtered_windows += 1
+                    continue
+                label = remapped
+
             sample = get_sample(
                 idx,
                 self.cfg,
@@ -142,7 +198,23 @@ class NumpyLocationAdapter:
                 participants.append(participant_id)
                 index_map.append((idx, location))
 
-        self.labels = np.array(labels)
+        if label_mapping is not None and filtered_windows:
+            print(
+                f"Filtered out {filtered_windows} windows that do not map to the "
+                "target activity space."
+            )
+
+        if not samples:
+            if label_mapping is not None:
+                raise ValueError(
+                    "No samples remain after applying the provided activity label "
+                    f"space for dataset '{self.cfg.dataset_id}'."
+                )
+            raise ValueError(
+                "No samples were produced for the current configuration."
+            )
+
+        self.labels = np.array(labels, dtype=np.int64)
         self.samples = np.array(samples)
         self.samples = self.samples.transpose(0,2,3,1)
         self.locations = np.array(locations)

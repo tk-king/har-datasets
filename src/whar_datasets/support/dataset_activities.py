@@ -1,5 +1,7 @@
 from typing import Dict, Iterable, List, Sequence, Tuple, Union
 
+import numpy as np
+
 from whar_datasets.support.getter import WHARDatasetID
 
 # Original: ['WALKING', 'WALKING_UPSTAIRS', 'WALKING_DOWNSTAIRS', 'SITTING', 'STANDING', 'LAYING']
@@ -34,19 +36,25 @@ CLASS_NAMES_KU_HAR = ["standing", "sitting", "talking_sitting", "talking_standin
 CLASS_NAMES_HAR_SENSE = ["walking", "standing", "walking_upstairs", "walking_downstairs", "running", "sitting"]
 
 
+CLASS_NAMES_BY_DATASET: Dict[WHARDatasetID, List[str]] = {
+    WHARDatasetID.UCI_HAR: CLASS_NAMES_UCI_HAR,
+    WHARDatasetID.WISDM: CLASS_NAMES_WISDM,
+    WHARDatasetID.MOTION_SENSE: CLASS_NAMES_MOTIONSENSE,
+    WHARDatasetID.OPPORTUNITY: CLASS_NAMES_OPPORTUNITY,
+    WHARDatasetID.PAMAP2: CLASS_NAMES_PAMAP2,
+    WHARDatasetID.MHEALTH: CLASS_NAMES_MHEALTH,
+    WHARDatasetID.DSADS: CLASS_NAMES_DSADS,
+    WHARDatasetID.KU_HAR: CLASS_NAMES_KU_HAR,
+    WHARDatasetID.HAR_SENSE: CLASS_NAMES_HAR_SENSE,
+}
+
+
 def get_class_names(dataset_id: WHARDatasetID):
-    class_names = {
-        WHARDatasetID.UCI_HAR: CLASS_NAMES_UCI_HAR,
-        WHARDatasetID.WISDM: CLASS_NAMES_WISDM,
-        WHARDatasetID.MOTION_SENSE: CLASS_NAMES_MOTIONSENSE,
-        WHARDatasetID.OPPORTUNITY: CLASS_NAMES_OPPORTUNITY,
-        WHARDatasetID.PAMAP2: CLASS_NAMES_PAMAP2,
-        WHARDatasetID.MHEALTH: CLASS_NAMES_MHEALTH,
-        WHARDatasetID.DSADS: CLASS_NAMES_DSADS,
-        WHARDatasetID.KU_HAR: CLASS_NAMES_KU_HAR,
-        WHARDatasetID.HAR_SENSE: CLASS_NAMES_HAR_SENSE,
-    }
-    return class_names[dataset_id]
+    return CLASS_NAMES_BY_DATASET[dataset_id]
+
+
+def get_all_activity_dataset_ids() -> List[WHARDatasetID]:
+    return list(CLASS_NAMES_BY_DATASET.keys())
 
 
 def sanitize_class_names(class_names):
@@ -84,6 +92,63 @@ def _normalize_dataset_id(dataset_id: Union[str, WHARDatasetID]) -> WHARDatasetI
     if isinstance(dataset_id, WHARDatasetID):
         return dataset_id
     return WHARDatasetID(dataset_id)
+
+
+class ActivityLabelSpace:
+    """Represents a canonical numerical label space shared across datasets."""
+
+    def __init__(
+        self,
+        canonical_classes: Sequence[str],
+        dataset_mappings: Dict[Union[str, WHARDatasetID], Sequence[int]],
+    ) -> None:
+        self.canonical_classes: List[str] = list(canonical_classes)
+        self.class_to_index: Dict[str, int] = {
+            name: idx for idx, name in enumerate(self.canonical_classes)
+        }
+        normalized: Dict[WHARDatasetID, np.ndarray] = {}
+        for dataset_id, mapping in dataset_mappings.items():
+            ds_id = _normalize_dataset_id(dataset_id)
+            normalized[ds_id] = np.asarray(mapping, dtype=np.int64)
+        self._dataset_mappings = normalized
+
+    @property
+    def num_classes(self) -> int:
+        return len(self.canonical_classes)
+
+    @property
+    def dataset_ids(self) -> List[WHARDatasetID]:
+        return list(self._dataset_mappings.keys())
+
+    def mapping_for(self, dataset_id: Union[str, WHARDatasetID]) -> np.ndarray:
+        ds_id = _normalize_dataset_id(dataset_id)
+        if ds_id not in self._dataset_mappings:
+            raise ValueError(
+                f"Dataset '{ds_id.value}' is not part of this label space."
+            )
+        return self._dataset_mappings[ds_id]
+
+    def transform_labels(
+        self,
+        dataset_id: Union[str, WHARDatasetID],
+        labels: Union[Sequence[int], np.ndarray],
+        drop_invalid: bool = True,
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        mapping = self.mapping_for(dataset_id)
+        label_array = np.asarray(labels, dtype=np.int64)
+        if label_array.size == 0:
+            empty = np.empty(0, dtype=np.int64)
+            return empty, np.empty(0, dtype=bool)
+        if label_array.min() < 0 or label_array.max() >= mapping.shape[0]:
+            raise ValueError(
+                "Labels contain ids outside the mapping bounds for dataset "
+                f"'{_normalize_dataset_id(dataset_id).value}'."
+            )
+        remapped = mapping[label_array]
+        valid_mask = remapped >= 0
+        if drop_invalid:
+            return remapped[valid_mask], valid_mask
+        return remapped, valid_mask
 
 
 def build_activity_alignment(
@@ -134,3 +199,26 @@ def build_activity_alignment(
         mappings[ds] = [canonical.index(name) if name in canonical else -1 for name in names]
 
     return canonical, mappings
+
+
+def build_activity_label_space(
+    dataset_ids: Sequence[Union[str, WHARDatasetID]] | None = None,
+    target_classes: Iterable[str] | None = None,
+    strategy: str = "union",
+) -> ActivityLabelSpace:
+    """Return an ActivityLabelSpace, defaulting to all datasets with union semantics."""
+
+    resolved_dataset_ids: Sequence[Union[str, WHARDatasetID]]
+    if dataset_ids is None:
+        resolved_dataset_ids = get_all_activity_dataset_ids()
+    else:
+        if not dataset_ids:
+            raise ValueError("dataset_ids must not be empty")
+        resolved_dataset_ids = dataset_ids
+
+    canonical, mappings = build_activity_alignment(
+        dataset_ids=resolved_dataset_ids,
+        target_classes=target_classes,
+        strategy=strategy,
+    )
+    return ActivityLabelSpace(canonical, mappings)
