@@ -16,22 +16,39 @@ pip install "git+https://github.com/teco-kit/whar-datasets.git"
 
 This installs the library into the active environment.
 
-# How To Use
+# How To Use With PyTorch
 
 ```python
-from whar_datasets.adapters.torch_adapter import TorchAdapter
-from whar_datasets.support.getter import WHARDatasetID, get_dataset_cfg
+from whar_datasets import (
+    Loader,
+    LOSOSplitter,
+    PostProcessingPipeline,
+    PreProcessingPipeline,
+    TorchAdapter,
+    WHARDatasetID,
+    get_dataset_cfg,
+)
 
-# initialize dataset config given a dataset id
-cfg = get_dataset_cfg(dataset_id=WHARDatasetID.WISDM)
+# create cfg for WISDM dataset
+cfg = get_dataset_cfg(WHARDatasetID.WISDM)
 
-# initialize dataset and preprocess
-dataset = TorchAdapter(cfg=cfg)
-dataset.preprocess()
+# create and run pre-processing pipeline
+pre_pipeline = PreProcessingPipeline(cfg)
+activity_df, session_df, window_df = pre_pipeline.run()
 
-# postprocess for a given split and get dataloaders
-dataset.postprocess(split_group_index=0)
-dataloaders = dataset.get_dataloaders(batch_size=32)
+# create LOSO splits
+splitter = LOSOSplitter(cfg)
+splits = splitter.get_splits(session_df, window_df)
+split = splits[0]
+
+# create and run post-processing pipeline for the specific split
+post_pipeline = PostProcessingPipeline(cfg, pre_pipeline, window_df, split.train_indices)
+samples = post_pipeline.run()
+
+# create dataloaders for the specific split
+loader = Loader(session_df, window_df, post_pipeline.samples_dir, samples)
+adapter = TorchAdapter(cfg, loader, split)
+dataloaders = adapter.get_dataloaders(batch_size=64)
 ```
 
 Not yet natively supported WHAR datasets can be integrated via a custom configuration (with parser).
