@@ -4,7 +4,6 @@ from typing import Dict, List
 
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
 
 
 def cache_samples(
@@ -19,15 +18,9 @@ def cache_samples(
     # create samples directory if it does not exist
     samples_dir.mkdir(parents=True, exist_ok=True)
 
-    # loop over index of window index
-    loop = tqdm(window_df["window_id"])
-    loop.set_description("Caching samples")
-
-    # save samples
-    for window_id in loop:
-        assert isinstance(window_id, str)
-        sample_path = samples_dir / f"sample_{window_id}.npy"
-        np.save(sample_path, np.array(samples[window_id], dtype=object))
+    # save samples as a single file
+    samples_path = samples_dir / "samples.npy"
+    np.save(samples_path, samples)  # type: ignore
 
 
 def cache_windows(
@@ -40,15 +33,21 @@ def cache_windows(
     # create windowing directory if it does not exist
     windows_dir.mkdir(parents=True, exist_ok=True)
 
-    # loop over index of window index
-    loop = tqdm(window_df["window_id"])
-    loop.set_description("Caching windows")
+    # Combine all windows into one DataFrame
+    window_list = []
+    for window_id, df in windows.items():
+        df = df.copy()
+        df["window_id"] = window_id
+        window_list.append(df)
 
-    # save windows
-    for window_id in loop:
-        assert isinstance(window_id, str)
-        window_path = windows_dir / f"window_{window_id}.parquet"
-        windows[window_id].to_parquet(window_path, index=False)
+    if window_list:
+        combined_windows = pd.concat(window_list)
+        # Sort by window_id to optimize read filtering
+        combined_windows = combined_windows.sort_values("window_id")
+
+        combined_windows.to_parquet(
+            windows_dir / "windows.parquet", index=False, engine="pyarrow"
+        )
 
 
 def cache_window_df(metadata_dir: Path, window_df: pd.DataFrame) -> None:
@@ -85,12 +84,18 @@ def cache_common_format(
     activity_df.to_csv(activity_df_path, index=True)
     session_df.to_csv(session_df_path, index=True)
 
-    # loop over sessions
-    loop = tqdm(session_df["session_id"])
-    loop.set_description("Caching sessions")
+    # Combine all sessions into one DataFrame
+    session_list = []
+    for session_id, df in sessions.items():
+        df = df.copy()
+        df["session_id"] = session_id
+        session_list.append(df)
 
-    # save sessions
-    for session_id in loop:
-        assert isinstance(session_id, int)
-        session_path = sessions_dir / f"session_{session_id}.csv"
-        sessions[session_id].to_csv(session_path, index=False)
+    if session_list:
+        combined_sessions = pd.concat(session_list)
+        # Sort by session_id to optimize read filtering
+        combined_sessions = combined_sessions.sort_values("session_id")
+
+        combined_sessions.to_parquet(
+            sessions_dir / "sessions.parquet", index=False, engine="pyarrow"
+        )

@@ -8,6 +8,9 @@ class ProcessingPipeline:
         self.steps = steps
 
     def run(self, force_recompute: bool | List[bool] | None = None) -> Any:
+        if force_recompute is None:
+            force_recompute = False
+
         if isinstance(force_recompute, list):
             assert len(self.steps) == len(force_recompute)
             for step, fr in zip(self.steps, force_recompute):

@@ -1,6 +1,7 @@
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
+import dask.dataframe as dd
 import pandas as pd
 from dask.base import compute
 from dask.delayed import delayed
@@ -38,25 +39,73 @@ def process_sessions_seq(
 def process_sessions_para(
     cfg: WHARConfig, sessions_dir: Path, session_df: pd.DataFrame
 ) -> Tuple[pd.DataFrame, Dict[str, pd.DataFrame]]:
-    @delayed
-    def process_session_delayed(
-        session_id: int,
-    ) -> Tuple[pd.DataFrame | None, Dict[str, pd.DataFrame] | None]:
-        return process_session(cfg, sessions_dir, session_id)
+    relevant_ids = set(session_df["session_id"])
 
-    # define processing tasks
-    tasks = [
-        process_session_delayed(session_id)
-        for session_id in [int(x) for x in session_df["session_id"]]
-    ]
+    # Read sessions parquet with dask
+    ddf = dd.read_parquet(sessions_dir / "sessions.parquet", engine="pyarrow")
+
+    def process_partition(
+        df: pd.DataFrame,
+    ) -> List[Tuple[pd.DataFrame, Dict[str, pd.DataFrame]]]:
+        results: List[Tuple[pd.DataFrame, Dict[str, pd.DataFrame]]] = []
+        if df.empty:
+            return results
+
+        if "session_id" not in df.columns:
+            return results
+
+        # Filter for relevant sessions
+        mask = df["session_id"].isin(relevant_ids)
+        if not mask.any():
+            return results
+
+        subset = df[mask]
+
+        for session_id, group in subset.groupby("session_id"):
+            # Drop session_id to match load_session behavior
+            session_data = group.drop(columns=["session_id"]).reset_index(drop=True)
+
+            # Process session logic
+            session_data = select_channels(session_data, cfg.sensor_channels)
+            session_data = resample(session_data, cfg.sampling_freq)
+
+            window_df_local, windows_local = generate_windowing(
+                int(session_id),  # type: ignore
+                session_data,
+                cfg.window_time,
+                cfg.window_overlap,
+                cfg.sampling_freq,
+            )
+
+            if window_df_local is not None and windows_local is not None:
+                results.append((window_df_local, windows_local))
+
+        return results
+
+    # Create delayed tasks
+    delayed_partitions = ddf.to_delayed()
+
+    @delayed
+    def process_delayed(partition):
+        return process_partition(partition)
+
+    tasks = [process_delayed(part) for part in delayed_partitions]
 
     # execute tasks in parallel
     pbar = ProgressBar()
     pbar.register()
-    pairs = list(compute(*tasks, scheduler="processes"))
+    results_list = list(compute(*tasks, scheduler="processes"))
     pbar.unregister()
 
-    window_dfs, window_dicts = zip(*pairs)
+    # Flatten results
+    all_pairs = []
+    for partition_results in results_list:
+        all_pairs.extend(partition_results)
+
+    if not all_pairs:
+        return pd.DataFrame(columns=["window_id"]), {}
+
+    window_dfs, window_dicts = zip(*all_pairs)
 
     # compute global window metadata and windows
     window_df = pd.concat([w for w in window_dfs if w is not None])

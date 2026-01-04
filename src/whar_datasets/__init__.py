@@ -1,4 +1,4 @@
-from whar_datasets.adapters.adapter_tf import TFAdapter
+# from whar_datasets.adapters.adapter_tf import TFAdapter
 from whar_datasets.adapters.adapter_torch import TorchAdapter
 from whar_datasets.config.getter import WHARDatasetID, get_dataset_cfg
 from whar_datasets.loading.loader import Loader
@@ -17,6 +17,6 @@ __all__ = [
     "PostProcessingPipeline",
     "get_dataset_cfg",
     "WHARDatasetID",
-    "TFAdapter",
+    # "TFAdapter",
     "TorchAdapter",
 ]

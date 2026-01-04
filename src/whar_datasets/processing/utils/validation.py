@@ -1,5 +1,7 @@
 from pathlib import Path
+from typing import List
 
+import dask.dataframe as dd
 import pandas as pd
 from dask.base import compute
 from dask.delayed import delayed
@@ -92,22 +94,85 @@ def validate_sessions_sequentially(
 def validate_sessions_parallely(
     cfg: WHARConfig, sessions_dir: Path, session_df: pd.DataFrame
 ) -> bool:
-    @delayed
-    def validate_session_delayed(session_id: int) -> bool:
-        return validate_session(cfg, sessions_dir, session_id)
+    relevant_ids = set(session_df["session_id"])
 
-    # define processing tasks
-    tasks = [
-        validate_session_delayed(session_id) for session_id in session_df["session_id"]
-    ]
+    # Read sessions parquet with dask
+    ddf = dd.read_parquet(sessions_dir / "sessions.parquet", engine="pyarrow")
+
+    def validate_partition(df: pd.DataFrame) -> List[bool]:
+        results: List[bool] = []
+        if df.empty:
+            return results
+
+        if "session_id" not in df.columns:
+            return results
+
+        # Filter for relevant sessions
+        mask = df["session_id"].isin(relevant_ids)
+        if not mask.any():
+            return results
+
+        subset = df[mask]
+
+        for session_id, group in subset.groupby("session_id"):
+            # Drop session_id to match load_session behavior
+            session = group.drop(columns=["session_id"]).reset_index(drop=True)
+
+            # Validation logic
+            is_valid = True
+
+            if not pd.api.types.is_datetime64_dtype(session["timestamp"]):
+                logger.error(session["timestamp"].dtype)
+                logger.error(
+                    f"'timestamp' column in {session_id} is not datetime64 type."
+                )
+                is_valid = False
+
+            elif len(session.columns.difference(["timestamp"])) != cfg.num_of_channels:
+                logger.error(session.columns.difference(["timestamp"]))
+                logger.error(
+                    f"Number of columns {len(session.columns.difference(['timestamp']))} in {session_id} does not match number of channel {cfg.num_of_channels}."
+                )
+                is_valid = False
+
+            else:
+                for col in session.columns.difference(["timestamp"]):
+                    if not pd.api.types.is_float_dtype(session[col]):
+                        logger.error(
+                            f"Column '{col}' in {session_id} is not float type."
+                        )
+                        is_valid = False
+                        break
+
+                if is_valid and session.isna().any().any():
+                    logger.error(f"Session file {session_id} contains NaN values.")
+                    is_valid = False
+
+            results.append(is_valid)
+
+        return results
+
+    # Create delayed tasks
+    delayed_partitions = ddf.to_delayed()
+
+    @delayed
+    def validate_delayed(partition):
+        return validate_partition(partition)
+
+    tasks = [validate_delayed(part) for part in delayed_partitions]
 
     # execute tasks in parallel
     pbar = ProgressBar()
     pbar.register()
-    results = list(compute(*tasks, scheduler="processes"))
+    results_list = list(compute(*tasks, scheduler="processes"))
     pbar.unregister()
 
-    return all(results)
+    # Flatten results
+    all_results = []
+    for partition_results in results_list:
+        all_results.extend(partition_results)
+
+    return all(all_results)
 
 
 def validate_session(cfg: WHARConfig, sessions_dir: Path, session_id: int) -> bool:

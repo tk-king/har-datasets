@@ -1,12 +1,11 @@
-import shutil
 from pathlib import Path
 from typing import Any, Dict, List, Set, Tuple, TypeAlias
 
 import pandas as pd
-from tqdm import tqdm
 
 from whar_datasets.config.config import WHARConfig
 from whar_datasets.processing.steps.processing_step import ProcessingStep
+from whar_datasets.processing.utils.caching import cache_common_format
 from whar_datasets.utils.loading import load_activity_df, load_session_df, load_sessions
 from whar_datasets.utils.logging import logger
 
@@ -63,30 +62,9 @@ class ParsingStep(ProcessingStep):
 
         logger.info("Saving common format")
 
-        # delete sessions directory if it exists
-        if self.sessions_dir.exists():
-            shutil.rmtree(self.sessions_dir)
-
-        # create directories if do not exist
-        self.sessions_dir.mkdir(parents=True, exist_ok=True)
-
-        # define paths
-        activity_df_path = self.metadata_dir / "activity_df.csv"
-        session_df_path = self.metadata_dir / "session_df.csv"
-
-        # save activity and session index
-        activity_df.to_csv(activity_df_path, index=False)
-        session_df.to_csv(session_df_path, index=False)
-
-        # loop over sessions
-        loop = tqdm(session_df["session_id"])
-        loop.set_description("Caching sessions")
-
-        # save sessions
-        for session_id in loop:
-            assert isinstance(session_id, int)
-            session_path = self.sessions_dir / f"session_{session_id}.csv"
-            sessions[session_id].to_csv(session_path, index=False)
+        cache_common_format(
+            self.metadata_dir, self.sessions_dir, activity_df, session_df, sessions
+        )
 
     def load_results(self) -> result_type:
         logger.info("Loading common format")

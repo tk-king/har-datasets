@@ -62,11 +62,9 @@ class SamplingStep(ProcessingStep):
 
         norm_params = get_norm_params(self.cfg, self.indices, self.window_df, windows)
 
-        # prepare_windows = (
-        #     prepare_windows_para if self.cfg.parallelize else prepare_windows_seq
-        # )
-
-        prepare_windows = prepare_windows_seq
+        prepare_windows = (
+            prepare_windows_para if self.cfg.parallelize else prepare_windows_seq
+        )
 
         samples = prepare_windows(
             self.cfg, norm_params, self.window_df, self.windows_dir

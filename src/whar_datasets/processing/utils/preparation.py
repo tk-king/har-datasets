@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+import dask.dataframe as dd
 import numpy as np
 import pandas as pd
 from dask.base import compute
@@ -48,32 +49,63 @@ def prepare_windows_para(
     window_df: pd.DataFrame,
     windows_dir: Path,
 ) -> Dict[str, List[np.ndarray]]:
-    logger.info("Normalizing and transforming windows")
+    logger.info("Normalizing and transforming windows (Parallel)")
 
     normalize = get_normalize(cfg, norm_params)
     transform = get_transform(cfg)
 
-    @delayed
-    def prepare_delayed(window_id: str) -> Tuple[str, List[np.ndarray]]:
-        window = load_window(windows_dir, window_id)
-        normalized = normalize(window).values
-        transformed = transform(normalized)
-        return window_id, [normalized, *transformed]
+    relevant_ids = set(window_df["window_id"])
 
-    # define processing tasks
-    tasks = [
-        prepare_delayed(window_id)
-        for window_id in [str(x) for x in window_df["window_id"]]
-    ]
+    # Read parquet with dask to handle partitions efficiently
+    ddf = dd.read_parquet(windows_dir / "windows.parquet", engine="pyarrow")
+
+    def process_partition(df: pd.DataFrame) -> List[Tuple[str, List[np.ndarray]]]:
+        results: List[Tuple[str, List[np.ndarray]]] = []
+        if df.empty:
+            return results
+
+        # Check if any window in this partition is relevant
+        # This avoids processing partitions that don't contain any relevant windows
+        if "window_id" not in df.columns:
+            return results
+
+        # Filter for relevant windows in this partition
+        mask = df["window_id"].isin(relevant_ids)
+        if not mask.any():
+            return results
+
+        subset = df[mask]
+
+        # Group by window_id and process
+        for window_id, group in subset.groupby("window_id"):
+            # Drop window_id column to match load_window behavior
+            window_data = group.drop(columns=["window_id"]).reset_index(drop=True)
+
+            normalized = normalize(window_data).values
+            transformed = transform(normalized)
+            results.append((str(window_id), [normalized, *transformed]))
+
+        return results
+
+    # Create delayed tasks for each partition
+    delayed_partitions = ddf.to_delayed()
+
+    @delayed
+    def process_delayed(partition):
+        return process_partition(partition)
+
+    tasks = [process_delayed(part) for part in delayed_partitions]
 
     # execute tasks in parallel
     pbar = ProgressBar()
     pbar.register()
-    tuples = list(compute(*tasks, scheduler="processes"))
+    results_list = list(compute(*tasks, scheduler="processes"))
     pbar.unregister()
 
-    prepared: Dict[str, List[np.ndarray]] = {
-        window_id: values for window_id, values in tuples
-    }
+    # Flatten results
+    prepared: Dict[str, List[np.ndarray]] = {}
+    for partition_results in results_list:
+        for window_id, data in partition_results:
+            prepared[window_id] = data
 
     return prepared
