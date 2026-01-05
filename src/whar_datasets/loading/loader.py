@@ -25,7 +25,7 @@ class Loader:
     def __len__(self) -> int:
         return len(self.window_df)
 
-    def sample_triples(
+    def sample_items(
         self,
         batch_size: int,
         indices: List[int] | None = None,
@@ -43,14 +43,15 @@ class Loader:
 
         inds = np.random.choice(inds, size=batch_size, replace=True).tolist()
 
-        triples = [self.get_triple(idx) for idx in inds]
+        items = [self.get_item(idx) for idx in inds]
 
-        return triples
+        return items
 
-    def get_triple(self, index: int) -> Tuple[int, int, List[np.ndarray]]:
+    def get_item(self, index: int) -> Tuple[int, int, List[np.ndarray]]:
         activity_label = self.get_activity_label(index)
         subject_label = self.get_subject_label(index)
         sample = self.get_sample(index)
+
         return activity_label, subject_label, sample
 
     def get_activity_label(self, index: int) -> int:

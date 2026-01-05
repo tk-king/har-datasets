@@ -66,9 +66,9 @@ def validate_common_format(
         return False
 
     validated = (
-        validate_sessions_parallely(cfg, sessions_dir, session_df)
+        validate_sessions_para(cfg, sessions_dir, session_df)
         if cfg.parallelize
-        else validate_sessions_sequentially(cfg, sessions_dir, session_df)
+        else validate_sessions_seq(cfg, sessions_dir, session_df)
     )
 
     if not validated:
@@ -78,7 +78,7 @@ def validate_common_format(
     return True
 
 
-def validate_sessions_sequentially(
+def validate_sessions_seq(
     cfg: WHARConfig, sessions_dir: Path, session_df: pd.DataFrame
 ) -> bool:
     loop = tqdm(session_df["session_id"])
@@ -91,7 +91,7 @@ def validate_sessions_sequentially(
     return True
 
 
-def validate_sessions_parallely(
+def validate_sessions_para(
     cfg: WHARConfig, sessions_dir: Path, session_df: pd.DataFrame
 ) -> bool:
     relevant_ids = set(session_df["session_id"])
@@ -151,6 +151,8 @@ def validate_sessions_parallely(
             results.append(is_valid)
 
         return results
+
+    logger.info("Validating sessions (parallelized)")
 
     # Create delayed tasks
     delayed_partitions = ddf.to_delayed()

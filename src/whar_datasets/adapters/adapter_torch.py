@@ -1,5 +1,5 @@
 import random
-from typing import Tuple
+from typing import Dict, Tuple
 
 import numpy as np
 import torch
@@ -30,15 +30,15 @@ class TorchAdapter(Dataset):
     def __len__(self) -> int:
         return len(self.loader)
 
-    def __getitem__(self, index: int) -> Tuple[Tensor, ...]:
-        activity_label, subject_label, sample = self.loader.get_triple(index)
+    def __getitem__(self, index: int) -> Tuple[Tensor, Tensor]:
+        activity_label, subject_label, sample = self.loader.get_item(index)
 
         y = torch.tensor(activity_label, dtype=torch.long)
-        x = [torch.tensor(s, dtype=torch.float32) for s in sample]
+        x = torch.tensor(sample[0], dtype=torch.float32)
 
-        return (y, *x)
+        return y, x
 
-    def get_dataloaders(self, batch_size: int) -> dict[str, DataLoader]:
+    def get_dataloaders(self, batch_size: int) -> Dict[str, DataLoader]:
         train_set = Subset(self, self.split.train_indices)
         test_set = Subset(self, self.split.val_indices)
         val_set = Subset(self, self.split.test_indices)

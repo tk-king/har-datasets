@@ -49,7 +49,7 @@ def prepare_windows_para(
     window_df: pd.DataFrame,
     windows_dir: Path,
 ) -> Dict[str, List[np.ndarray]]:
-    logger.info("Normalizing and transforming windows (Parallel)")
+    logger.info("Normalizing and transforming windows (parallelized)")
 
     normalize = get_normalize(cfg, norm_params)
     transform = get_transform(cfg)

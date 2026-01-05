@@ -13,6 +13,7 @@ from whar_datasets.processing.utils.resampling import resample
 from whar_datasets.processing.utils.selecting import select_channels
 from whar_datasets.processing.utils.windowing import generate_windowing
 from whar_datasets.utils.loading import load_session
+from whar_datasets.utils.logging import logger
 
 
 def process_sessions_seq(
@@ -81,6 +82,8 @@ def process_sessions_para(
                 results.append((window_df_local, windows_local))
 
         return results
+
+    logger.info("Processing sessions (parallelized)")
 
     # Create delayed tasks
     delayed_partitions = ddf.to_delayed()
