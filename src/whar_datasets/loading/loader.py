@@ -32,7 +32,7 @@ class Loader:
         activity_id: int | None = None,
         subject_id: int | None = None,
         seed: int | None = None,
-    ) -> List[Tuple[int, int, List[np.ndarray]]]:
+    ) -> Tuple[List[int], List[int], List[List[np.ndarray]]]:
         inds = indices or list(range(len(self)))
 
         inds = self.filter_indices(inds, subject_id, activity_id)
@@ -45,7 +45,9 @@ class Loader:
 
         items = [self.get_item(idx) for idx in inds]
 
-        return items
+        activity_labels, subject_labels, samples = zip(*items)
+
+        return list(activity_labels), list(subject_labels), list(samples)
 
     def get_item(self, index: int) -> Tuple[int, int, List[np.ndarray]]:
         activity_label = self.get_activity_label(index)

@@ -97,7 +97,19 @@ Not yet natively supported WHAR datasets can be integrated via a custom configur
 | ✅ | [HARSense](https://ieee-dataport.org/open-access/harsense-statistical-human-activity-recognition-dataset) | 2021 | - | - |
 | ⬜ | [AReM](https://archive.ics.uci.edu/dataset/366/activity+recognition+system+based+on+multisensor+data+fusion+arem) | 2016 | - | - |
 
+### Citation
 
+If you use the WHAR Datasets library in your research, please cite our paper:
+
+```
+@inproceedings{burzer2025whar,
+  title={WHAR Datasets: An Open Source Library for Wearable Human Activity Recognition},
+  author={Burzer, Maximilian and King, Tobias and Riedel, Till and Beigl, Michael and R{\"o}ddiger, Tobias},
+  booktitle={Companion of the 2025 ACM International Joint Conference on Pervasive and Ubiquitous Computing},
+  pages={1315--1322},
+  year={2025}
+}
+```
 
 <!-- > Another version of the UCI-HAR Dataset --> 
 <!-- | ⬜        | [HAPT](https://archive.ics.uci.edu/dataset/341/smartphone+based+recognition+of+human+activities+and+postural+transitions)           | 2016 | *Transition-aware human activity recognition using smartphones.*                           | -->
