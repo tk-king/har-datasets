@@ -97,7 +97,7 @@ Not yet natively supported WHAR datasets can be integrated via a custom configur
 | ✅ | [HARSense](https://ieee-dataport.org/open-access/harsense-statistical-human-activity-recognition-dataset) | 2021 | - | - |
 | ⬜ | [AReM](https://archive.ics.uci.edu/dataset/366/activity+recognition+system+based+on+multisensor+data+fusion+arem) | 2016 | - | - |
 
-### Citation
+# Citation
 
 If you use the WHAR Datasets library in your research, please cite our paper:
 
