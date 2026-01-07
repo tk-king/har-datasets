@@ -1,20 +1,21 @@
 # %%
+import json
 import os
 import time
 from typing import Dict, List
+
 from whar_datasets.core.preprocessing import (
     process_sessions_parallely,
     process_sessions_sequentially,
 )
-from whar_datasets.core.utils.loading import load_session_metadata
-from whar_datasets.support.getter import WHARDatasetID, get_whar_cfg
-import json
+from whar_datasets.core.utils.loading import load_session_df
 
+from whar_datasets.config.getter import WHARDatasetID, get_dataset_cfg
 
 dataset_ids = [
     WHARDatasetID.OPPORTUNITY,
     WHARDatasetID.UCI_HAR,
-    WHARDatasetID.WISDM_12,
+    WHARDatasetID.WISDM,
     WHARDatasetID.PAMAP2,
     WHARDatasetID.MOTION_SENSE,
     WHARDatasetID.MHEALTH,
@@ -26,7 +27,7 @@ dataset_ids = [
 
 parallel_times_dict: Dict[str, List[float]] = {
     WHARDatasetID.UCI_HAR.value: [],
-    WHARDatasetID.WISDM_12.value: [],
+    WHARDatasetID.WISDM.value: [],
     WHARDatasetID.PAMAP2.value: [],
     WHARDatasetID.MOTION_SENSE.value: [],
     WHARDatasetID.OPPORTUNITY.value: [],
@@ -39,7 +40,7 @@ parallel_times_dict: Dict[str, List[float]] = {
 
 sequential_times_dict: Dict[str, List[float]] = {
     WHARDatasetID.UCI_HAR.value: [],
-    WHARDatasetID.WISDM_12.value: [],
+    WHARDatasetID.WISDM.value: [],
     WHARDatasetID.PAMAP2.value: [],
     WHARDatasetID.MOTION_SENSE.value: [],
     WHARDatasetID.OPPORTUNITY.value: [],
@@ -54,16 +55,16 @@ num_samples = 3
 
 if __name__ == "__main__":
     for dataset_id in dataset_ids:
-        cfg = get_whar_cfg(dataset_id, datasets_dir="./notebooks/datasets/")
+        cfg = get_dataset_cfg(dataset_id, datasets_dir="./notebooks/datasets/")
         datasets_dir = cfg.datasets_dir
         dataset_dir = os.path.join(datasets_dir, cfg.dataset_id)
         cache_dir = os.path.join(dataset_dir, "cache/")
         sessions_dir = os.path.join(cache_dir, "sessions/")
-        session_metadata = load_session_metadata(cache_dir)
+        session_df = load_session_df(cache_dir)
 
         for i in range(num_samples):
             start_time = time.time()
-            process_sessions_parallely(cfg, sessions_dir, session_metadata)
+            process_sessions_parallely(cfg, sessions_dir, session_df)
             duration = time.time() - start_time
             parallel_times_dict[dataset_id.value].append(duration)
             print(f"Dataset: {dataset_id}, Sample: {i}, Duration: {duration}")
@@ -73,19 +74,19 @@ if __name__ == "__main__":
         del dataset_dir
         del cache_dir
         del sessions_dir
-        del session_metadata
+        del session_df
 
     for dataset_id in dataset_ids:
-        cfg = get_whar_cfg(dataset_id, datasets_dir="./notebooks/datasets/")
+        cfg = get_dataset_cfg(dataset_id, datasets_dir="./notebooks/datasets/")
         datasets_dir = cfg.datasets_dir
         dataset_dir = os.path.join(datasets_dir, cfg.dataset_id)
         cache_dir = os.path.join(dataset_dir, "cache/")
         sessions_dir = os.path.join(cache_dir, "sessions/")
-        session_metadata = load_session_metadata(cache_dir)
+        session_df = load_session_df(cache_dir)
 
         for i in range(num_samples):
             start_time = time.time()
-            process_sessions_sequentially(cfg, sessions_dir, session_metadata)
+            process_sessions_sequentially(cfg, sessions_dir, session_df)
             duration = time.time() - start_time
             sequential_times_dict[dataset_id.value].append(duration)
             print(f"Dataset: {dataset_id}, Sample: {i}, Duration: {duration}")
@@ -95,7 +96,7 @@ if __name__ == "__main__":
         del dataset_dir
         del cache_dir
         del sessions_dir
-        del session_metadata
+        del session_df
 
     with open("parallel_times.json", "w") as f:
         json.dump(parallel_times_dict, f)

@@ -4,8 +4,8 @@ from typing import Dict, List
 
 import pandas as pd
 from tqdm import tqdm
-from whar_datasets.core.utils.loading import load_session_metadata
-from whar_datasets.support.getter import WHARDatasetID, get_whar_cfg
+from whar_datasets.core.utils.loading import load_session_df
+from whar_datasets.config.getter import WHARDatasetID, get_dataset_cfg
 import json
 
 
@@ -36,22 +36,22 @@ dict: Dict[str, List[float]] = {
 }
 
 for dataset_id in dataset_ids:
-    cfg = get_whar_cfg(dataset_id, datasets_dir="./notebooks/datasets/")
+    cfg = get_dataset_cfg(dataset_id, datasets_dir="./notebooks/datasets/")
     datasets_dir = cfg.common.datasets_dir
     dataset_dir = os.path.join(datasets_dir, cfg.dataset.info.id)
     cache_dir = os.path.join(dataset_dir, "cache/")
     sessions_dir = os.path.join(cache_dir, "sessions/")
-    session_metadata = load_session_metadata(cache_dir)
+    session_df = load_session_df(cache_dir)
 
-    loop = tqdm(session_metadata["session_id"])
+    loop = tqdm(session_df["session_id"])
     loop.set_description(dataset_id.value)
 
     for session_id in loop:
         assert isinstance(session_id, int)
 
         # get and save session
-        session_path = os.path.join(sessions_dir, f"session_{session_id}.parquet")
-        session_df = pd.read_parquet(session_path)
+        session_path = os.path.join(sessions_dir, f"session_{session_id}.csv")
+        session_df = pd.read_csv(session_path)
 
         dict[dataset_id.value].append(session_df.shape[0])
 
