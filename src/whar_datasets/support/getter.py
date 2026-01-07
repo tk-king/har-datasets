@@ -14,7 +14,7 @@ from whar_datasets.support.configs.cfg_daphnet import cfg_daphnet
 from whar_datasets.support.configs.cfg_har_sense import cfg_har_sense
 
 
-class WHARDatasetID(Enum):
+class WHARDatasetID(str, Enum):
     UCI_HAR = "uci_har"
     WISDM = "wisdm"
     PAMAP2 = "pamap2"
