@@ -67,7 +67,7 @@ class SamplingStep(ProcessingStep):
         )
 
         samples = prepare_windows(
-            self.cfg, norm_params, self.window_df, self.windows_dir
+            self.cfg, norm_params, self.window_df, self.windows_dir, windows=windows
         )
 
         return samples

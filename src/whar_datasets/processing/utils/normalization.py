@@ -13,6 +13,8 @@ NormParams: TypeAlias = Tuple[Dict[str, float], Dict[str, float]]
 def get_normalize(
     cfg: WHARConfig, norm_params: NormParams | None
 ) -> Callable[[pd.DataFrame], pd.DataFrame]:
+    if cfg.normalization is None:
+        return lambda df: df  # noqa: E731
     match cfg.normalization:
         case NormType.MIN_MAX_PER_SAMPLE:
             normalize = partial(min_max, norm_params=None)
@@ -40,6 +42,8 @@ def get_norm_params(
     logger.info("Getting normalization parameters")
 
     # return None if per sample normalization
+    if cfg.normalization is None:
+        return None
     if (
         cfg.normalization == NormType.MIN_MAX_PER_SAMPLE
         or cfg.normalization == NormType.STD_PER_SAMPLE

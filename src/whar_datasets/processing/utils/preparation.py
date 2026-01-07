@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, cast
 
 import dask.dataframe as dd
 import numpy as np
@@ -21,6 +21,7 @@ def prepare_windows_seq(
     norm_params: NormParams | None,
     window_df: pd.DataFrame,
     windows_dir: Path,
+    windows: Dict[str, pd.DataFrame] | None = None,
 ) -> Dict[str, List[np.ndarray]]:
     logger.info("Normalizing and transforming windows")
 
@@ -28,7 +29,9 @@ def prepare_windows_seq(
     transform = get_transform(cfg)
 
     def prepare(window_id: str) -> Tuple[str, List[np.ndarray]]:
-        window = load_window(windows_dir, window_id)
+        window = windows.get(window_id) if windows is not None else None
+        if window is None:
+            window = load_window(windows_dir, window_id)
         normalized = normalize(window).values
         transformed = transform(normalized)
         return window_id, [normalized, *transformed]
@@ -48,6 +51,7 @@ def prepare_windows_para(
     norm_params: NormParams | None,
     window_df: pd.DataFrame,
     windows_dir: Path,
+    windows: Dict[str, pd.DataFrame] | None = None,
 ) -> Dict[str, List[np.ndarray]]:
     logger.info("Normalizing and transforming windows (parallelized)")
 
@@ -55,6 +59,35 @@ def prepare_windows_para(
     transform = get_transform(cfg)
 
     relevant_ids = set(window_df["window_id"])
+
+    if windows is not None:
+        # Avoid re-reading parquet when windows were already loaded in-memory.
+        def process_window_id(window_id: str) -> Tuple[str, List[np.ndarray]] | None:
+            window = windows.get(window_id)
+            if window is None:
+                return None
+            normalized = normalize(window).values
+            transformed = transform(normalized)
+            return window_id, [normalized, *transformed]
+
+        tasks = [
+            delayed(process_window_id)(window_id)
+            for window_id in windows.keys()
+            if window_id in relevant_ids
+        ]
+
+        pbar = ProgressBar()
+        pbar.register()
+        results = cast(List[Tuple[str, List[np.ndarray]] | None], list(compute(*tasks)))
+        pbar.unregister()
+
+        prepared: Dict[str, List[np.ndarray]] = {}
+        for item in results:
+            if item is None:
+                continue
+            window_id, data = item
+            prepared[window_id] = data
+        return prepared
 
     # Read parquet with dask to handle partitions efficiently
     ddf = dd.read_parquet(windows_dir / "windows.parquet", engine="pyarrow")
