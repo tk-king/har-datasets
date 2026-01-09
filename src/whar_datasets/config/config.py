@@ -32,6 +32,7 @@ class WHARConfig(BaseModel):
 
     # postprocessing fields
     val_percentage: float = 0.2  # portion of training data used for validation
+    test_percentage: float = 0.2  # portion of overall data used for testing (random split)
     num_subject_groups: Optional[int] = 10  # used for leave-group-out-splitting
     num_folds: Optional[int] = 10  # used for k-fold-splitting
     normalization: Optional[NormType] = NormType.STD_GLOBALLY
