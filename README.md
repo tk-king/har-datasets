@@ -24,6 +24,7 @@ from whar_datasets import (
     LOSOSplitter,
     PostProcessingPipeline,
     PreProcessingPipeline,
+    RandomSplitter,
     TorchAdapter,
     WHARDatasetID,
     get_dataset_cfg,
@@ -40,6 +41,10 @@ activity_df, session_df, window_df = pre_pipeline.run()
 splitter = LOSOSplitter(cfg)
 splits = splitter.get_splits(session_df, window_df)
 split = splits[0]
+
+# alternatively: random train/val/test split with ratios
+# splitter = RandomSplitter(cfg, train_percentage=0.7, val_percentage=0.1, test_percentage=0.2)
+# split = splitter.get_splits(session_df, window_df)[0]
 
 # create and run post-processing pipeline for the specific split
 post_pipeline = PostProcessingPipeline(cfg, pre_pipeline, window_df, split.train_indices)

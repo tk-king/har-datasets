@@ -7,12 +7,14 @@ from whar_datasets.processing.pipeline_pre import PreProcessingPipeline
 from whar_datasets.splitting.splitter_kfold import KFoldSplitter
 from whar_datasets.splitting.splitter_lgso import LGSOSplitter
 from whar_datasets.splitting.splitter_loso import LOSOSplitter
+from whar_datasets.splitting.splitter_random import RandomSplitter
 
 __all__ = [
     "Loader",
     "KFoldSplitter",
     "LOSOSplitter",
     "LGSOSplitter",
+    "RandomSplitter",
     "PreProcessingPipeline",
     "PostProcessingPipeline",
     "get_dataset_cfg",
