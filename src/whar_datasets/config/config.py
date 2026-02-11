@@ -15,7 +15,7 @@ class WHARConfig(BaseModel):
     num_of_channels: int
 
     # flow fields
-    datasets_dir: str  # directory to cache datasets
+    datasets_dir: str = "./datasets/"  # directory to cache datasets
     in_memory: bool = True  # whether to load the dataset fully into memory
     parallelize: bool = False  # whether to parallelize preprocessing
 

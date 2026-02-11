@@ -10,6 +10,7 @@ from whar_datasets.config.cfg_motion_sense import cfg_motion_sense
 from whar_datasets.config.cfg_opportunity import cfg_opportunity
 from whar_datasets.config.cfg_pamap2 import cfg_pamap2
 from whar_datasets.config.cfg_uci_har import cfg_uci_har
+from whar_datasets.config.cfg_w_har import cfg_w_har
 from whar_datasets.config.cfg_wisdm import cfg_wisdm
 from whar_datasets.config.config import WHARConfig
 
@@ -25,6 +26,7 @@ class WHARDatasetID(Enum):
     KU_HAR = "ku_har"
     DAPHNET = "daphnet"
     HAR_SENSE = "har_sense"
+    W_HAR = "w_har"
 
 
 har_dataset_dict: Dict[WHARDatasetID, WHARConfig] = {
@@ -38,11 +40,12 @@ har_dataset_dict: Dict[WHARDatasetID, WHARConfig] = {
     WHARDatasetID.KU_HAR: (cfg_ku_har),
     WHARDatasetID.DAPHNET: (cfg_daphnet),
     WHARDatasetID.HAR_SENSE: (cfg_har_sense),
+    WHARDatasetID.W_HAR: (cfg_w_har),
 }
 
 
 def get_dataset_cfg(
-    dataset_id: WHARDatasetID, datasets_dir: str = "./datasets"
+    dataset_id: WHARDatasetID, datasets_dir: str = "./datasets/"
 ) -> WHARConfig:
     # load dataset-specific config and parser
     cfg = har_dataset_dict[dataset_id]
