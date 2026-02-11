@@ -232,5 +232,4 @@ cfg_uci_har = WHARConfig(
     ],
     window_time=2.56,
     window_overlap=0.5,
-    # Training (split info)
 )

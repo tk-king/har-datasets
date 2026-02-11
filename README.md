@@ -88,7 +88,7 @@ Not yet natively supported WHAR datasets can be integrated via a custom configur
 | ⬜ | [HARTH](https://archive.ics.uci.edu/dataset/779/harth) | 2021 | *HARTH: A Human Activity Recognition Dataset for Machine Learning* | 132 |
 | ⬜ | [MobiFall](https://bmi.hmu.gr/the-mobifall-and-mobiact-datasets-2/#) | 2014 | *The MobiFall Dataset: Fall Detection and Classification with a Smartphone* | 128 |
 | ⬜ | [FallAllD](https://www.kaggle.com/datasets/harnoor343/fall-detection-accelerometer-data) | 2020 | *FallAllD: An Open Dataset of Human Falls and Activities of Daily Living for Classical and Deep Learning Applications* | 115 |
-| ⬜ | [w-HAR](https://github.com/gmbhat/human-activity-recognition) | 2020 | *w-HAR: An Activity Recognition Dataset and Framework Using Low-Power Wearable Devices* | 98 |
+| ✅ | [w-HAR](https://github.com/gmbhat/human-activity-recognition) | 2020 | *w-HAR: An Activity Recognition Dataset and Framework Using Low-Power Wearable Devices* | 98 |
 | ⬜ | [HAR70+](https://archive.ics.uci.edu/dataset/780/har70) | 2021 | *A machine learning classifier for detection of physical activity types and postures during free-living* | 55 |
 | ⬜ | [TNDA-HAR](https://ieee-dataport.org/open-access/tnda-har-0) | 2022 | *Deep transfer learning with graph neural network for sensor-based human activity recognition* | 48 |
 | ⬜ | CAPTURE-24 | 2024 | *CAPTURE-24: A large dataset of wrist-worn activity tracker data collected in the wild for human activity recognition* | 45 |
